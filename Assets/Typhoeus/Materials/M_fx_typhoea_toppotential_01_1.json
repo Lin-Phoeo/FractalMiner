@@ -1,0 +1,1018 @@
+{
+  "m_Shader": {
+    "m_FileID": 4,
+    "m_PathID": 1546063667905006563,
+    "Name": "",
+    "IsNull": false
+  },
+  "m_SavedProperties": {
+    "m_TexEnvs": {
+      "_BlendTex": {
+        "m_Texture": {
+          "m_FileID": 2,
+          "m_PathID": 2726373702601388471,
+          "Name": "T_fx_flow_903_D",
+          "IsNull": false
+        },
+        "m_Scale": {
+          "X": 2.5,
+          "Y": 2.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_DissolveTex": {
+        "m_Texture": {
+          "m_FileID": 0,
+          "m_PathID": 0,
+          "Name": "",
+          "IsNull": true
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_DisturbTex1": {
+        "m_Texture": {
+          "m_FileID": 5,
+          "m_PathID": -1647025128171678556,
+          "Name": "T_fx_flow_01_M",
+          "IsNull": false
+        },
+        "m_Scale": {
+          "X": 5.0,
+          "Y": 3.4
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_EmissionTex": {
+        "m_Texture": {
+          "m_FileID": 0,
+          "m_PathID": 0,
+          "Name": "",
+          "IsNull": true
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_MainTex": {
+        "m_Texture": {
+          "m_FileID": 3,
+          "m_PathID": -4213043092894106532,
+          "Name": "T_fx_flow_904_D",
+          "IsNull": false
+        },
+        "m_Scale": {
+          "X": 2.5,
+          "Y": 2.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_MaskTex": {
+        "m_Texture": {
+          "m_FileID": 1,
+          "m_PathID": -54993448065597744,
+          "Name": "T_fx_mask_weiba_901_M",
+          "IsNull": false
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_NormalMap": {
+        "m_Texture": {
+          "m_FileID": 0,
+          "m_PathID": 0,
+          "Name": "",
+          "IsNull": true
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_OffsetMaskTex": {
+        "m_Texture": {
+          "m_FileID": 0,
+          "m_PathID": 0,
+          "Name": "",
+          "IsNull": true
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      },
+      "_OffsetTex": {
+        "m_Texture": {
+          "m_FileID": 0,
+          "m_PathID": 0,
+          "Name": "",
+          "IsNull": true
+        },
+        "m_Scale": {
+          "X": 1.0,
+          "Y": 1.0
+        },
+        "m_Offset": {
+          "X": 0.0,
+          "Y": 0.0
+        }
+      }
+    },
+    "m_Ints": {},
+    "m_Floats": {
+      "InteriorParallaxMode": 0.0,
+      "_Add_Noise": 0.0,
+      "_AdvancedOptions": 0.0,
+      "_AlbedoAffectEmissive": 1.0,
+      "_AlphaClipThreshold": 0.5,
+      "_AlphaDstBlend": 10.0,
+      "_AlphaMaskChannel": 0.0,
+      "_AlphaSrcBlend": 1.0,
+      "_AnimateVertexBranchDensity": 1.2,
+      "_AnimateVertexBranchFrequency": 7.0,
+      "_AnimateVertexBranchIntensity": 0.25,
+      "_AnimateVertexBranchLeanFactor": 0.5,
+      "_AnimateVertexBranchStiffness": 1.0,
+      "_AnimateVertexHasPivot": 0.0,
+      "_AnimateVertexTrunkFrequency": 2.5,
+      "_AnimateVertexTrunkIntensity": 1.0,
+      "_AnimateVertexTrunkLeanFactor": 0.5,
+      "_AnimateVertexTrunkThreshold": 0.0,
+      "_AntiFlicker": 0.0,
+      "_B_UNLOAD_ROT_TEX": 0.0,
+      "_B_animateFirstFrame": 0.0,
+      "_B_autoPlayback": 0.0,
+      "_B_pscaleAreInPosA": 0.0,
+      "_B_stretchByVel": 0.0,
+      "_B_surfaceNormals": 0.0,
+      "_BaseColorBrighterScale": 1.0,
+      "_BaseColorSection": 0.0,
+      "_BaseColorTintCover": 0.0,
+      "_BasePbrCfgSection": 0.0,
+      "_BasePbrMapSection": 0.0,
+      "_BasePbrMapUVSet": 0.0,
+      "_BaseProperties": 0.0,
+      "_BaseTextureMapCount": 0.0,
+      "_BaseUVSet": 0.0,
+      "_Bi_Disturb": 0.0,
+      "_Bi_Offset": 0.0,
+      "_BlendMeshNormalAndTangent": 0.0,
+      "_BlendMode": 1.0,
+      "_BlendTexMipmapBias": 0.0,
+      "_BlendTexUVRotate": 0.0,
+      "_BlendTexUseDisturb": 1.0,
+      "_BlendUVSet": 1.0,
+      "_BranchWindUseLengthFactor": 0.0,
+      "_BrightDarkRatio": 0.15,
+      "_Brightness": 1.0,
+      "_ColorMask": 15.0,
+      "_CommonVATAntiGhosting": 1.0,
+      "_CommonVATAutoPlay": 1.0,
+      "_CommonVATBlendNormal": 0.0,
+      "_CommonVATBoneCount": 0.0,
+      "_CommonVATCurrentFrame": 0.0,
+      "_CommonVATFPS": 30.0,
+      "_CullMode": 2.0,
+      "_CurtainParallaxRoughness": 0.0,
+      "_CurtainParallaxShadowStrength": 1.0,
+      "_CurtainTillingScale": 1.0,
+      "_CutOffPosY": 0.0,
+      "_DeformDetailNormalIntensity": 1.0,
+      "_DeformHeightScale": 0.1,
+      "_DeformMarchStep": 12.0,
+      "_DeformNormalScale": 1.0,
+      "_DetailBaseColorBrighterScale": 1.0,
+      "_DetailFalloffEnd": 800.0,
+      "_DetailFalloffStart": 750.0,
+      "_DetailMaskMode": 0.0,
+      "_DetailMode": 0.0,
+      "_DetailNormalIntensity": 1.0,
+      "_DetailPBRIntensity": 1.0,
+      "_DetailUVSet": 0.0,
+      "_DirectionTendency": 0.0,
+      "_DisableParticleInstanceColor": 1.0,
+      "_DisableVertColor": 1.0,
+      "_DisableVerticalFlow": 0.0,
+      "_DisableVerticalOcclusion": 0.0,
+      "_DisableZTest": 0.0,
+      "_DisableZWrite": 0.0,
+      "_DissolveEdgeSharp": 0.0,
+      "_DissolveEmissiveEdge": 0.0,
+      "_DissolveScheduleOffset": 0.0,
+      "_DissolveUVSet": 0.0,
+      "_DissolveUseViewUV": 0.0,
+      "_DisturbTex1Normal": 0.0,
+      "_DisturbUIntensity1": 0.2,
+      "_DisturbUVRotate1": 0.0,
+      "_DisturbUVSet1": 0.0,
+      "_DisturbVIntensity1": 0.0,
+      "_DitherScale": 1.0,
+      "_DitherTransparentAlpha": 1.0,
+      "_DitherTransparentOffset": 0.1,
+      "_DstBlend": 10.0,
+      "_EdgeColorMode": 1.0,
+      "_EdgeDistance": 0.01,
+      "_EdgeDistanceOffset": 2.0,
+      "_EmissiveAnimInterval": 1.0,
+      "_EmissiveAnimRandom": 0.0,
+      "_EmissiveAnimSpeed": 0.0,
+      "_EmissiveFresnelBias": 0.0,
+      "_EmissiveFresnelPower": 1.0,
+      "_EmissiveFresnelUseVertexNormal": 0.0,
+      "_EmissiveFresnelVertexG": 0.0,
+      "_EmissiveMapTilling": 1.0,
+      "_EmissiveMaskChannel": 0.0,
+      "_EmissiveMinBrightness": 0.0,
+      "_EmissiveNoMapUseFresnel": 0.0,
+      "_EmissiveSweepAlbedoScale": 0.0,
+      "_EmissiveSweepFalloff": 1.0,
+      "_EmissiveSweepHeightOffset": 0.0,
+      "_EmissiveSweepInterval": 3.0,
+      "_EmissiveSweepRandom": 0.0,
+      "_EmissiveSweepSpeed": 3.0,
+      "_EmissiveSweepWidth": 0.8,
+      "_EmissiveType": 0.0,
+      "_EmissiveUVSet": 0.0,
+      "_EnableAlphaTest": 0.0,
+      "_EnableBakedEmissive": 0.0,
+      "_EnableClothNormalInfluence": 1.0,
+      "_EnableCommonVAT": 0.0,
+      "_EnableDetailMap": 0.0,
+      "_EnableEmissiveAlbedo": 1.0,
+      "_EnableEmissiveAnim": 0.0,
+      "_EnableEmissiveAnimFlicker": 0.0,
+      "_EnableEmissiveAnimSweep": 0.0,
+      "_EnableEmissiveMap": 0.0,
+      "_EnableFakeGlint": 0.0,
+      "_EnableFakeVolume": 0.0,
+      "_EnableFoliageTrunk": 0.0,
+      "_EnableGpuCloth": 0.0,
+      "_EnableHoudiniVAT": 0.0,
+      "_EnableInstancing": 0.0,
+      "_EnableInteriorMapping": 0.0,
+      "_EnableMatcap": 0.0,
+      "_EnableMovingBamboo": 0.0,
+      "_EnableNormalMap": 0.0,
+      "_EnableParallaxMap": 0.0,
+      "_EnablePerDrawFromSSBO": 0.0,
+      "_EnableRandomFlicker": 1.0,
+      "_EnableSimpleVertexAnim": 0.0,
+      "_EnableSubsurface": 0.0,
+      "_EnableSubsurfaceThicknessMap": 0.0,
+      "_EnableTerrainBlend": 0.0,
+      "_EnableTransparentMV": 0.0,
+      "_EnableTriChannelMask": 0.0,
+      "_EnableTrunkRamp": 0.0,
+      "_EnableUVAnimation": 0.0,
+      "_EnableVertDepthClamp": 0.0,
+      "_ExpIntensity": 0.0,
+      "_ExpThreshold": 1.0,
+      "_FakeCrackDepth": 0.0,
+      "_FakeCrackHeightScale": 0.0,
+      "_FakeCrackLayerTiling": 1.0,
+      "_FakeCrackMarchSteps": 1.0,
+      "_FakeCrackUVSet": 0.0,
+      "_FakeCrackUseLayerBlend": 0.0,
+      "_FakeDustDepth": 0.0,
+      "_FakeDustLayerTiling": 1.0,
+      "_FakeDustUVSet": 0.0,
+      "_FakeDustUseLayerBlend": 0.0,
+      "_FakeRefractionDepth": 0.0,
+      "_FakeRefractionHeightScale": 0.0,
+      "_FakeRefractionLayerTiling": 1.0,
+      "_FakeRefractionMarchSteps": 1.0,
+      "_FakeRefractionUVSet": 0.0,
+      "_FakeRefractionUseLayerBlend": 0.0,
+      "_FakeVolumeFresnelStrength": 0.0,
+      "_FakeVolumeIoR": 1.0,
+      "_FakeVolumeMode": 0.0,
+      "_FresnelAffectOpacity": 0.8,
+      "_FresnelBias": 0.1,
+      "_FresnelFlip": 0.001,
+      "_FresnelPower": 3.73,
+      "_GlintFadeDistance": 5.0,
+      "_GlintScale": 6.0,
+      "_GlintStrength": 1.0,
+      "_GlintThreshold": 0.98,
+      "_GlintTopBlendSmoothness": 0.5,
+      "_GlintTopBlendThreshold": 0.5,
+      "_GlintUVChannel": 0.0,
+      "_HeightColorGradientAffectAlpha": 0.0,
+      "_HeightColorGradientAffectAlpha2": 0.0,
+      "_HeightColorGradientAffectColor": 1.0,
+      "_HeightColorGradientAffectColor2": 0.0,
+      "_HeightColorGradientLocationDown": 1.42,
+      "_HeightColorGradientLocationDown2": -10.0,
+      "_HeightColorGradientLocationTop": 100.0,
+      "_HeightColorGradientLocationTop2": 0.3,
+      "_HeightColorGradientSmooth": 0.78,
+      "_HeightColorGradientSmooth2": 0.3,
+      "_HlodBakeMaxEmissiveIntensity": 0.0,
+      "_HoudiniVATType": 0.0,
+      "_HueShift": 0.0,
+      "_IgnorePostExposure": 1.0,
+      "_InParticle": 0.0,
+      "_InteriorCurtainDistance": 0.02,
+      "_InteriorCurtainHeight": 0.0,
+      "_InteriorMappingIoR": 1.0,
+      "_InteriorMappingTillingScale": 1.0,
+      "_InteriorRoomDepth": 0.5,
+      "_InteriorRotation": 0.0,
+      "_InteriorTextureRoughness": 0.0,
+      "_InteriorUVSet": 0.0,
+      "_Kite": 0.0,
+      "_Layer1AOStrength": 1.0,
+      "_Layer1BaseNormalIntensity": 0.0,
+      "_Layer1BumpScale": 1.0,
+      "_Layer1ColorBrighterScale": 1.0,
+      "_Layer1FuzzyBrightPower": 6.0,
+      "_Layer1FuzzyCoreDarkness": 0.2,
+      "_Layer1FuzzyDarkPower": 1.0,
+      "_Layer1FuzzyEdgeBrightness": 1.0,
+      "_Layer1FuzzyEdgeShadowIntensity": 1.0,
+      "_Layer1FuzzyEdgeShadowOffset": 0.0,
+      "_Layer1FuzzyEdgeShadowRange": 0.01,
+      "_Layer1FuzzyNormalStrength": 0.0,
+      "_Layer1Metallic": 0.0,
+      "_Layer1Saturation": 0.0,
+      "_Layer1Tilling": 1.0,
+      "_LayerBlend": 0.0,
+      "_LayerBlendHeight": 1.0,
+      "_LayerBlendHeightTransition": 1.0,
+      "_LayerBlendMaskParallaxPBR": 0.0,
+      "_LayerBlendMaskParallaxPBRStrength": 0.0,
+      "_LayerBlendMaskType": 0.0,
+      "_LayerBlendMaskUVType": 0.0,
+      "_LayerBlendMoss": 0.0,
+      "_LayerBlendNoise": 0.0,
+      "_LayerBlendNoiseLevel": 0.0,
+      "_LayerBlendNoiseNormalSmoothness": 1.0,
+      "_LayerBlendNoiseNormalStrength": 1.0,
+      "_LayerBlendNoiseThreshold": 1.0,
+      "_LayerBlendType": 0.0,
+      "_LayerBlendUVType": 0.0,
+      "_LayerBlendVerticalFlowThreshold": 0.0,
+      "_LayerMetallicType": 0.0,
+      "_LocalPivortSpace": 0.0,
+      "_MVDstColorBlend": 6.0,
+      "_MVSrcColorBlend": 3.0,
+      "_MacroNormalMapAOStrength": 0.0,
+      "_MacroNormalMapScale": 1.0,
+      "_MainDirectionAngle": 0.0,
+      "_MainProperties": 0.0,
+      "_MainTexProperties": 0.0,
+      "_MainTexUVRotate": 0.0,
+      "_MainTexUseDisturb": 1.0,
+      "_MainTexUseFlowmap": 0.0,
+      "_MainUVSet": 1.0,
+      "_MaskAOGStrength": 1.0,
+      "_MaskAlbedoBUVTilling": 1.0,
+      "_MaskAlbedoGUVTilling": 1.0,
+      "_MaskBOffset": 0.0,
+      "_MaskBScale": 0.0,
+      "_MaskGOffset": 0.0,
+      "_MaskGScale": 0.0,
+      "_MaskMetallicB": 0.0,
+      "_MaskMetallicG": 0.0,
+      "_MaskMetallicR": 0.0,
+      "_MaskNormalGStrength": 1.0,
+      "_MaskROffset": 0.0,
+      "_MaskRScale": 0.0,
+      "_MaskRoghnessB": 0.25,
+      "_MaskRoghnessBMax": 1.0,
+      "_MaskRoghnessBMin": 0.0,
+      "_MaskRoghnessG": 0.25,
+      "_MaskRoghnessGMax": 1.0,
+      "_MaskRoghnessGMin": 0.0,
+      "_MaskRoghnessR": 0.25,
+      "_MaskTexUVRotate": 0.0,
+      "_MaskTexUseDisturb": 0.0,
+      "_MaskUVSet": 0.0,
+      "_MatCapIgnorePostExposure": 1.0,
+      "_MatcapMapStrength": 0.2,
+      "_MaxSubsurfaceThickness": 1.0,
+      "_Metallic": 0.0,
+      "_MinSubsurfaceThickness": 0.0,
+      "_MovingBambooTrunkCurve": 0.3,
+      "_MovingBambooTrunkIntensity": 1.0,
+      "_NearCameraFadeDistanceEnd": 10.0,
+      "_NearCameraFadeDistanceEnd2": 100.0,
+      "_NearCameraFadeDistanceStart": 0.001,
+      "_NearCameraFadeDistanceStart2": 120.0,
+      "_NoiseOffsetIntensity": 1.0,
+      "_NoiseOffsetTexTilling": 0.12,
+      "_NormalMapUVRotate": 0.0,
+      "_NormalMapUVSet": 0.0,
+      "_NormalScale": 1.0,
+      "_OcclusionStrength": 1.0,
+      "_OffsetIntensity": 0.0,
+      "_OffsetMaskPower": 0.0,
+      "_OffsetSwitchDir": 0.0,
+      "_OffsetUVSet": 0.0,
+      "_ParallaxAnimRandom": 0.0,
+      "_ParallaxAnimSpeed": 0.0,
+      "_ParallaxBrightInnerRadius": 10.0,
+      "_ParallaxBrightOuterRadius": 20.0,
+      "_ParallaxBrightStrength": 1.0,
+      "_ParallaxCharPos": 0.0,
+      "_ParallaxDeform": 0.0,
+      "_ParallaxDeformApplyLayerBlend": 0.0,
+      "_ParallaxFresnelStrength": 1.0,
+      "_ParallaxIgnorePostExposure": 1.0,
+      "_ParallaxIntensity": 1.0,
+      "_ParallaxLerpSchedule": 0.0,
+      "_ParallaxMapUVType": 0.0,
+      "_ParallaxMappingType": 0.0,
+      "_ParallaxMarchNum": 2.0,
+      "_ParallaxMaskByLayerBlend": 0.0,
+      "_ParallaxMaskChannel": 0.0,
+      "_ParallaxMaskMapColorStrength": 1.0,
+      "_ParallaxMinBrightness": 0.0,
+      "_ParallaxNoiseMapTilling": 1.0,
+      "_ParallaxSignControl": 0.0,
+      "_ParallaxSignLerpFactor2": 0.0,
+      "_ParallaxStrength": 0.0,
+      "_ParallaxTilling": 1.0,
+      "_PorosityFactorX": 0.2,
+      "_PorosityFactorY": 0.4,
+      "_PorosityFactorZ": 0.0,
+      "_PorositySection": 1.0,
+      "_ProcedureAlpha": 1.0,
+      "_ReceiveDecals": 1.0,
+      "_RenderTransparentAfterDOF": 0.0,
+      "_Responsive": 0.0,
+      "_RopeAnchorAdjust": 3.0,
+      "_RoughnessMax": 1.0,
+      "_RoughnessMin": 0.0,
+      "_Saturation": 1.0,
+      "_ScreenUVUseDepth": 1.0,
+      "_SelfRotationRange": 0.0,
+      "_SelfRotationSpeed": 5.0,
+      "_SetTriChannelTextureColorMobile": 0.0,
+      "_ShadingModel": 0.0,
+      "_ShadowBias": 0.0,
+      "_ShadowCullMode": 2.0,
+      "_SimpleVertexAnimationType": 0.0,
+      "_SimpleVertexAnimationWindFreq": 7.0,
+      "_SimpleVertexAnimationWindIntensity": 1.0,
+      "_SimpleVertexAnimationWindSoftFactor": 1.0,
+      "_SoftBias": 0.0,
+      "_SoftDistance": 0.001,
+      "_Specular": 0.5,
+      "_SrcBlend": 1.0,
+      "_Stability": 1.0,
+      "_StencilOpGBuffer": 2.0,
+      "_StencilOpPreZ": 0.0,
+      "_StencilRef": 32.0,
+      "_SubsurfaceApplyLayerBlend": 0.0,
+      "_SubsurfaceApplyLayerBlendInverse": 0.0,
+      "_SubsurfaceCurvatureOffset": 0.0,
+      "_SubsurfaceCurvatureScale": 1.0,
+      "_SubsurfaceEnableSelfShadowBias": 0.0,
+      "_SubsurfaceHue": 1.0,
+      "_SubsurfaceIndirect": 1.0,
+      "_SubsurfaceMapMaskUVType": 0.0,
+      "_SubsurfaceNormalStrength": 1.0,
+      "_SubsurfaceNormalWorldRange": 1.0,
+      "_SubsurfaceParallaxFresnel": 0.0,
+      "_SubsurfaceParallaxMappingDistance": 0.0,
+      "_SubsurfaceParallaxMappingLod": 0.0,
+      "_SubsurfaceProfileApplyLayerBlend": 0.0,
+      "_SubsurfaceProfileApplyLayerBlendInverse": 0.0,
+      "_SubsurfaceSaturation": 1.0,
+      "_SubsurfaceSelfShadowBias": 0.0,
+      "_SubsurfaceShadingMode": 0.0,
+      "_SubsurfaceThicknessApproxMode": 0.0,
+      "_SubsurfaceThicknessMapChannel": 0.0,
+      "_SubsurfaceValue": 1.0,
+      "_SubsurfaceWrapNoLBias": 0.0,
+      "_SurfaceType": 1.0,
+      "_SwitchBranchWindMode": 0.0,
+      "_SwitchTriChannelTexture": 0.0,
+      "_TAAUNormalBiasReverse": 0.0,
+      "_TerrainBlendFactor": 1.0,
+      "_TerrainBlendFallOff": 1.0,
+      "_TerrainBlendFromHeight": 0.0,
+      "_TerrainBlendHeightOffset": 0.0,
+      "_TerrainBlendLocalHeightOffset": 0.0,
+      "_TerrainBlendLocalHeightTransition": 0.01,
+      "_TerrainBlendNoise": 0.0,
+      "_TerrainBlendNoiseLerp": 0.5,
+      "_TerrainBlendNormalFactor": 0.0,
+      "_TerrainBlendWithDeform": 0.0,
+      "_TerrainWetBaseColorFactor": 0.5,
+      "_TerrainWetBlendFactor": 1.0,
+      "_TerrainWetBlendFallOff": 1.0,
+      "_TerrainWetRoughnessFactor": 0.3,
+      "_TextureFormat": 1.0,
+      "_TintColorAlpha": 6.0,
+      "_TintColorIntensity": 70.0,
+      "_TopBlendSmoothness": 0.5,
+      "_TopBlendThreshold": 0.5,
+      "_TopBlendWithBumpMap": 0.0,
+      "_TransparentSortPriority": 1.0,
+      "_TrunkRampIntensity": 1.0,
+      "_TrunkRampRange": 0.0,
+      "_TrunkRampTransitionRange": 0.01,
+      "_TrunkVertexAoStrength": 1.0,
+      "_TwoSidedNormal": 1.0,
+      "_UseBlend": 0.0,
+      "_UseCutOff": 0.0,
+      "_UseDeferredRendering": 1.0,
+      "_UseDissolve": 0.0,
+      "_UseDisturb": 1.0,
+      "_UseEdgeColor": 0.0,
+      "_UseEmission": 0.0,
+      "_UseFog": 1.0,
+      "_UseFresnel": 1.0,
+      "_UseHeightColorGradient": 0.0,
+      "_UseMacroNormalMap": 0.0,
+      "_UseMainTexAsAlpha": 0.0,
+      "_UseMask": 1.0,
+      "_UseMaskTexAsAlpha": 0.0,
+      "_UseNearCameraFade": 0.0,
+      "_UseParallaxMask": 0.0,
+      "_UsePosYAsScreenV": 0.0,
+      "_UseScreenUV": 0.0,
+      "_UseSimpleSubsurfaceProfile": 0.0,
+      "_UseSoftBlend": 0.0,
+      "_UseSubsurfaceProfile": 0.0,
+      "_UseVertexColorMask": 0.0,
+      "_UseVertexOffset": 0.0,
+      "_UseVertexOffsetMask": 0.0,
+      "_UseWorldSpaceParallaxMask": 0.0,
+      "_Use_Custom_Anchor": 0.0,
+      "_Use_Custom_WindDir": 0.0,
+      "_Use_Gravity": 0.0,
+      "_VertCameraOffset": 0.0,
+      "_VerticalOcclusionDepthBias": 0.0,
+      "_WetBlendIgnoreDepth": 0.0,
+      "_WorldParallaxAdditionalLightMaskChannel": 0.0,
+      "_ZTest": 4.0,
+      "_ZTestGBuffer": 4.0,
+      "_ZWrite": 0.0,
+      "_ZWriteAlphaThreshold": 0.5,
+      "_ZWriteGBuffer": 1.0,
+      "_ZWriteWithAlphaTest": 0.0,
+      "_boundMaxX": 0.0,
+      "_boundMaxY": 0.0,
+      "_boundMaxZ": 0.0,
+      "_boundMinX": 0.0,
+      "_boundMinY": 0.0,
+      "_boundMinZ": 0.0,
+      "_displayFrame": 0.0,
+      "_frameCount": 0.0,
+      "_gameTimeAtFirstFrame": 0.0,
+      "_globalPscaleMul": 1.0,
+      "_houdiniFPS": 0.0,
+      "_playbackSpeed": 0.0,
+      "stretchByVelAmount": 0.0
+    },
+    "m_Colors": {
+      "_AnchorPoint": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_BaseColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_BaseColorMap_TexelSize": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_BlendTexUVRotateMat": {
+        "r": 1.0,
+        "g": -0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_BlendTexUVSpeed": {
+        "r": 0.0,
+        "g": 0.1,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_BlendTexUVWeights": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_BlendTint": {
+        "r": 2.3946967,
+        "g": 3.0899312,
+        "b": 7.3772106,
+        "a": 1.0
+      },
+      "_CommonVATMapParams": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_CutOffDirection": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_DetailOverlayColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_DissolveEmissiveColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_DissolveUVSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_DisturbUVRotateMat1": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_DisturbUVSpeed1": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_DisturbUVWeights1": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_EdgeColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_EmissionColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_EmissiveColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_EmissiveColorA": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_EmissiveColorB": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_EmissiveColorG": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_EmissiveSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_FakeCrackTint": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_FakeDustFlowSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_FakeDustTint": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_FakeRefractionTint": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_FakeVolumeBaseColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_FakeVolumeScatterAlbedo": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_FakeVolumeScatterExtinction": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_FresnelColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_GlintColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_GravityDir": {
+        "r": 0.0,
+        "g": -1.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_HeightColorGradientColor": {
+        "r": 1.8500001,
+        "g": 1.8500001,
+        "b": 1.8500001,
+        "a": 1.0
+      },
+      "_HeightColorGradientColor2": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_InteriorDepthColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_Layer1Offset": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_Layer1TintColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_MainTexUVRotateMat": {
+        "r": 1.0,
+        "g": -0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_MainTexUVSpeed": {
+        "r": 0.0,
+        "g": 0.1,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_MainTexUVWeights": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_MaskAlbedoB": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_MaskAlbedoG": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_MaskAlbedoR": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_MaskAlbedoTintB": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_MaskAlbedoTintG": {
+        "r": 0.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_MaskTexUVRotateMat": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_MaskTexUVSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_MaskTexUVWeights": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_MaskWorldPosParams": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_NoiseOffsetDir": {
+        "r": -0.3,
+        "g": -0.2,
+        "b": -0.2,
+        "a": 0.0
+      },
+      "_NoiseOffsetSpeed": {
+        "r": 4.0,
+        "g": 1.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_NormalMapUVRotateMat": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_NormalMapUVSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_NormalMapUVWeights": {
+        "r": 1.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_OffsetDir": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_OffsetMaskSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_OffsetSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_ParallaxColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_ParallaxColorDark": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_ParallaxPatternColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_ParallaxPatternColorDark": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "_ParallaxSignLerpFactor0": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_ParallaxSignLerpFactor1": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_SubsurfaceColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_TintColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_TrunkRampColor": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "_UVAnimationSpeed": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 0.0
+      },
+      "_WorldParallaxAdditionalColor": {
+        "r": 0.0,
+        "g": 0.0,
+        "b": 0.0,
+        "a": 1.0
+      }
+    }
+  },
+  "m_Name": "M_fx_typhoea_toppotential_01_1",
+  "Name": "M_fx_typhoea_toppotential_01_1"
+}

@@ -1,0 +1,845 @@
+// ============================================================
+//  EndfieldCharacterLit.shader
+//  对齐终末地官方 HGRP/CharacterNPR 的属性命名与 feature 开关，
+//  运行在 Unity 2022.3 LTS / URP 14 上(官方为 HG 自研 SRP，
+//  本 shader 用 URP 光照适配角色材质逻辑)。
+//
+//  属性名以游戏 material JSON (M_actor_typhoea_*.json) 为准，
+//  这样 EndfieldMaterialImporter 可把游戏原始参数 1:1 喂进来。
+//
+//  已还原的官方算法(材质层面):
+//    - 法线 _UseBumpMap + _BumpScale
+//    - 金属/光泽 _UseMetallicGlossMap + _MetallicGlossMap(R:A smooth)
+//    - 自发光 _UseEmission + _EmissionMap/_EmissionColor/_EmissionBrightness
+//    - 漫反射/高光 ramp _UseDiffRampMap(_DiffRampMap) / _UseSpecRampMap(_SpecRampMap)
+//    - 颜色 LUT(皮肤 SSS) _UseShadowLutTex + _ShadowLutTex + 明度/饱和度
+//    - 重阴影 _CharacterHeavyShadow*  /  假菲涅尔 _FakeFresnel*
+//    - Stylized Fresnel _EnableStylizedFresnel + _StylizedFresnel*
+//    - 清漆 _ClearCoat + _ClearCoatMask
+//    - 视差 _UseParallax + _ParallaxTex/_ParallaxScale
+//    - 头发 Kajiya-Kay 各向异性(_Anisotropy* 旧版接口)
+//    - 眼睛 Matcap _UseMatcap + _MatcapTex
+//    - 色彩调节 _ColorAdjustment*(brightness/contrast/saturation/rim)
+//    - 描边 _EnableOutline + _Outline*(亮度/饱和度/遮罩/平滑法线)
+//
+//  法线说明：终末地法线为 10bit×3 有符号 + 1bit 符号的单 float
+//  压缩格式，需先经 EndfieldNormalDecompress.cs 还原为标准切线
+//  空间 RGB 法线贴图，再挂到 _BumpMap。
+// ============================================================
+Shader "Endfield/CharacterLit"
+{
+    Properties
+    {
+        // ---- 基础 / 混合 ----
+        [MainTexture] _BaseMap ("Albedo", 2D) = "white" {}
+        _BaseColor ("Color", Color) = (1,1,1,1)
+        [Enum(Opaque, 0, Transparent, 1)] _SurfaceType ("Surface Type", Float) = 0
+        [Enum(Alpha, 0, Additive, 1, Premultiply, 4)] _BlendMode ("Blend Type", Float) = 0
+        [Enum(Off, 0, On, 1)] _TransparentDepthWrite ("Transparent Depth Write", Float) = 1
+        [Enum(Both, 0, Back, 1, Front, 2)] _Cull ("Render Face", Float) = 2
+        [ToggleUI] _BackFaceNormalFlip ("Back Face Normal Flip", Float) = 0
+        [HideInInspector] _SrcBlend ("__src", Float) = 1
+        [HideInInspector] _DstBlend ("__dst", Float) = 0
+        [HideInInspector] _AlphaSrcBlend ("__alphaSrc", Float) = 1
+        [HideInInspector] _AlphaDstBlend ("__alphaDst", Float) = 0
+        [HideInInspector] _ZTest ("__zw", Float) = 4
+        [HideInInspector] _ZWrite ("__zw", Float) = 1
+        [Toggle(_ALPHATEST_ON)] _EnableAlphaTest ("Alpha Test", Float) = 0
+        _AlphaClipThreshold ("Clip Threshold", Range(0,1)) = 0.5
+
+        // ---- 法线 ----
+        [Toggle(_NORMALMAP)] _UseBumpMap ("Use NormalMap", Float) = 0
+        _BumpScale ("Normal Scale", Float) = 1
+        _BumpMap ("Normal Map", 2D) = "bump" {}
+
+        // ---- PBR 金属/光泽 ----
+        [Toggle(_METALLICSPECGLOSSMAP)] _UseMetallicGlossMap ("Use MetallicGlossMap", Float) = 0
+        _Metallic ("Metallic", Range(0,1)) = 0
+        _Specular ("Specular Scale", Range(0,1)) = 1
+        _Smoothness ("Smoothness", Range(0,1)) = 0.5
+        _MetallicGlossMap ("RGBA: Metallic/Spec/Shadow/Smooth", 2D) = "white" {}
+        _OcclusionStrength ("Occlusion Strength", Range(0,1)) = 1
+
+        // ---- 自发光 ----
+        [Toggle(_EMISSION)] _UseEmission ("Use Emission", Float) = 0
+        _EmissionColor ("Emission Color", Color) = (0,0,0,1)
+        _EmissionBrightness ("Emission Brightness", Float) = 1
+        _EmissionMap ("Emission", 2D) = "black" {}
+
+        // ---- NPR ramp ----
+        [Toggle(_DIFF_RAMP_ON)] _UseDiffRampMap ("Diffuse Ramp", Float) = 0
+        _DiffRampMap ("Diffuse Ramp", 2D) = "white" {}
+        [Toggle(_SPEC_RAMP_ON)] _UseSpecRampMap ("Specular Ramp", Float) = 0
+        _SpecRampMap ("Specular Ramp", 2D) = "white" {}
+        [ToggleUI] _SpecRampIridescentMode ("Spec Ramp Iridescent Mode", Float) = 0
+
+        // ---- 阴影塑形 + 颜色 LUT(皮肤 SSS) ----
+        _SceneShadowCenter ("Scene Shadow Center", Range(-1,1)) = 0.0
+        _SceneShadowSharpness ("Scene Shadow Sharpness", Range(-1,1)) = 0.1
+        _HalfLambertShadowCenter ("Half Lambert Shadow Center", Range(-1,1)) = 0.0
+        _HalfLambertShadowSharpness ("Half Lambert Shadow Sharpness", Range(-1,1)) = 0.1
+        [Toggle(_SHADOW_LUT_TEX)] _UseShadowLutTex ("Use Shadow Color LUT Tex", Float) = 0
+        _ShadowLutTex ("Shadow Color LUT", 2D) = "white" {}
+        _ShadowColorBrightness ("Shadow Color Brightness", Range(0,1)) = 0.5
+        _ShadowColorSaturation ("Shadow Color Saturation", Range(0,2)) = 1
+        _SkinRimOff ("Skin Rim Off", Range(0,1)) = 1
+        _SkinRimOffScale ("Skin Rim Off Scale", Range(0,2)) = 0.8
+        _SDFRimColor ("SDF Rim Color", Color) = (1,1,1,1)
+
+        // ---- 重阴影(服装) ----
+        _CharacterHeavyShadow ("Heavy Shadow", Range(0,1)) = 0
+        _CharacterHeavyShadowInt ("Heavy Shadow Intensity", Range(0,2)) = 0.52
+        _CharacterHeavyShadowColor ("Heavy Shadow Color", Color) = (0.6,0.69,0.86,1)
+        _CharacterHeavyShadowBackFaceFade ("Heavy Shadow BackFace Fade", Range(0,1)) = 1
+        _CharacterHeavyShadowBackFaceFadeRange ("Heavy Shadow BackFace Fade Range", Range(0,1)) = 0.2
+
+        // ---- 假菲涅尔(服装边缘) ----
+        _FakeFresnel ("Fake Fresnel", Range(0,1)) = 0
+        _FakeFresnelIntensity ("Fake Fresnel Intensity", Range(0,5)) = 2.42
+        _FakeFresnelRange ("Fake Fresnel Range", Range(0,1)) = 0.486
+        _FakeFresnelFade ("Fake Fresnel Fade", Range(0,1)) = 0.482
+        _FakeFresnelColor ("Fake Fresnel Color", Color) = (1,1,1,1)
+        [ToggleUI] _FakeFresnelWithAlbedo ("Fake Fresnel With Albedo", Float) = 0
+
+        // ---- Stylized Fresnel ----
+        [Toggle(_STYLIZED_FRESNEL)] _EnableStylizedFresnel ("Stylized Fresnel", Float) = 0
+        _StylizedFresnelColor ("Color (A = Emission)", Color) = (0,0,0,0)
+        _StylizedFresnelPow ("Pow", Range(0,10)) = 2
+        _StylizedFresnelAmount ("Amount", Float) = 2
+        _StylizedFresnelNoiseMap ("Noise Tex", 2D) = "white" {}
+        _StylizedFresnelNoiseSpeed ("Noise Speed", Float) = 0
+        _StylizedNoiseContrast ("Noise Contrast", Range(0,10)) = 1
+
+        // ---- 清漆 Clear Coat ----
+        [Toggle(_CLEARCOAT)] _ClearCoat ("ClearCoat Effect", Float) = 0
+        _ClearCoatMask ("ClearCoat Mask", 2D) = "white" {}
+        _ClearCoatColor ("ClearCoat Color", Color) = (1,1,1,1)
+        _ClearCoatSmoothness ("ClearCoat Smoothness", Range(0,1)) = 0.95
+        _ClearCoatMetallic ("ClearCoat Metallic", Range(0,1)) = 0
+        [Enum(Vertex, 0, Texture, 1)] _ClearCoatNormalMode ("ClearCoat Normal", Float) = 0
+
+        // ---- 视差 Parallax(布料流动) ----
+        [Toggle(_PARALLAX_MAP)] _UseParallax ("Use Parallax", Float) = 0
+        _ParallaxTex ("Parallax Tex", 2D) = "white" {}
+        [ToggleUI] _ParallaxUseNormal ("Parallax Use Normal Map", Float) = 0
+        _ParallaxMarchNum ("Parallax March Num", Range(1,5)) = 3
+        _ParallaxScale ("Parallax Scale", Range(0,1)) = 0.5
+        [HDR] _ParallaxColor ("Parallax Color", Color) = (0,0,0,1)
+
+        // ---- 头发：split normal(RG 漫反射 / BA 高光发丝法线) ----
+        [ToggleUI] _UseSpecBumpMap ("Split Diffuse/Specular Normal", Float) = 0
+        _SplitNormalMap ("Hair Normal Map", 2D) = "bump" {}
+        _SpecBumpScale ("Spec Bump Scale", Float) = 1
+
+        // ---- 头发：Kajiya-Kay + 发丝线 ----
+        [Toggle(_ANISOTROPY_SPECULAR_ON)] _UseAnisotropy ("Use Anisotropy", Float) = 0
+        [ToggleUI] _AnisotropyUseGeometryTangent ("Use Geometry Tangent", Float) = 1
+        _AnisotropyDirectionMain ("Anisotropy Direction Main", Range(-1,1)) = 0
+        _AnisotropyIntensityMultiplier ("Anisotropy Intensity Multiplier", Range(0,2)) = 1
+        _AnisotropyDirectionAdditional ("Anisotropy Direction Additional", Range(-1,1)) = 0
+        _AnisotropyOffsetAdditional ("Anisotropy Offset Additional", Range(-1,1)) = 0
+        _AnisotropyColorAdditional ("Anisotropy Color Additional", Color) = (0.2,0.2,0.2,1)
+
+        // (旧版头发接口，Typhoeus hair 材质沿用)
+        _Anisotropy ("Legacy Anisotropy", Range(0,1)) = 0
+        _AnisotropyDirX ("Legacy Anisotropy Dir X", Range(-1,1)) = 0
+        _AnisotropyValue ("Legacy Anisotropy Value", Range(0,1)) = 0.495
+        _AnisotropyValue2 ("Legacy Anisotropy Value2", Range(0,1)) = 0.22
+        _AnisotropyIntensity ("Legacy Anisotropy Intensity", Range(0,3)) = 1
+        _AnisotropyEdgeFade ("Legacy Anisotropy Edge Fade", Range(0.01,10)) = 1
+        _AnisotropyRange2 ("Legacy Anisotropy Range2", Range(0,1)) = 0.7
+        _AnisotropyColor ("Anisotropy Color", Color) = (1,1,1,1)
+        [HDR] _AnisotropyColor2 ("Anisotropy Color2", Color) = (0,0,0,1)
+        [ToggleUI] _UseLineMap ("Use Line Map", Float) = 0
+        _LineMap ("Hairline Map", 2D) = "white" {}
+        _LineAmount ("Hairline Amount", Range(0,1000)) = 300
+        _LineIntensity ("Hairline Intensity", Range(0,2)) = 0.3
+        _LineRange ("Hairline Range", Range(0,1)) = 0.97
+        _LineSaturation ("Hairline Saturation", Range(0,4)) = 2
+        _LineValue ("Hairline Value", Range(0,1)) = 0.65
+
+        // ---- 眼睛：Matcap ----
+        [Toggle(_MATCAP_ENV_REFLECTION_ON)] _UseMatcap ("Use Matcap", Float) = 0
+        _MatcapTex ("Matcap", 2D) = "white" {}
+        [HDR] _MatcapColor ("Matcap Color", Color) = (1,1,1,1)
+        _MatcapNormalScale ("Matcap Normal Scale", Float) = 1
+        _EyeHighLight ("Eye Highlight", Range(0,1)) = 0
+        [HDR] _EyeHighLightColor ("Eye Highlight Color", Color) = (1,1,1,1)
+        [HDR] _EyeScatteringColor ("Eye Scattering Color", Color) = (1,1,1,1)
+        _EyeTintColor ("Eye Tint Color", Color) = (1,1,1,1)
+
+        // ---- 色彩调节(终末地统一后期调色 + 边缘光) ----
+        [ToggleUI] _EnableVFXColorAdjustment ("VFX Color Adjustment", Float) = 0
+        _ColorAdjustmentBrightness ("CA Brightness", Range(0.5,1.5)) = 1
+        _ColorAdjustmentSaturation ("CA Saturation", Range(0,2)) = 1
+        _ColorAdjustmentContrast ("CA Contrast", Range(0,2)) = 1
+        _ColorAdjustmentColorBlend ("CA Color Blend", Color) = (1,1,1,0)
+        _ColorAdjustmentRimWidth ("CA Rim Width", Range(0,1)) = 0.35
+        _ColorAdjustmentRimIntensity ("CA Rim Intensity", Range(0,10)) = 4
+        _ColorAdjustmentRimColor ("CA Rim Color", Color) = (1,1,1,1)
+
+        // ---- 面部：SDF 光照 / 表情图集 / 高光 ----
+        [Toggle(_SDF_LIGHTMAP_ON)] _UseSDFLightmap ("Use SDF Lightmap", Float) = 0
+        _SDFLightmap ("SDF Lightmap (xy=soft shadow, z=sdf)", 2D) = "white" {}
+        _SDFMask ("SDF Mask (x=rimoff y=normal z=side w=highlight)", 2D) = "white" {}
+        [Toggle(_EMOTION_MAP_ON)] _UseEmotionMap ("Use Emotion Map", Float) = 0
+        _EmotionMap ("Emotion Atlas (2x2)", 2D) = "black" {}
+        _EmotionIndex ("Emotion Index", Range(0,3)) = 0
+        _EmotionBlend ("Emotion Blend", Range(0,1)) = 1
+        [Toggle(_FACE_HIGHLIGHT_ON)] _FaceHighlightMap ("Face Highlight Map", Float) = 0
+        _HighlightMap ("Face Highlight Map", 2D) = "black" {}
+        _HighlightMapVector ("Highlight Map Vector", Float) = 0
+
+        // ---- 发际/眉下阴影 ----
+        [Toggle(_HAIR_BROW_MASK_ON)] _DrawUnderBrow ("Draw Under Brow", Float) = 0
+        _HairBrowMask ("Hair Brow Mask", 2D) = "white" {}
+        _HairBrowMaskThreshold ("Hair Brow Mask Threshold", Range(0,1)) = 0.5
+
+        // ---- 描边 ----
+        [ToggleUI] _EnableOutline ("Enable Outline", Float) = 1
+        _OutlineWidth ("Outline Width", Range(0,2)) = 0.5
+        _OutlineOffsetZ ("Outline Offset Z", Range(0,1)) = 0
+        [ToggleUI] _OutlineTintEnable ("Outline Tint Color Enable", Float) = 0
+        _OutlineTintColor ("Outline Tint Color", Color) = (1,1,1,1)
+        _OutlineColorBrightness ("Outline Color Brightness", Range(0,1)) = 0.5
+        _OutlineColorSaturation ("Outline Color Saturation", Range(0,2)) = 1.5
+        [Toggle(_OUTLINE_MASK)] _EnableOutlineMask ("Outline Mask Enable", Float) = 0
+        _OutlineMask ("Outline Mask", 2D) = "white" {}
+        [ToggleUI] _OutlineAverageNormal ("Use Smooth Normal", Float) = 1
+        _OutlineMinWidth ("Outline Min Width", Range(0,0.1)) = 0.002
+        _OutlineMaxWidth ("Outline Max Width", Range(0,1)) = 0.02
+    }
+
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" "RenderPipeline"="UniversalPipeline" "Queue"="Geometry" }
+
+        HLSLINCLUDE
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
+
+        CBUFFER_START(UnityPerMaterial)
+            float4 _BaseMap_ST;          float4 _BaseColor;
+            float  _SurfaceType;         float  _BlendMode;          float _Cull;
+            float  _BackFaceNormalFlip;  float  _EnableAlphaTest;    float _AlphaClipThreshold;
+            float  _UseBumpMap;          float  _BumpScale;          float4 _BumpMap_ST;
+            float  _UseMetallicGlossMap; float  _Metallic;           float _Specular;          float _Smoothness;
+            float4 _MetallicGlossMap_ST; float  _OcclusionStrength;
+            float  _UseEmission;         float4 _EmissionColor;      float _EmissionBrightness; float4 _EmissionMap_ST;
+            float  _UseDiffRampMap;      float4 _DiffRampMap_ST;
+            float  _UseSpecRampMap;      float4 _SpecRampMap_ST;     float _SpecRampIridescentMode;
+            float  _SceneShadowCenter;   float  _SceneShadowSharpness;
+            float  _HalfLambertShadowCenter; float _HalfLambertShadowSharpness;
+            float  _UseShadowLutTex;     float4 _ShadowLutTex_ST;
+            float  _ShadowColorBrightness; float _ShadowColorSaturation;
+            float  _SkinRimOff;          float  _SkinRimOffScale;  float4 _SDFRimColor;
+            float  _CharacterHeavyShadow; float _CharacterHeavyShadowInt;
+            float4 _CharacterHeavyShadowColor;
+            float  _CharacterHeavyShadowBackFaceFade; float _CharacterHeavyShadowBackFaceFadeRange;
+            float  _FakeFresnel;         float  _FakeFresnelIntensity; float _FakeFresnelRange;
+            float  _FakeFresnelFade;     float4 _FakeFresnelColor;   float _FakeFresnelWithAlbedo;
+            float  _EnableStylizedFresnel; float4 _StylizedFresnelColor;
+            float  _StylizedFresnelPow;  float  _StylizedFresnelAmount;
+            float4 _StylizedFresnelNoiseMap_ST; float _StylizedFresnelNoiseSpeed; float _StylizedNoiseContrast;
+            float  _ClearCoat;           float4 _ClearCoatMask_ST;   float4 _ClearCoatColor;
+            float  _ClearCoatSmoothness; float  _ClearCoatMetallic;  float _ClearCoatNormalMode;
+            float  _UseParallax;         float4 _ParallaxTex_ST;     float _ParallaxUseNormal;
+            float  _ParallaxMarchNum;    float  _ParallaxScale;      float4 _ParallaxColor;
+            float  _UseSpecBumpMap;      float4 _SplitNormalMap_ST;   float _SpecBumpScale;
+            float  _UseAnisotropy;       float  _AnisotropyUseGeometryTangent;
+            float  _AnisotropyDirectionMain; float _AnisotropyIntensityMultiplier;
+            float  _AnisotropyDirectionAdditional; float _AnisotropyOffsetAdditional;
+            float4 _AnisotropyColorAdditional;
+            float  _Anisotropy;          float  _AnisotropyDirX;     float _AnisotropyValue;
+            float  _AnisotropyValue2;    float  _AnisotropyIntensity; float _AnisotropyEdgeFade;
+            float  _AnisotropyRange2;    float4 _AnisotropyColor;    float4 _AnisotropyColor2;
+            float  _UseLineMap;          float4 _LineMap_ST;         float _LineAmount;
+            float  _LineIntensity;      float  _LineRange;          float _LineSaturation; float _LineValue;
+            float  _UseMatcap;           float4 _MatcapTex_ST;       float4 _MatcapColor;
+            float  _MatcapNormalScale;   float  _EyeHighLight;       float4 _EyeHighLightColor;
+            float4 _EyeScatteringColor;  float4 _EyeTintColor;
+            float  _EnableVFXColorAdjustment;
+            float  _ColorAdjustmentBrightness; float _ColorAdjustmentSaturation; float _ColorAdjustmentContrast;
+            float4 _ColorAdjustmentColorBlend;
+            float  _ColorAdjustmentRimWidth;  float _ColorAdjustmentRimIntensity; float4 _ColorAdjustmentRimColor;
+            float  _EnableOutline;       float  _OutlineWidth;       float _OutlineOffsetZ;
+            float  _OutlineTintEnable;   float4 _OutlineTintColor;
+            float  _OutlineColorBrightness; float _OutlineColorSaturation;
+            float  _EnableOutlineMask;   float4 _OutlineMask_ST;     float _OutlineAverageNormal;
+            float  _OutlineMinWidth;     float  _OutlineMaxWidth;
+            float  _UseSDFLightmap;      float4 _SDFLightmap_ST;     float4 _SDFMask_ST;
+            float  _UseEmotionMap;       float4 _EmotionMap_ST;      float _EmotionIndex;  float _EmotionBlend;
+            float  _FaceHighlightMap;    float4 _HighlightMap_ST;    float _HighlightMapVector;
+            float  _DrawUnderBrow;       float4 _HairBrowMask_ST;    float _HairBrowMaskThreshold;
+        CBUFFER_END
+
+        // 分离式角色光照 · 由 C# Shader.SetGlobal* 注入
+        float4 _CharacterLightDir;    // xyz=指向光源, w=启用标记
+        float4 _CharacterLightColor;
+        float4 _CharacterAmbient;     // 环境/补光颜色
+
+        TEXTURE2D(_BaseMap);
+        TEXTURE2D(_BumpMap);
+        TEXTURE2D(_MetallicGlossMap);
+        TEXTURE2D(_DiffRampMap);
+        TEXTURE2D(_SpecRampMap);
+        TEXTURE2D(_ShadowLutTex);
+        TEXTURE2D(_EmissionMap);
+        TEXTURE2D(_StylizedFresnelNoiseMap);
+        TEXTURE2D(_ClearCoatMask);
+        TEXTURE2D(_ParallaxTex);
+        TEXTURE2D(_SplitNormalMap);
+        TEXTURE2D(_LineMap);
+        TEXTURE2D(_MatcapTex);
+        TEXTURE2D(_OutlineMask);
+        TEXTURE2D(_SDFLightmap);
+        TEXTURE2D(_SDFMask);
+        TEXTURE2D(_EmotionMap);
+        TEXTURE2D(_HighlightMap);
+        TEXTURE2D(_HairBrowMask);
+
+        // URP Core.hlsl 不预定义 sampler_LinearRepeat(仅 PostProcessing 里有)，
+        // 必须显式声明，否则清缓存重编译后报 "undeclared identifier"。
+        SAMPLER(sampler_LinearRepeat);
+
+        struct Attributes
+        {
+            float4 positionOS : POSITION;
+            float3 normalOS   : NORMAL;
+            float4 tangentOS  : TANGENT;
+            float2 uv         : TEXCOORD0;
+        };
+
+        struct Varyings
+        {
+            float4 positionCS  : SV_POSITION;
+            float2 uv          : TEXCOORD0;
+            float3 positionWS  : TEXCOORD1;
+            float3 normalWS    : TEXCOORD2;
+            float4 tangentWS   : TEXCOORD3; // xyz=tangent, w=sign
+            float3 viewDirWS   : TEXCOORD4;
+            float  fogFactor   : TEXCOORD6;
+        };
+
+        Varyings CharVert(Attributes input)
+        {
+            Varyings output = (Varyings)0;
+            output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
+            output.positionCS = TransformWorldToHClip(output.positionWS);
+            output.normalWS   = normalize(TransformObjectToWorldNormal(input.normalOS));
+            float3 tangentWS  = TransformObjectToWorldDir(input.tangentOS.xyz);
+            output.tangentWS  = float4(normalize(tangentWS), input.tangentOS.w);
+            output.viewDirWS  = GetWorldSpaceViewDir(output.positionWS);
+            output.uv         = TRANSFORM_TEX(input.uv, _BaseMap);
+            output.fogFactor  = ComputeFogFactor(output.positionCS.z);
+            return output;
+        }
+
+        float3x3 CharTBN(Varyings input, half3 normalWS)
+        {
+            float3 tangentWS = normalize(input.tangentWS.xyz);
+            float3 bitangentWS = normalize(cross(normalWS, tangentWS)) * input.tangentWS.w;
+            return float3x3(tangentWS, bitangentWS, normalWS);
+        }
+
+        void GetCharacterLight(float3 positionWS, out half3 L, out half3 lightColor, out half shadowAttenuation)
+        {
+            if (_CharacterLightDir.w > 0.0)
+            {
+                L = normalize(_CharacterLightDir.xyz);
+                lightColor = _CharacterLightColor.rgb;
+                shadowAttenuation = 1.0;
+            }
+            else
+            {
+                float4 shadowCoord = TransformWorldToShadowCoord(positionWS);
+                Light mainLight = GetMainLight(shadowCoord);
+                L = mainLight.direction;
+                lightColor = mainLight.color * mainLight.distanceAttenuation;
+                shadowAttenuation = mainLight.shadowAttenuation;
+            }
+        }
+
+        half3 ApplyColorAdjustment(half3 c)
+        {
+            c *= _ColorAdjustmentBrightness;
+            c = (c - 0.5) * _ColorAdjustmentContrast + 0.5;
+            half lum = dot(c, half3(0.2126729, 0.7151522, 0.0721750));
+            c = lerp(lum.xxx, c, _ColorAdjustmentSaturation);
+            c = lerp(c, c * _ColorAdjustmentColorBlend.rgb, _ColorAdjustmentColorBlend.a);
+            return c;
+        }
+
+        half SigmoidSharp(half x, half center, half sharpness)
+        {
+            return rcp(pow(100000.0, (x - center) * (-3.0 * sharpness)) + 1.0);
+        }
+
+        // 终末地皮肤 LUT 是 32³ 3D 颜色分级表，打包为 1024x32 纹理：
+        //   X = 蓝(高5bit)*32 + 红(低5bit)，Y = 绿(5bit)
+        // 红/绿靠硬件双线性采样，蓝通道做相邻切片手动插值。
+        half3 SampleSkinLUT3D(Texture2D lut, SamplerState ss, half3 linearColor)
+        {
+            half3 c = saturate(linearColor);
+            half b = c.b * 31.0;
+            half bIdx = floor(b);
+            half bFrac = b - bIdx;
+            half2 uv;
+            uv.x = (bIdx * 32.0 + c.r * 31.0 + 0.5) / 1024.0;
+            uv.y = (c.g * 31.0 + 0.5) / 32.0;
+            half3 c0 = SAMPLE_TEXTURE2D(lut, ss, uv).rgb;
+            half3 c1 = SAMPLE_TEXTURE2D(lut, ss, uv + half2(32.0 / 1024.0, 0.0)).rgb;
+            return lerp(c0, c1, bFrac);
+        }
+
+        // 终末地法线解码 —— 与官方 HGRP/CharacterNPR 反编译逐行一致：
+        //   (characternpr_skin/Sub0_Pass0_Fragment_b95.hlsl L418-424)
+        //     _466.w = _466.w * _466.x;              -> X = A * R
+        //     _475  = (_466.wy * 2.0f) - 1.0f;       -> X=(A*R)*2-1, Y=G*2-1
+        //     _476.z = sqrt(1 - dot(XY,XY));          -> Z 重建
+        //   即：X 分量被拆到 R/A 两通道相乘，Y 存 G 通道，Z 由单位长度重建。
+        half3 UnpackEndfieldNormal(half4 packed, half scale)
+        {
+            half3 n;
+            n.x = (packed.a * packed.r) * 2.0 - 1.0;
+            n.y = packed.g * 2.0 - 1.0;
+            n.xy *= scale;
+            n.z = sqrt(max(1e-16, 1.0 - clamp(dot(n.xy, n.xy), 0.0, 1.0)));
+            return n;
+        }
+        ENDHLSL
+
+        // ============================================================
+        // Pass 0 : 主光照 (UniversalForward)
+        // ============================================================
+        Pass
+        {
+            Name "UniversalForward"
+            Tags { "LightMode"="UniversalForward" }
+
+            Cull [_Cull]
+            ZWrite [_ZWrite]
+            ZTest [_ZTest]
+            Blend [_SrcBlend] [_DstBlend], [_AlphaSrcBlend] [_AlphaDstBlend]
+
+            HLSLPROGRAM
+            #pragma target 5.0
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile_fog
+
+            Varyings vert(Attributes input) { return CharVert(input); }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                float2 uv = input.uv;
+
+                // ---- 视差(布料流动)：采样前偏移 UV ----
+                if (_UseParallax > 0.5)
+                {
+                    half3 T, B, Ntg;
+                    Ntg = normalize(input.normalWS);
+                    T = normalize(input.tangentWS.xyz);
+                    B = normalize(cross(Ntg, T)) * input.tangentWS.w;
+                    half3 viewDirTS = half3(
+                        dot(input.viewDirWS, T),
+                        dot(input.viewDirWS, B),
+                        dot(input.viewDirWS, Ntg));
+                    half h = SAMPLE_TEXTURE2D(_ParallaxTex, sampler_LinearRepeat, uv).r;
+                    uv -= (h - 0.5) * _ParallaxScale * viewDirTS.xy;
+                }
+
+                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, uv);
+                half3 albedo  = baseMap.rgb * _BaseColor.rgb;
+                // 终末地角色为不透明表面，漫反射 _D 贴图 alpha 通道存的是其它数据(AO/mask)，
+                // 不是透明度，绝不能拿 baseMap.a 当 alpha，否则身体/布料会"像空气一样透明"。
+                half  alpha   = _BaseColor.a;
+
+                // ---- 面部表情图集(2x2)：按 _EmotionIndex 取格 + alpha 加权 lerp 叠加 ----
+                // (对应官方 characternpr_skin: fmod(idx,2)*0.5 / floor(idx*0.5)*0.5 定格子, 0.5*uv 定格内坐标)
+                if (_UseEmotionMap > 0.5)
+                {
+                    half2 euv = half2(fmod(_EmotionIndex, 2.0) * 0.5, floor(_EmotionIndex * 0.5) * 0.5) + 0.5 * uv;
+                    half4 emo = SAMPLE_TEXTURE2D(_EmotionMap, sampler_LinearRepeat, euv);
+                    albedo = lerp(albedo, emo.rgb, emo.a * _EmotionBlend);
+                }
+
+                if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+
+                // ---- 法线 ----
+                half3 N = normalize(input.normalWS);
+                if (_UseBumpMap > 0.5)
+                {
+                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_LinearRepeat, uv), _BumpScale);
+                    N = normalize(mul(normalTS, CharTBN(input, N)));
+                }
+
+                half3 V = normalize(input.viewDirWS);
+
+                half3 L; half3 lightColor; half shadowAtten;
+                GetCharacterLight(input.positionWS, L, lightColor, shadowAtten);
+                half NdotL = saturate(dot(N, L));
+                half halfLambert = NdotL * 0.5 + 0.5;
+                half3 H = normalize(L + V);
+                half NdotH = saturate(dot(N, H));
+                half NdotV = saturate(dot(N, V));
+
+                // 皮肤 rim（官方 characternpr_skin 反编译 L611-613）：
+                //   _1100 = clamp((1 - clamp(NdotV*0.85+0.15)) * _SkinRimOffScale)
+                //   albedo *= (1 - _1100) + _SDFRimColor * _1100
+                //   即掠射角处用 _SDFRimColor 给皮肤加暖色边缘。
+                if (_SkinRimOff > 0.5)
+                {
+                    half skinRim = clamp((1.0 - clamp(NdotV * 0.85 + 0.15, 0.0, 1.0)) * _SkinRimOffScale, 0.0, 1.0);
+                    albedo = albedo * ((1.0 - skinRim) + _SDFRimColor.rgb * skinRim);
+                }
+
+                // 硬边阴影塑形：半兰伯特 + 场景阴影 分别 sigmoid 后取小
+                half shade = saturate(min(
+                    SigmoidSharp(halfLambert, _HalfLambertShadowCenter, _HalfLambertShadowSharpness),
+                    SigmoidSharp(shadowAtten, _SceneShadowCenter, _SceneShadowSharpness)));
+
+                // ---- 漫反射 + 漫反射 ramp ----
+                half3 diffuse;
+                if (_UseDiffRampMap > 0.5)
+                {
+                    half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_LinearRepeat, half2(halfLambert, 0.5)).rgb;
+                    diffuse = albedo * ramped;
+                }
+                else
+                {
+                    diffuse = albedo * shade;
+                }
+
+                // ==== 面部 SDF / 高光 / 发际 (近似 HGRP，语义见 _REVERSE_ENGINEERING_NOTES) ====
+                // SDF 面光：官方 _SDFLightmap.xy = 预烘焙面光照度(官方 _1553)，喂入 diffuse ramp
+                if (_UseSDFLightmap > 0.5)
+                {
+                    half3 sdf = SAMPLE_TEXTURE2D(_SDFLightmap, sampler_LinearRepeat, uv).rgb;
+                    half sdfLight = saturate((sdf.r + sdf.g) * 0.5);
+                    // 官方 _508 = _SDFMask.y，控制 SDF 面部光照强度(面部区域=1)
+                    half sdfW = SAMPLE_TEXTURE2D(_SDFMask, sampler_LinearRepeat, uv).y;
+                    if (_UseDiffRampMap > 0.5)
+                    {
+                        half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_LinearRepeat, half2(sdfLight, 0.5)).rgb;
+                        diffuse = lerp(diffuse, albedo * ramped, sdfW);
+                    }
+                    else
+                    {
+                        diffuse = lerp(diffuse, albedo * sdfLight, sdfW);
+                    }
+                }
+
+                // 面部高光遮罩：官方 _HighlightMap(hl_M) 随光偏移的微弱高光
+                if (_FaceHighlightMap > 0.5)
+                {
+                    half hl = SAMPLE_TEXTURE2D(_HighlightMap, sampler_LinearRepeat, uv).r;
+                    diffuse += albedo * hl * saturate(NdotL) * _HighlightMapVector * lightColor;
+                }
+
+                // 发际/眉下阴影：官方 _DrawUnderBrow + _HairBrowMask(sw_M)
+                if (_DrawUnderBrow > 0.5)
+                {
+                    half brow = SAMPLE_TEXTURE2D(_HairBrowMask, sampler_LinearRepeat, uv).r;
+                    half browAmt = saturate((brow - _HairBrowMaskThreshold) * 8.0);
+                    diffuse *= lerp(1.0, 0.72, browAmt * saturate(L.y));
+                }
+
+                // ---- 阴影颜色 LUT(皮肤 SSS)/色彩调节 ----
+                if (_UseShadowLutTex > 0.5)
+                {
+                    // 皮肤颜色 LUT：阴影区域用 LUT 采样基色作为阴影基色
+                    // (精确 3D LUT 采样公式待读官方 _SHADOW_LUT_TEX 变体后进一步对齐)
+                    half3 lutCol = SampleSkinLUT3D(_ShadowLutTex, sampler_LinearRepeat, albedo);
+                    half lum = dot(lutCol, half3(0.2126729, 0.7151522, 0.0721750));
+                    half3 shadowCol = lerp(lum.xxx, lutCol, _ShadowColorSaturation) * _ShadowColorBrightness;
+                    diffuse = lerp(diffuse, shadowCol, 1.0 - shade);
+                }
+
+                // ---- 重阴影(服装冷色重影) ----
+                if (_CharacterHeavyShadow > 0.5)
+                {
+                    half3 heavy = albedo * _CharacterHeavyShadowColor.rgb * _CharacterHeavyShadowInt;
+                    half backFace = saturate((dot(N, V) + 1.0) - _CharacterHeavyShadowBackFaceFadeRange);
+                    half heavyAmt = (1.0 - NdotL) * _CharacterHeavyShadow;
+                    heavyAmt *= lerp(1.0, backFace, _CharacterHeavyShadowBackFaceFade);
+                    diffuse = lerp(diffuse, heavy, heavyAmt);
+                }
+
+                // ---- 金属/光泽 ----
+                half metallic = _Metallic;
+                half smoothness = _Smoothness;
+                half ao = 1.0;
+                if (_UseMetallicGlossMap > 0.5)
+                {
+                    half4 mg = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_LinearRepeat, uv);
+                    metallic = mg.r;
+                    smoothness = mg.a;
+                    ao = lerp(1.0, mg.g, _OcclusionStrength);
+                }
+
+                // ---- 高光 ----
+                half3 specular = 0;
+                half isHair = (_Anisotropy > 0.5) || (_UseAnisotropy > 0.5 && _AnisotropyIntensityMultiplier > 0.0);
+
+                if (isHair)
+                {
+                    // 发丝法线：split normal 的 BA 通道作为高光发丝法线
+                    half3 Nhair = N;
+                    if (_UseSpecBumpMap > 0.5)
+                    {
+                        half4 sn = SAMPLE_TEXTURE2D(_SplitNormalMap, sampler_LinearRepeat, uv);
+                        half2 snXY = sn.zw * 2.0 - 1.0;
+                        half3 snTS = half3(snXY, 0.0);
+                        snTS.z = sqrt(saturate(1.0 - dot(snXY, snXY)));
+                        snTS.xy *= _SpecBumpScale;
+                        Nhair = normalize(mul(snTS, CharTBN(input, N)));
+                    }
+
+                    // 官方发丝切线：anisoDir = mul(TBN, float3(_AnisotropyDirX,1,0)) 后与发丝法线叉乘
+                    half3 anisoDir = normalize(mul(half3(_AnisotropyDirX, 1.0, 0.0), CharTBN(input, N)));
+                    float3 T = normalize(cross(Nhair, anisoDir));
+                    half tDotH = dot(T, H);
+                    half sinTH = sqrt(saturate(1.0 - tDotH * tDotH));
+
+                    // 官方 edgeFade：N/V 在 XZ 平面投影的 _AnisotropyEdgeFade 次幂
+                    half3 nXZ = normalize(half3(Nhair.x, 0.0, Nhair.z));
+                    half3 vXZ = normalize(half3(V.x, 0.0, V.z));
+                    half edgeFade = pow(saturate(dot(nXZ, vXZ)), _AnisotropyEdgeFade);
+
+                    // 官方主高光：sin(T,H)^200 塑形后采样 _SpecRampMap
+                    half specVal = saturate(pow(max(sinTH, 1e-4), 200.0));
+                    half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_LinearRepeat, half2(specVal, (tDotH > 0.0 ? 1.0 : 0.0) * edgeFade * edgeFade)).rgb;
+                    half3 primary = specVal * specRamp * _AnisotropyColor.rgb * (_AnisotropyIntensity * 5.0);
+
+                    // 发丝线(LineMap)：frac(uv.x*_LineAmount) 阶梯与 _LineMap.r 混合
+                    half2 lineUV = uv * _LineMap_ST.xy + _LineMap_ST.zw;
+                    half streak = ceil(clamp(frac(lineUV.x * _LineAmount) - 0.5, 0.0, 1.0));
+                    half lineMapR = _UseLineMap > 0.5 ? SAMPLE_TEXTURE2D(_LineMap, sampler_LinearRepeat, lineUV).r : streak;
+                    half lineMask = lerp(streak, 1.0 - lineMapR, _UseLineMap);
+                    half lineFactor = lerp(1.0 - _LineIntensity, 1.0, lineMask);
+                    primary *= lineFactor;
+
+                    // 官方次高光：sin(T,H)^(200*(1-_AnisotropyRange2)) 用 _AnisotropyColor2
+                    half exponent2 = 200.0 * max(1.0 - _AnisotropyRange2, 0.0);
+                    half3 secondary = pow(max(sinTH, 1e-4), exponent2) * _AnisotropyColor2.rgb;
+
+                    half pmax = max(max(primary.r, primary.g), primary.b);
+                    specular = (primary + lerp(secondary, 0.0, pmax)) * edgeFade * _Anisotropy;
+                }
+                else if (_UseMatcap > 0.5)
+                {
+                    // 眼睛 matcap 高光 + 散射
+                    half3 r = reflect(-V, N);
+                    half2 mc = half2(r.x * 0.5 + 0.5, r.y * 0.5 + 0.5);
+                    half3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_LinearRepeat, mc).rgb;
+                    specular = matcap * _MatcapColor.rgb * _EyeTintColor.rgb
+                             + _EyeScatteringColor.rgb * (1.0 - NdotV)
+                             + _EyeHighLightColor.rgb * _EyeHighLight * pow(NdotH, 64.0);
+                }
+                else
+                {
+                    if (_UseSpecRampMap > 0.5)
+                    {
+                        half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_LinearRepeat, half2(NdotH, 0.5)).rgb;
+                        specular = specRamp * _Specular;
+                    }
+                    else
+                    {
+                        half roughness = 1.0 - smoothness;
+                        half ggx = roughness <= 0.0 ? 1.0 :
+                            (half)((roughness*roughness) / max(3.14159 * pow(NdotH*NdotH*(roughness*roughness-1.0)+1.0, 2.0), 1e-4));
+                        half3 F0 = lerp(half3(0.04,0.04,0.04), albedo, metallic);
+                        half3 F  = F0 + (1.0-F0)*pow(1.0-NdotV, 5.0);
+                        specular = ggx * F * _Specular;
+                    }
+
+                    // 环境反射 (IBL)
+                    half roughness = 1.0 - smoothness;
+                    half3 refl = reflect(-V, N);
+                    half3 env = GlossyEnvironmentReflection(refl, roughness, 1.0);
+                    half3 Fenv = lerp(half3(0.04,0.04,0.04), albedo, metallic);
+                    specular += env * Fenv * max(metallic, 0.04);
+
+                    // 清漆 Clear Coat
+                    if (_ClearCoat > 0.5)
+                    {
+                        half ccMask = SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_LinearRepeat, uv).r;
+                        half ccRough = 1.0 - _ClearCoatSmoothness;
+                        half cc = ccRough <= 0.0 ? 1.0 :
+                            (half)((ccRough*ccRough) / max(3.14159 * pow(NdotH*NdotH*(ccRough*ccRough-1.0)+1.0, 2.0), 1e-4));
+                        half3 Fcc = lerp(half3(0.04,0.04,0.04), _ClearCoatColor.rgb, _ClearCoatMetallic);
+                        specular += cc * Fcc * ccMask * _ClearCoat;
+                    }
+                }
+
+                // ---- 假菲涅尔(服装边缘) ----
+                if (_FakeFresnel > 0.5)
+                {
+                    half ff = pow(1.0 - NdotV, _FakeFresnelRange * 10.0) * _FakeFresnelIntensity;
+                    ff *= smoothstep(0.0, max(_FakeFresnelFade, 1e-4), 1.0 - NdotV);
+                    half3 fcol = _FakeFresnelWithAlbedo > 0.5 ? albedo : _FakeFresnelColor.rgb;
+                    specular += fcol * ff;
+                }
+
+                // ---- Stylized Fresnel ----
+                if (_EnableStylizedFresnel > 0.5)
+                {
+                    half fresnel = pow(saturate(1.0 - NdotV), _StylizedFresnelPow) * _StylizedFresnelAmount;
+                    half3 sc = _StylizedFresnelColor.rgb;
+                    half2 nu = uv + half2(_Time.y * _StylizedFresnelNoiseSpeed, _Time.y * _StylizedFresnelNoiseSpeed);
+                    half noise = SAMPLE_TEXTURE2D(_StylizedFresnelNoiseMap, sampler_LinearRepeat, nu).r;
+                    fresnel *= lerp(1.0, noise, _StylizedNoiseContrast);
+                    specular += sc * fresnel;
+                }
+
+                // ---- 自发光 ----
+                half3 emission = 0;
+                if (_UseEmission > 0.5)
+                {
+                    emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_LinearRepeat, uv).rgb
+                             * _EmissionColor.rgb * _EmissionBrightness;
+                }
+
+                // ---- 合成 + AO ----
+                half3 color = (diffuse * lightColor + specular * lightColor + emission + albedo * _CharacterAmbient.rgb) * ao;
+
+                // ---- 色彩调节（含边缘光，仅在 _EnableVFXColorAdjustment 开启时生效）----
+                if (_EnableVFXColorAdjustment > 0.5)
+                {
+                    color = ApplyColorAdjustment(color);
+
+                    half rim = pow(saturate(1.0 - NdotV), _ColorAdjustmentRimWidth * 10.0 + 1.0)
+                             * _ColorAdjustmentRimIntensity;
+                    color += _ColorAdjustmentRimColor.rgb * rim;
+                }
+
+                half fog = _CharacterLightDir.w > 0.0 ? 1.0 : input.fogFactor;
+                color = MixFog(color, fog);
+
+                return half4(color, alpha);
+            }
+            ENDHLSL
+        }
+
+        // ============================================================
+        // Pass 1 : 背面描边 (Outline)
+        // ============================================================
+        Pass
+        {
+            Name "Outline"
+            Tags { "LightMode"="SRPDefaultUnlit" }
+
+            Cull Front
+            ZWrite Off
+            ZTest LEqual
+
+            HLSLPROGRAM
+            #pragma target 5.0
+            #pragma vertex vert
+            #pragma fragment frag
+
+            struct Attr
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS   : NORMAL;
+                float4 tangentOS  : TANGENT;
+                float2 uv         : TEXCOORD0;
+                float4 color      : COLOR;
+                float3 smoothedNormal : TEXCOORD7;
+            };
+
+            struct Vary
+            {
+                float4 positionCS : SV_POSITION;
+                float2 uv         : TEXCOORD0;
+            };
+
+            Vary vert(Attr input)
+            {
+                Vary output = (Vary)0;
+                float mask = 1.0;
+                if (_EnableOutlineMask > 0.5)
+                    mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_LinearRepeat, TRANSFORM_TEX(input.uv, _OutlineMask), 0).r;
+
+                float3 normalWS = normalize(TransformObjectToWorldNormal(input.normalOS));
+                float3 smoothWS = normalWS;
+                if (_OutlineAverageNormal > 0.5)
+                {
+                    float3 smoothTS = input.smoothedNormal * 2.0 - 1.0;
+                    if (dot(smoothTS, smoothTS) > 1e-4)
+                    {
+                        float3 tangentWS = TransformObjectToWorldDir(input.tangentOS.xyz);
+                        float3 bitangentWS = normalize(cross(normalWS, tangentWS)) * input.tangentOS.w;
+                        float3x3 tbn = float3x3(normalize(tangentWS), bitangentWS, normalWS);
+                        smoothWS = normalize(mul(smoothTS, tbn));
+                    }
+                }
+
+                float w = lerp(_OutlineMinWidth, _OutlineMaxWidth, saturate(_OutlineWidth));
+                float widthMask = saturate(mask * input.color.r);
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 viewDirWS = GetWorldSpaceViewDir(positionWS);
+                float3 offsetDir = normalize(smoothWS + viewDirWS * -_OutlineOffsetZ);
+                positionWS += offsetDir * w * widthMask;
+                output.positionCS = TransformWorldToHClip(positionWS);
+                output.uv = input.uv;
+                return output;
+            }
+
+            half4 frag(Vary input) : SV_Target
+            {
+                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, input.uv).rgb * _BaseColor.rgb;
+                half lum = dot(base, half3(0.2126729, 0.7151522, 0.0721750));
+                half3 c = lerp(lum.xxx, base, _OutlineColorSaturation);
+                c *= _OutlineColorBrightness;
+                if (_OutlineTintEnable > 0.5)
+                    c = lerp(c, c * _OutlineTintColor.rgb, 0.5);
+                return half4(c, 1.0);
+            }
+            ENDHLSL
+        }
+
+        // ============================================================
+        // Pass 2 : 阴影投射
+        // ============================================================
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode"="ShadowCaster" }
+
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+
+            HLSLPROGRAM
+            #pragma target 5.0
+            #pragma vertex vert
+            #pragma fragment frag
+
+            float3 _LightDirection; // URP 阴影投射光源方向(自定义 shader 需自行声明)
+
+            Varyings vert(Attributes input)
+            {
+                Varyings output = (Varyings)0;
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float3 normalWS   = TransformObjectToWorldNormal(input.normalOS);
+                output.positionCS = TransformWorldToHClip(ApplyShadowBias(positionWS, normalWS, _LightDirection));
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                return output;
+            }
+
+            half4 frag(Varyings input) : SV_Target
+            {
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, input.uv).a;
+                if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+                return 0;
+            }
+            ENDHLSL
+        }
+    }
+
+    Fallback "Universal Render Pipeline/Lit"
+}

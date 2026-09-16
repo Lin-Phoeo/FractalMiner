@@ -70,3 +70,14 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# ---- 本地逆向/解包 dump，不提交（体积大 + 逆向内容）----
+/_dump_1.5.3/
+/Project_Reference/
+
+# ---- 诊断日志 / 截图 / 临时 ----
+/*.log
+/[Aa]ssets/screenshot/
+/.vscode/
+/[Aa]ssets/84585484.unity
+/[Aa]ssets/84585484.unity.meta
