@@ -1,5 +1,14 @@
 # RenderDoc preparation — 2026-09-17
 
+## Latest status: user capture received and replayed offline
+
+The user independently captured with RenderDuck `_v1.4` and supplied an XML+ZIP
+export. Its driver is Vulkan. Official RenderDoc 1.46 successfully converted it
+to RDC and replayed frame 7161 through event 1670; a full-resolution Present PNG
+was exported and inspected. The earlier absence of a capture is now superseded.
+See [capture intake and verified evidence](tifuluosi-capture-intake-20260917.md).
+No live-game launch or injection was performed by the agent during this analysis.
+
 ## Follow-up: community capture reports found
 
 Subsequent research found first-person reports of Endfield captures, including
@@ -10,7 +19,7 @@ Vulkan. No compatible local capture or third-party binary execution was verified
 See [community evidence and next checks](renderdoc-community-evidence-20260917.md).
 The old standard-tool launch entry point remains retired.
 
-## Current status: capture rejected; live-client entry point retired
+## Earlier standard-tool attempt: capture rejected; entry point retired
 
 The user ran the prepared script as administrator. RenderDoc printed
 `Launched as ID 38920`; the game then rejected startup with the message
