@@ -1,5 +1,15 @@
 # RenderDoc preparation — 2026-09-17
 
+## Follow-up: community capture reports found
+
+Subsequent research found first-person reports of Endfield captures, including
+Floraison's custom-tool article and tajourney's cached character-rendering post.
+This changes the research picture, not the result of our failed local attempt.
+The custom-tool author reports DX11 testing, whereas our recorded client used
+Vulkan. No compatible local capture or third-party binary execution was verified.
+See [community evidence and next checks](renderdoc-community-evidence-20260917.md).
+The old standard-tool launch entry point remains retired.
+
 ## Current status: capture rejected; live-client entry point retired
 
 The user ran the prepared script as administrator. RenderDoc printed

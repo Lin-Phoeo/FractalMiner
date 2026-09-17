@@ -71,4 +71,7 @@ https://renderdoc.org/docs/window/index.html
 再用转角/灯光变化检查；单帧看着相似不足以证明完整还原。
 RenderDoc 帧可以补足 GPU 端证据，但不会自动恢复原工程或缺失的 C++ 渲染管线源码。
 
-用户给的 NGA/Zhihu/tajourney 链接本次仍返回 403 或超时，未将未读正文当作论据。
+早期核验中用户给的 NGA/Zhihu/tajourney 链接返回 403 或超时，未将未读正文当作论据。
+后续检索已读到 Floraison 的截帧与描边文章，并通过搜索缓存取得 tajourney 7980 的正文文字；
+NGA 45642067 仍不可读。见 [社区截帧资料核验](renderdoc-community-evidence-20260917.md)。
+这些作者报告不是本机成功抓帧的证明，也没有改变上述实际缺失项。
