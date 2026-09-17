@@ -81,3 +81,7 @@ crashlytics-build.properties
 /.vscode/
 /[Aa]ssets/84585484.unity
 /[Aa]ssets/84585484.unity.meta
+
+# Official reference frames and GPU captures may contain account identifiers.
+/Validation/LocalReference/
+/Validation/Captures/

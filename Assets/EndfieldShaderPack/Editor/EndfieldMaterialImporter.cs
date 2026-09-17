@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace EndfieldShaderPack
 {
@@ -22,6 +23,50 @@ namespace EndfieldShaderPack
         const string MaterialJsonDir = ModelDir + "/Materials";
         const string FbxPath = ModelDir + "/chr_0034_typhoea_uimodel.fbx";
         const string ShaderName = "Endfield/CharacterLit";
+        static readonly HashSet<string> DataTextureSlots = new HashSet<string>
+        {
+            "_BumpMap", "_SplitNormalMap", "_MetallicGlossMap", "_SDFLightmap",
+            "_SDFMask", "_OutlineMask", "_LineMap", "_HairBrowMask", "_ClearCoatMask"
+        };
+
+        [MenuItem("Endfield/Repair Packed Texture Imports")]
+        public static void RepairPackedTextureImports()
+        {
+            var texMap = BuildTextureMap();
+            var paths = new HashSet<string>();
+            foreach (var path in Directory.GetFiles(Full(MaterialJsonDir), "*.json"))
+            {
+                var root = MiniJson.Parse(File.ReadAllText(path)) as Dictionary<string, object>;
+                if (root == null || !root.TryGetValue("m_SavedProperties", out var properties)) continue;
+                var saved = properties as Dictionary<string, object>;
+                if (saved == null || !saved.TryGetValue("m_TexEnvs", out var environments)) continue;
+                foreach (var entry in (Dictionary<string, object>)environments)
+                {
+                    if (!DataTextureSlots.Contains(entry.Key)) continue;
+                    var env = entry.Value as Dictionary<string, object>;
+                    if (env == null || !env.TryGetValue("m_Texture", out var textureObject)) continue;
+                    var texture = textureObject as Dictionary<string, object>;
+                    if (texture == null || !texture.TryGetValue("Name", out var name)) continue;
+                    if (texMap.TryGetValue(name as string ?? "", out var asset)) paths.Add(AssetDatabase.GetAssetPath(asset));
+                }
+            }
+            int changed = 0;
+            foreach (string path in paths)
+            {
+                var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+                if (importer == null) continue;
+                if (importer.textureType == TextureImporterType.Default && !importer.sRGBTexture
+                    && importer.textureCompression == TextureImporterCompression.Uncompressed && !importer.alphaIsTransparency) continue;
+                // Keep raw channels: HN contains TWO normal maps, and P is data.
+                importer.textureType = TextureImporterType.Default;
+                importer.sRGBTexture = false;
+                importer.alphaIsTransparency = false;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SaveAndReimport();
+                changed++;
+            }
+            Debug.Log($"[Endfield] Packed textures verified={paths.Count}, repaired={changed}");
+        }
 
         [MenuItem("Endfield/Build Typhoeus Materials From JSON")]
         public static void BuildMaterialsFromJson()
@@ -61,6 +106,9 @@ namespace EndfieldShaderPack
                 if (AssetDatabase.LoadAssetAtPath<Material>(matAssetPath) == null) isNew = true;
 
                 ApplyJsonToMaterial(mat, root, texMap);
+                if (mat.HasProperty("_MaterialFamily"))
+                    mat.SetFloat("_MaterialFamily", matName.Contains("hair_01") ? 2 : matName.Contains("iris") ? 3
+                        : (matName.Contains("face") || matName.Contains("body")) ? 1 : 0);
                 ConfigureUrpRenderState(mat);
 
                 if (isNew)
@@ -149,6 +197,7 @@ namespace EndfieldShaderPack
             {
                 foreach (var kv in texEnvs)
                 {
+                    if (!PropertyIs(mat, kv.Key, ShaderPropertyType.Texture)) continue;
                     if (!(kv.Value is Dictionary<string, object> texEnv)) continue;
                     if (!texEnv.TryGetValue("m_Texture", out var tObj) || !(tObj is Dictionary<string, object> mTex)) continue;
 
@@ -177,6 +226,8 @@ namespace EndfieldShaderPack
             {
                 foreach (var kv in floats)
                 {
+                    // ClearCoatMask, for example, has stale float AND texture entries.
+                    if (!PropertyIs(mat, kv.Key, ShaderPropertyType.Float, ShaderPropertyType.Range)) continue;
                     if (kv.Value is double d)
                         mat.SetFloat(kv.Key, (float)d);
                     else if (kv.Value is long l)
@@ -192,9 +243,19 @@ namespace EndfieldShaderPack
                 foreach (var kv in colors)
                 {
                     if (kv.Value is Dictionary<string, object> c)
-                        mat.SetColor(kv.Key, new Color(AsFloat(c, "r"), AsFloat(c, "g"), AsFloat(c, "b"), AsFloat(c, "a")));
+                    {
+                        var value = new Vector4(AsFloat(c, "r"), AsFloat(c, "g"), AsFloat(c, "b"), AsFloat(c, "a"));
+                        if (PropertyIs(mat, kv.Key, ShaderPropertyType.Vector)) mat.SetVector(kv.Key, value);
+                        else if (PropertyIs(mat, kv.Key, ShaderPropertyType.Color)) mat.SetColor(kv.Key, value);
+                    }
                 }
             }
+        }
+
+        static bool PropertyIs(Material material, string name, params ShaderPropertyType[] types)
+        {
+            int index = material.shader.FindPropertyIndex(name);
+            return index >= 0 && Array.IndexOf(types, material.shader.GetPropertyType(index)) >= 0;
         }
 
         // HGRP's Equal depth test depends on its own depth prepass. This URP
@@ -211,6 +272,9 @@ namespace EndfieldShaderPack
                 mat.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
                 mat.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
             }
+            mat.renderQueue = transparent ? (int)RenderQueue.Transparent
+                : mat.GetFloat("_EnableAlphaTest") > 0.5f ? (int)RenderQueue.AlphaTest : (int)RenderQueue.Geometry;
+            mat.SetOverrideTag("RenderType", transparent ? "Transparent" : "Opaque");
             mat.SetShaderPassEnabled("SRPDefaultUnlit", mat.GetFloat("_EnableOutline") > 0.5f);
             EditorUtility.SetDirty(mat);
         }

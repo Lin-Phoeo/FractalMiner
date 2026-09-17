@@ -26,8 +26,9 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
-  stringTagMap: {}
+  m_CustomRenderQueue: 2000
+  stringTagMap:
+    RenderType: Opaque
   disabledShaderPasses:
   - SRPDEFAULTUNLIT
   m_LockedProperties: 
@@ -145,6 +146,7 @@ Material:
     - _ColorAdjustmentSaturation: 1
     - _Cull: 0
     - _Cutoff: 0.5
+    - _DebugView: 0
     - _DrawUnderBrow: 0
     - _DstBlend: 0
     - _ENABLE_EYE: 0
@@ -153,6 +155,7 @@ Material:
     - _EmotionBlend: 1
     - _EmotionIndex: 0
     - _EnableAlphaTest: 0
+    - _EnableLegacyShaping: 0
     - _EnableOutline: 0
     - _EnableOutlineMask: 1
     - _EnableStylizedFresnel: 1
@@ -174,6 +177,7 @@ Material:
     - _LineSaturation: 2
     - _LineValue: 0.65
     - _MatcapNormalScale: 1
+    - _MaterialFamily: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
     - _OutlineAverageNormal: 1
@@ -233,6 +237,7 @@ Material:
     - _EyeScatteringColor: {r: 1, g: 1, b: 1, a: 1}
     - _EyeTintColor: {r: 1, g: 1, b: 1, a: 1}
     - _FakeFresnelColor: {r: 0.55375576, g: 0.6171334, b: 0.6415094, a: 1}
+    - _HighlightMapVector: {r: 0, g: -0.05, b: 0, a: 0}
     - _MatcapColor: {r: 1, g: 1, b: 1, a: 1}
     - _OutlineTintColor: {r: 1, g: 1, b: 1, a: 1}
     - _ParallaxColor: {r: 0.7283019, g: 0.3723958, b: 0.50156933, a: 1}
