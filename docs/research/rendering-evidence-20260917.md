@@ -63,7 +63,8 @@ https://renderdoc.org/docs/window/index.html
 本机工程中已有 `Assets/Scenes/RenderDocDrawCallAnalyze.py`、`RenderDocVulkanDump.py` 等脚本，
 但脚本存在不等于已取得截帧。本次在工作区及 Downloads/Desktop 检查没有发现 `.rdc`。
 助手正常启动 Endfield.exe 和 Launcher.exe 时均未暴露可操作窗口；随后用户手动成功启动，
-并提供了角色详情页截图。正在检查标准 RenderDoc 截帧条件。
+并提供了角色详情页截图。随后标准 RenderDoc 启动被游戏保护以 `1-18000` 拒绝；
+没有取得 RDC，客户端抓帧入口已停用。详见 `renderdoc-capture-status.md`，不再重试此路径。
 
 最小对照输入：用户正常打开提弗洛斯角色详情页，保持静止，或提供同页面无二次压缩截图。
 若已有可正常打开的 `.rdc`，还需其文件路径、游戏版本和画质设置。先匹配一个确定帧，
