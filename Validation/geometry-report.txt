@@ -1,0 +1,20 @@
+[Geometry] S_actor_Typhoea_vfxpart_01_lod0: vertices=3943 matrixError=6.51013E-07 vertexError=1.60112E-05
+[Geometry] S_actor_Typhoea_vfxpart_02_lod0: vertices=149 matrixError=1.07288E-06 vertexError=1.80479E-05
+[Geometry] S_actor_Typhoea_vfxpart_03_lod0: vertices=375 matrixError=8.41648E-07 vertexError=1.47514E-07
+[Geometry] S_actor_typhoea_body_01_lod0: vertices=917 matrixError=1.3113E-06 vertexError=1.91997E-05
+[Geometry] S_actor_typhoea_brow_01_lod0: vertices=638 matrixError=1.54246E-06 vertexError=7.54093E-07
+[Geometry] S_actor_typhoea_cloth_01_lod0: vertices=23758 matrixError=1.3113E-06 vertexError=1.90982E-05
+[Geometry] S_actor_typhoea_cloth_02_lod0: vertices=10568 matrixError=1.95986E-06 vertexError=1.9434E-05
+[Geometry] S_actor_typhoea_cloth_03_lod0: vertices=114 matrixError=1.07288E-06 vertexError=1.82468E-05
+[Geometry] S_actor_typhoea_cloth_04_lod0: vertices=3943 matrixError=6.51013E-07 vertexError=1.53652E-05
+[Geometry] S_actor_typhoea_cloth_05_lod0: vertices=1060 matrixError=7.15256E-07 vertexError=2.6708E-07
+[Geometry] S_actor_typhoea_cloth_06_lod0: vertices=5239 matrixError=8.41648E-07 vertexError=3.00712E-07
+[Geometry] S_actor_typhoea_cloth_07_lod0: vertices=390 matrixError=8.41648E-07 vertexError=2.51229E-07
+[Geometry] S_actor_typhoea_eyeshadow_01_lod0: vertices=40 matrixError=1.08635E-06 vertexError=2.04206E-05
+[Geometry] S_actor_typhoea_face_01_lod0: vertices=2109 matrixError=1.08635E-06 vertexError=2.06427E-05
+[Geometry] S_actor_typhoea_hair_01_lod0: vertices=15306 matrixError=8.13999E-07 vertexError=2.16243E-05
+[Geometry] S_actor_typhoea_hairshadow_01_lod0: vertices=192 matrixError=7.62804E-07 vertexError=2.14962E-05
+[Geometry] S_actor_typhoea_iris_01_lod0: vertices=162 matrixError=1.07334E-06 vertexError=6.51116E-07
+[Geometry] maxRestVertexError=2.16243E-05
+[Geometry] posedSkinError=4.78305E-07 movedVertices=22141
+PASS: reloaded scene; 17 persistent meshes; complete tangents; depth states; shader compilation; rest and posed skinning.

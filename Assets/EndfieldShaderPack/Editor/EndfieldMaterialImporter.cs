@@ -61,6 +61,7 @@ namespace EndfieldShaderPack
                 if (AssetDatabase.LoadAssetAtPath<Material>(matAssetPath) == null) isNew = true;
 
                 ApplyJsonToMaterial(mat, root, texMap);
+                ConfigureUrpRenderState(mat);
 
                 if (isNew)
                 {
@@ -194,6 +195,24 @@ namespace EndfieldShaderPack
                         mat.SetColor(kv.Key, new Color(AsFloat(c, "r"), AsFloat(c, "g"), AsFloat(c, "b"), AsFloat(c, "a")));
                 }
             }
+        }
+
+        // HGRP's Equal depth test depends on its own depth prepass. This URP
+        // forward shader must write and test its own depth.
+        public static void ConfigureUrpRenderState(Material mat)
+        {
+            mat.SetFloat("_ZTest", (float)UnityEngine.Rendering.CompareFunction.LessEqual);
+            bool transparent = mat.GetFloat("_SurfaceType") > 0.5f;
+            mat.SetFloat("_ZWrite", transparent ? 0f : 1f);
+            if (!transparent)
+            {
+                mat.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                mat.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                mat.SetFloat("_AlphaSrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                mat.SetFloat("_AlphaDstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+            }
+            mat.SetShaderPassEnabled("SRPDefaultUnlit", mat.GetFloat("_EnableOutline") > 0.5f);
+            EditorUtility.SetDirty(mat);
         }
 
         static float AsFloat(Dictionary<string, object> map, string key)

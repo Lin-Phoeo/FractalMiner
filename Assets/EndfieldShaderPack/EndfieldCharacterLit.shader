@@ -206,8 +206,8 @@ Shader "Endfield/CharacterLit"
         [Toggle(_OUTLINE_MASK)] _EnableOutlineMask ("Outline Mask Enable", Float) = 0
         _OutlineMask ("Outline Mask", 2D) = "white" {}
         [ToggleUI] _OutlineAverageNormal ("Use Smooth Normal", Float) = 1
-        _OutlineMinWidth ("Outline Min Width", Range(0,0.1)) = 0.002
-        _OutlineMaxWidth ("Outline Max Width", Range(0,1)) = 0.02
+        _OutlineMinWidth ("Outline Min Width (Pixels)", Range(0,8)) = 0.2
+        _OutlineMaxWidth ("Outline Max Width (Pixels)", Range(0,8)) = 3
     }
 
     SubShader
@@ -299,9 +299,8 @@ Shader "Endfield/CharacterLit"
         TEXTURE2D(_HighlightMap);
         TEXTURE2D(_HairBrowMask);
 
-        // URP Core.hlsl 不预定义 sampler_LinearRepeat(仅 PostProcessing 里有)，
-        // 必须显式声明，否则清缓存重编译后报 "undeclared identifier"。
-        SAMPLER(sampler_LinearRepeat);
+        // Private inline sampler avoids version-dependent URP global declarations.
+        SAMPLER(sampler_Endfield_LinearRepeat);
 
         struct Attributes
         {
@@ -327,9 +326,14 @@ Shader "Endfield/CharacterLit"
             Varyings output = (Varyings)0;
             output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
             output.positionCS = TransformWorldToHClip(output.positionWS);
-            output.normalWS   = normalize(TransformObjectToWorldNormal(input.normalOS));
+            output.normalWS   = SafeNormalize(TransformObjectToWorldNormal(input.normalOS));
             float3 tangentWS  = TransformObjectToWorldDir(input.tangentOS.xyz);
-            output.tangentWS  = float4(normalize(tangentWS), input.tangentOS.w);
+            if (dot(tangentWS, tangentWS) < 1e-8)
+            {
+                float3 axis = abs(output.normalWS.y) < 0.99 ? float3(0,1,0) : float3(1,0,0);
+                tangentWS = cross(axis, output.normalWS);
+            }
+            output.tangentWS  = float4(SafeNormalize(tangentWS), input.tangentOS.w < 0 ? -1 : 1);
             output.viewDirWS  = GetWorldSpaceViewDir(output.positionWS);
             output.uv         = TRANSFORM_TEX(input.uv, _BaseMap);
             output.fogFactor  = ComputeFogFactor(output.positionCS.z);
@@ -447,11 +451,11 @@ Shader "Endfield/CharacterLit"
                         dot(input.viewDirWS, T),
                         dot(input.viewDirWS, B),
                         dot(input.viewDirWS, Ntg));
-                    half h = SAMPLE_TEXTURE2D(_ParallaxTex, sampler_LinearRepeat, uv).r;
+                    half h = SAMPLE_TEXTURE2D(_ParallaxTex, sampler_Endfield_LinearRepeat, uv).r;
                     uv -= (h - 0.5) * _ParallaxScale * viewDirTS.xy;
                 }
 
-                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, uv);
+                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, uv);
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
                 // 终末地角色为不透明表面，漫反射 _D 贴图 alpha 通道存的是其它数据(AO/mask)，
                 // 不是透明度，绝不能拿 baseMap.a 当 alpha，否则身体/布料会"像空气一样透明"。
@@ -462,7 +466,7 @@ Shader "Endfield/CharacterLit"
                 if (_UseEmotionMap > 0.5)
                 {
                     half2 euv = half2(fmod(_EmotionIndex, 2.0) * 0.5, floor(_EmotionIndex * 0.5) * 0.5) + 0.5 * uv;
-                    half4 emo = SAMPLE_TEXTURE2D(_EmotionMap, sampler_LinearRepeat, euv);
+                    half4 emo = SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearRepeat, euv);
                     albedo = lerp(albedo, emo.rgb, emo.a * _EmotionBlend);
                 }
 
@@ -472,7 +476,7 @@ Shader "Endfield/CharacterLit"
                 half3 N = normalize(input.normalWS);
                 if (_UseBumpMap > 0.5)
                 {
-                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_LinearRepeat, uv), _BumpScale);
+                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, uv), _BumpScale);
                     N = normalize(mul(normalTS, CharTBN(input, N)));
                 }
 
@@ -505,7 +509,7 @@ Shader "Endfield/CharacterLit"
                 half3 diffuse;
                 if (_UseDiffRampMap > 0.5)
                 {
-                    half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_LinearRepeat, half2(halfLambert, 0.5)).rgb;
+                    half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_Endfield_LinearRepeat, half2(halfLambert, 0.5)).rgb;
                     diffuse = albedo * ramped;
                 }
                 else
@@ -517,13 +521,13 @@ Shader "Endfield/CharacterLit"
                 // SDF 面光：官方 _SDFLightmap.xy = 预烘焙面光照度(官方 _1553)，喂入 diffuse ramp
                 if (_UseSDFLightmap > 0.5)
                 {
-                    half3 sdf = SAMPLE_TEXTURE2D(_SDFLightmap, sampler_LinearRepeat, uv).rgb;
+                    half3 sdf = SAMPLE_TEXTURE2D(_SDFLightmap, sampler_Endfield_LinearRepeat, uv).rgb;
                     half sdfLight = saturate((sdf.r + sdf.g) * 0.5);
                     // 官方 _508 = _SDFMask.y，控制 SDF 面部光照强度(面部区域=1)
-                    half sdfW = SAMPLE_TEXTURE2D(_SDFMask, sampler_LinearRepeat, uv).y;
+                    half sdfW = SAMPLE_TEXTURE2D(_SDFMask, sampler_Endfield_LinearRepeat, uv).y;
                     if (_UseDiffRampMap > 0.5)
                     {
-                        half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_LinearRepeat, half2(sdfLight, 0.5)).rgb;
+                        half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_Endfield_LinearRepeat, half2(sdfLight, 0.5)).rgb;
                         diffuse = lerp(diffuse, albedo * ramped, sdfW);
                     }
                     else
@@ -535,14 +539,14 @@ Shader "Endfield/CharacterLit"
                 // 面部高光遮罩：官方 _HighlightMap(hl_M) 随光偏移的微弱高光
                 if (_FaceHighlightMap > 0.5)
                 {
-                    half hl = SAMPLE_TEXTURE2D(_HighlightMap, sampler_LinearRepeat, uv).r;
+                    half hl = SAMPLE_TEXTURE2D(_HighlightMap, sampler_Endfield_LinearRepeat, uv).r;
                     diffuse += albedo * hl * saturate(NdotL) * _HighlightMapVector * lightColor;
                 }
 
                 // 发际/眉下阴影：官方 _DrawUnderBrow + _HairBrowMask(sw_M)
                 if (_DrawUnderBrow > 0.5)
                 {
-                    half brow = SAMPLE_TEXTURE2D(_HairBrowMask, sampler_LinearRepeat, uv).r;
+                    half brow = SAMPLE_TEXTURE2D(_HairBrowMask, sampler_Endfield_LinearRepeat, uv).r;
                     half browAmt = saturate((brow - _HairBrowMaskThreshold) * 8.0);
                     diffuse *= lerp(1.0, 0.72, browAmt * saturate(L.y));
                 }
@@ -552,7 +556,7 @@ Shader "Endfield/CharacterLit"
                 {
                     // 皮肤颜色 LUT：阴影区域用 LUT 采样基色作为阴影基色
                     // (精确 3D LUT 采样公式待读官方 _SHADOW_LUT_TEX 变体后进一步对齐)
-                    half3 lutCol = SampleSkinLUT3D(_ShadowLutTex, sampler_LinearRepeat, albedo);
+                    half3 lutCol = SampleSkinLUT3D(_ShadowLutTex, sampler_Endfield_LinearRepeat, albedo);
                     half lum = dot(lutCol, half3(0.2126729, 0.7151522, 0.0721750));
                     half3 shadowCol = lerp(lum.xxx, lutCol, _ShadowColorSaturation) * _ShadowColorBrightness;
                     diffuse = lerp(diffuse, shadowCol, 1.0 - shade);
@@ -574,7 +578,7 @@ Shader "Endfield/CharacterLit"
                 half ao = 1.0;
                 if (_UseMetallicGlossMap > 0.5)
                 {
-                    half4 mg = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_LinearRepeat, uv);
+                    half4 mg = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_Endfield_LinearRepeat, uv);
                     metallic = mg.r;
                     smoothness = mg.a;
                     ao = lerp(1.0, mg.g, _OcclusionStrength);
@@ -590,7 +594,7 @@ Shader "Endfield/CharacterLit"
                     half3 Nhair = N;
                     if (_UseSpecBumpMap > 0.5)
                     {
-                        half4 sn = SAMPLE_TEXTURE2D(_SplitNormalMap, sampler_LinearRepeat, uv);
+                        half4 sn = SAMPLE_TEXTURE2D(_SplitNormalMap, sampler_Endfield_LinearRepeat, uv);
                         half2 snXY = sn.zw * 2.0 - 1.0;
                         half3 snTS = half3(snXY, 0.0);
                         snTS.z = sqrt(saturate(1.0 - dot(snXY, snXY)));
@@ -611,13 +615,13 @@ Shader "Endfield/CharacterLit"
 
                     // 官方主高光：sin(T,H)^200 塑形后采样 _SpecRampMap
                     half specVal = saturate(pow(max(sinTH, 1e-4), 200.0));
-                    half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_LinearRepeat, half2(specVal, (tDotH > 0.0 ? 1.0 : 0.0) * edgeFade * edgeFade)).rgb;
+                    half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_Endfield_LinearRepeat, half2(specVal, (tDotH > 0.0 ? 1.0 : 0.0) * edgeFade * edgeFade)).rgb;
                     half3 primary = specVal * specRamp * _AnisotropyColor.rgb * (_AnisotropyIntensity * 5.0);
 
                     // 发丝线(LineMap)：frac(uv.x*_LineAmount) 阶梯与 _LineMap.r 混合
                     half2 lineUV = uv * _LineMap_ST.xy + _LineMap_ST.zw;
                     half streak = ceil(clamp(frac(lineUV.x * _LineAmount) - 0.5, 0.0, 1.0));
-                    half lineMapR = _UseLineMap > 0.5 ? SAMPLE_TEXTURE2D(_LineMap, sampler_LinearRepeat, lineUV).r : streak;
+                    half lineMapR = _UseLineMap > 0.5 ? SAMPLE_TEXTURE2D(_LineMap, sampler_Endfield_LinearRepeat, lineUV).r : streak;
                     half lineMask = lerp(streak, 1.0 - lineMapR, _UseLineMap);
                     half lineFactor = lerp(1.0 - _LineIntensity, 1.0, lineMask);
                     primary *= lineFactor;
@@ -634,7 +638,7 @@ Shader "Endfield/CharacterLit"
                     // 眼睛 matcap 高光 + 散射
                     half3 r = reflect(-V, N);
                     half2 mc = half2(r.x * 0.5 + 0.5, r.y * 0.5 + 0.5);
-                    half3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_LinearRepeat, mc).rgb;
+                    half3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_Endfield_LinearRepeat, mc).rgb;
                     specular = matcap * _MatcapColor.rgb * _EyeTintColor.rgb
                              + _EyeScatteringColor.rgb * (1.0 - NdotV)
                              + _EyeHighLightColor.rgb * _EyeHighLight * pow(NdotH, 64.0);
@@ -643,8 +647,9 @@ Shader "Endfield/CharacterLit"
                 {
                     if (_UseSpecRampMap > 0.5)
                     {
-                        half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_LinearRepeat, half2(NdotH, 0.5)).rgb;
-                        specular = specRamp * _Specular;
+                        half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_Endfield_LinearRepeat, half2(NdotH, 0.5)).rgb;
+                        half3 F0 = lerp(half3(0.04,0.04,0.04), albedo, metallic);
+                        specular = specRamp * F0 * _Specular * NdotL;
                     }
                     else
                     {
@@ -666,7 +671,7 @@ Shader "Endfield/CharacterLit"
                     // 清漆 Clear Coat
                     if (_ClearCoat > 0.5)
                     {
-                        half ccMask = SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_LinearRepeat, uv).r;
+                        half ccMask = SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_Endfield_LinearRepeat, uv).r;
                         half ccRough = 1.0 - _ClearCoatSmoothness;
                         half cc = ccRough <= 0.0 ? 1.0 :
                             (half)((ccRough*ccRough) / max(3.14159 * pow(NdotH*NdotH*(ccRough*ccRough-1.0)+1.0, 2.0), 1e-4));
@@ -690,7 +695,7 @@ Shader "Endfield/CharacterLit"
                     half fresnel = pow(saturate(1.0 - NdotV), _StylizedFresnelPow) * _StylizedFresnelAmount;
                     half3 sc = _StylizedFresnelColor.rgb;
                     half2 nu = uv + half2(_Time.y * _StylizedFresnelNoiseSpeed, _Time.y * _StylizedFresnelNoiseSpeed);
-                    half noise = SAMPLE_TEXTURE2D(_StylizedFresnelNoiseMap, sampler_LinearRepeat, nu).r;
+                    half noise = SAMPLE_TEXTURE2D(_StylizedFresnelNoiseMap, sampler_Endfield_LinearRepeat, nu).r;
                     fresnel *= lerp(1.0, noise, _StylizedNoiseContrast);
                     specular += sc * fresnel;
                 }
@@ -699,7 +704,7 @@ Shader "Endfield/CharacterLit"
                 half3 emission = 0;
                 if (_UseEmission > 0.5)
                 {
-                    emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_LinearRepeat, uv).rgb
+                    emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_Endfield_LinearRepeat, uv).rgb
                              * _EmissionColor.rgb * _EmissionBrightness;
                 }
 
@@ -762,36 +767,46 @@ Shader "Endfield/CharacterLit"
                 Vary output = (Vary)0;
                 float mask = 1.0;
                 if (_EnableOutlineMask > 0.5)
-                    mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_LinearRepeat, TRANSFORM_TEX(input.uv, _OutlineMask), 0).r;
+                    mask = SAMPLE_TEXTURE2D_LOD(_OutlineMask, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(input.uv, _OutlineMask), 0).r;
 
-                float3 normalWS = normalize(TransformObjectToWorldNormal(input.normalOS));
+                float3 normalWS = SafeNormalize(TransformObjectToWorldNormal(input.normalOS));
                 float3 smoothWS = normalWS;
-                if (_OutlineAverageNormal > 0.5)
+                // JSON meshes may omit UV7 and tangents. Missing UV7 is zero,
+                // not an encoded (-1,-1,-1) smooth normal.
+                if (_OutlineAverageNormal > 0.5 && dot(input.smoothedNormal, input.smoothedNormal) > 1e-8
+                    && dot(input.tangentOS.xyz, input.tangentOS.xyz) > 1e-8)
                 {
                     float3 smoothTS = input.smoothedNormal * 2.0 - 1.0;
                     if (dot(smoothTS, smoothTS) > 1e-4)
                     {
                         float3 tangentWS = TransformObjectToWorldDir(input.tangentOS.xyz);
-                        float3 bitangentWS = normalize(cross(normalWS, tangentWS)) * input.tangentOS.w;
-                        float3x3 tbn = float3x3(normalize(tangentWS), bitangentWS, normalWS);
-                        smoothWS = normalize(mul(smoothTS, tbn));
+                        float3 bitangentWS = SafeNormalize(cross(normalWS, tangentWS)) * input.tangentOS.w;
+                        float3x3 tbn = float3x3(SafeNormalize(tangentWS), bitangentWS, normalWS);
+                        smoothWS = SafeNormalize(mul(smoothTS, tbn));
                     }
                 }
 
-                float w = lerp(_OutlineMinWidth, _OutlineMaxWidth, saturate(_OutlineWidth));
+                // Source material values reach 3. They cannot be interpreted as
+                // meters: that inflated a 1.6 m character by up to 1.6 m per vertex.
+                // URP adaptation uses bounded screen-pixel widths.
+                float w = clamp(lerp(_OutlineMinWidth, _OutlineMaxWidth, saturate(_OutlineWidth)), 0, 8);
                 float widthMask = saturate(mask * input.color.r);
                 float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
-                float3 viewDirWS = GetWorldSpaceViewDir(positionWS);
-                float3 offsetDir = normalize(smoothWS + viewDirWS * -_OutlineOffsetZ);
-                positionWS += offsetDir * w * widthMask;
                 output.positionCS = TransformWorldToHClip(positionWS);
+                float3 normalVS = mul((float3x3)UNITY_MATRIX_V, smoothWS);
+                float2 projected = mul((float2x2)UNITY_MATRIX_P, normalVS.xy);
+                float2 pixelDirection = projected * _ScaledScreenParams.xy;
+                pixelDirection *= rsqrt(max(dot(pixelDirection, pixelDirection), 1e-8));
+                output.positionCS.xy += pixelDirection * (2.0 * w * widthMask / _ScaledScreenParams.xy)
+                    * output.positionCS.w * step(0.5, _EnableOutline);
                 output.uv = input.uv;
                 return output;
             }
 
             half4 frag(Vary input) : SV_Target
             {
-                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, input.uv).rgb * _BaseColor.rgb;
+                clip(_EnableOutline - 0.5);
+                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).rgb * _BaseColor.rgb;
                 half lum = dot(base, half3(0.2126729, 0.7151522, 0.0721750));
                 half3 c = lerp(lum.xxx, base, _OutlineColorSaturation);
                 c *= _OutlineColorBrightness;
@@ -833,7 +848,7 @@ Shader "Endfield/CharacterLit"
 
             half4 frag(Varyings input) : SV_Target
             {
-                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_LinearRepeat, input.uv).a;
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).a;
                 if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
                 return 0;
             }

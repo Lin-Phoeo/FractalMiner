@@ -9,6 +9,8 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: M_actor_typhoea_cloth_02
   m_Shader: {fileID: 4800000, guid: eead314d274e9374fa0d489147aadd2b, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _EMISSION
   - _METALLICSPECGLOSSMAP
@@ -25,6 +27,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -211,7 +214,7 @@ Material:
     - _UseShadowLutTex: 0
     - _UseSpecBumpMap: 0
     - _UseSpecRampMap: 1
-    - _ZTest: 3
+    - _ZTest: 4
     - _ZWrite: 1
     m_Colors:
     - _AnisotropyColor: {r: 1, g: 1, b: 1, a: 1}

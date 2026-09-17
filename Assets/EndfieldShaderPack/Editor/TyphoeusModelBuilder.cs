@@ -83,7 +83,9 @@ namespace Endfield
             Transform[] boneTransforms = new Transform[data.bones.Count];
             GameObject root = new GameObject("chr_0034_typhoea_rebuilt");
             root.transform.position = Vector3.zero;
-            root.transform.rotation = Quaternion.identity;
+            // 官方数据是 Z 轴朝上的躺倒姿态。旋转必须作用在根对象上，
+            // 顶点/bind pose/骨骼保持同一原始空间，否则蒙皮矩阵失配导致顶点飞散。
+            root.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
 
             for (int i = 0; i < data.bones.Count; i++)
             {
@@ -186,12 +188,31 @@ namespace Endfield
                 bws[i].weight3 = m.boneWeightValues[i * 4 + 3];
             }
             mesh.boneWeights = bws;
-
+            mesh.RecalculateTangents();
             mesh.RecalculateBounds();
+
+            // A scene must reference a persistent mesh, not a transient editor
+            // object which disappears after saving/reopening the project.
+            const string meshDirectory = "Assets/Typhoeus/GeneratedMeshes";
+            if (!AssetDatabase.IsValidFolder(meshDirectory))
+                AssetDatabase.CreateFolder("Assets/Typhoeus", "GeneratedMeshes");
+            string meshPath = meshDirectory + "/" + m.name + ".asset";
+            Mesh existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            if (existing == null) AssetDatabase.CreateAsset(mesh, meshPath);
+            else
+            {
+                EditorUtility.CopySerialized(mesh, existing);
+                UnityEngine.Object.DestroyImmediate(mesh);
+                mesh = existing;
+                EditorUtility.SetDirty(mesh);
+            }
 
             // SkinnedMeshRenderer
             SkinnedMeshRenderer smr = go.AddComponent<SkinnedMeshRenderer>();
             smr.sharedMesh = mesh;
+            smr.quality = SkinQuality.Bone4;
+            smr.updateWhenOffscreen = true;
+            smr.localBounds = mesh.bounds;
 
             Transform[] smrBones = new Transform[bcount];
             for (int b = 0; b < bcount; b++)
@@ -205,6 +226,7 @@ namespace Endfield
             // 绑定材质
             Material[] mats = new Material[subCount];
             Material mat = ResolveMaterial(m.name);
+            if (mat != null) EndfieldShaderPack.EndfieldMaterialImporter.ConfigureUrpRenderState(mat);
             for (int s = 0; s < subCount; s++)
                 mats[s] = mat;
             smr.sharedMaterials = mats;
@@ -238,15 +260,35 @@ namespace Endfield
             return mat;
         }
 
+        static void SetLocalFromMatrix(Transform t, Matrix4x4 m)
+        {
+            Vector3 c0 = m.GetColumn(0);
+            Vector3 c1 = m.GetColumn(1);
+            Vector3 c2 = m.GetColumn(2);
+            float sx = c0.magnitude, sy = c1.magnitude, sz = c2.magnitude;
+            if (sx < 1e-6f || sy < 1e-6f || sz < 1e-6f)
+            {
+                t.localPosition = m.GetColumn(3);
+                t.localRotation = Quaternion.identity;
+                t.localScale = Vector3.one;
+                return;
+            }
+            // 用前向/上方向构造稳健的四元数，避免非均匀 scale 导致 NaN
+            t.localPosition = m.GetColumn(3);
+            t.localRotation = Quaternion.LookRotation(c2 / sz, c1 / sy);
+            t.localScale = new Vector3(sx, sy, sz);
+        }
+
         static Matrix4x4 ReadMatrix(float[] flat, int index)
         {
             Matrix4x4 m = Matrix4x4.identity;
             if (flat == null || index * 16 + 15 >= flat.Length) return m;
+            // JSON 为行主序（平移在最后 4 个数），Unity Matrix4x4 的 mRC 是列主序，需转置读取。
             int o = index * 16;
-            m.m00 = flat[o];   m.m01 = flat[o + 1];  m.m02 = flat[o + 2];  m.m03 = flat[o + 3];
-            m.m10 = flat[o + 4]; m.m11 = flat[o + 5]; m.m12 = flat[o + 6]; m.m13 = flat[o + 7];
-            m.m20 = flat[o + 8]; m.m21 = flat[o + 9]; m.m22 = flat[o + 10]; m.m23 = flat[o + 11];
-            m.m30 = flat[o + 12]; m.m31 = flat[o + 13]; m.m32 = flat[o + 14]; m.m33 = flat[o + 15];
+            m.m00 = flat[o];      m.m10 = flat[o + 1];  m.m20 = flat[o + 2];  m.m30 = flat[o + 3];
+            m.m01 = flat[o + 4];  m.m11 = flat[o + 5];  m.m21 = flat[o + 6];  m.m31 = flat[o + 7];
+            m.m02 = flat[o + 8];  m.m12 = flat[o + 9];  m.m22 = flat[o + 10]; m.m32 = flat[o + 11];
+            m.m03 = flat[o + 12]; m.m13 = flat[o + 13]; m.m23 = flat[o + 14]; m.m33 = flat[o + 15];
             return m;
         }
     }
