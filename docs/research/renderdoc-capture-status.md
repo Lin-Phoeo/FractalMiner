@@ -7,6 +7,8 @@ export. Its driver is Vulkan. Official RenderDoc 1.46 successfully converted it
 to RDC and replayed frame 7161 through event 1670; a full-resolution Present PNG
 was exported and inspected. The earlier absence of a capture is now superseded.
 See [capture intake and verified evidence](tifuluosi-capture-intake-20260917.md).
+The later user-supplied front-view RDC was also replayed offline and is tracked in
+[front capture intake](tifuluosi-front-capture-20260917.md).
 No live-game launch or injection was performed by the agent during this analysis.
 
 ## Follow-up: community capture reports found
