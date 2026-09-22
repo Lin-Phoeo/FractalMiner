@@ -22,7 +22,17 @@ namespace EndfieldShaderPack
         public static void Diagnose()
         {
             var root = GameObject.Find(RootName);
-            if (root == null) { Debug.LogError($"[Showcase] 找不到 {RootName}"); return; }
+            if (root == null)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                Debug.LogError($"[Showcase] 当前场景「{scene.name}」找不到 {RootName}（角色模型尚未重建）。");
+                var src = GameObject.Find("Typhoeus_SourceFBX");
+                if (src != null)
+                    Debug.LogWarning("[Showcase] 源 FBX 已就位但模型未重建 → 请先点菜单 Endfield/Setup Typhoeus Showcase Scene（会自动重建模型）。");
+                else
+                    Debug.LogWarning("[Showcase] 请先点菜单 Endfield/Setup Typhoeus Showcase Scene 一键搭建场景并重建模型，再回来诊断。");
+                return;
+            }
 
             var sb = new StringBuilder();
             sb.AppendLine($"# Typhoeus parts diagnosis — {System.DateTime.Now:yyyy-MM-dd HH:mm:ss}");
@@ -102,7 +112,12 @@ namespace EndfieldShaderPack
         public static void FixDetachedParts()
         {
             var root = GameObject.Find(RootName);
-            if (root == null) { Debug.LogError($"[Showcase] 找不到 {RootName}"); return; }
+            if (root == null)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                Debug.LogError($"[Showcase] 当前场景「{scene.name}」找不到 {RootName}。请先点菜单 Endfield/Setup Typhoeus Showcase Scene 重建模型。");
+                return;
+            }
 
             var globalBones = CollectGlobalBones(root.transform);
             Debug.Log($"[Showcase] 全局骨骼 DFS 顺序收集：{globalBones.Count} 个");
@@ -198,7 +213,12 @@ namespace EndfieldShaderPack
         public static void SetupShowcaseScene()
         {
             var root = GameObject.Find(RootName);
-            if (root == null) { Debug.LogError($"[Showcase] 找不到 {RootName}"); return; }
+            if (root == null)
+            {
+                var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                Debug.LogError($"[Showcase] 当前场景「{scene.name}」找不到 {RootName}。请先点菜单 Endfield/Setup Typhoeus Showcase Scene 重建模型。");
+                return;
+            }
 
             // 地面
             var ground = GameObject.Find("Showcase_Ground");
