@@ -545,6 +545,9 @@ Shader "Endfield/CharacterLit"
                 half shade = saturate(min(
                     SigmoidSharp(halfLambert, _HalfLambertShadowCenter, _HalfLambertShadowSharpness),
                     SigmoidSharp(shadowAtten, _SceneShadowCenter, _SceneShadowSharpness)));
+                // SigmoidSharp 以 center=0 为过渡中心，halfLambert/shadowAtten ∈[0,1] 恒 >=0，
+                // 输出被压在 [0.5,1]。重新映射到 [0,1]，让背光/阴影区域真正降到 0（对齐官方阴影侧 diffuse→0）。
+                shade = saturate(shade * 2.0 - 1.0);
 
                 // ---- 漫反射 + 漫反射 ramp ----
                 half3 diffuse;
@@ -863,7 +866,8 @@ Shader "Endfield/CharacterLit"
                 specular += _highlightSpec * lightColor * specLightSkin;
 
                 // ---- 合成 + AO ----
-                half3 color = (diffuse * lightColor + specular * lightColor + albedo * _CharacterAmbient.rgb) * ao + emission;
+                // 环境光乘 shade：阴影区域环境光随之减弱，避免明暗被压平（官方阴影侧漫反射→0）
+                half3 color = (diffuse * lightColor + specular * lightColor + albedo * _CharacterAmbient.rgb * shade) * ao + emission;
 
                 // ---- 官方 b138 §12: 饱和度提升 ----
                 // color = lerp(lum.xxx, color, (s*s+1).xxx) where s = clamp(lum-0.5, 0, 0.5)
