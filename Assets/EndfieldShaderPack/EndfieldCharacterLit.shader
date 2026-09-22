@@ -283,6 +283,24 @@ Shader "Endfield/CharacterLit"
         float4 _CharacterLightColor;
         float4 _CharacterAmbient;     // 环境/补光颜色
 
+        // 官方 HGRP _CharacterParamsN 全局参数（捕获帧已知值，由 C# SetGlobalVector 注入）
+        // 详见 docs/research/official-forwardlit-{hair-b125,skin-b138,cloth-b401,eye-b28}.md §4
+        float4 _CharacterParams0;   // x=? y=受光侧lightTerm乘数 z=阴影色深度系数(0.65) w=阴影侧lightTerm乘数(0.9)
+        float4 _CharacterParams1;   // x=环境峰值映射 y=1=平坦环境(不采样辐照度体) z=1=忽略屏幕空间方向光阴影 w=1=用CP11.xyz覆盖光方向
+        float4 _CharacterParams2;   // xyz=平坦环境色调 (捕获 0.849,0.896,0.151)
+        float4 _CharacterParams3;   // skin 用（hair 不引用）
+        float4 _CharacterParams4;   // skin 用
+        float4 _CharacterParams5;   // xyz=光颜色覆盖(权重CP12.y)
+        float4 _CharacterParams6;   // xyz=环境梯度方向
+        float4 _CharacterParams7;   // x/y/z=环境梯度 offset/scale/base (0.15/1.5/0.5)
+        float4 _CharacterParams8;   // xyz=深度边缘光颜色 w=强度
+        float4 _CharacterParams9;   // xy=边缘光轴 z=边缘光颜色lerp w=深度采样偏移
+        float4 _CharacterParams10;  // x=>0.5用全局天气 y=天气掩码 z=雨雪UV缩放 w=水位
+        float4 _CharacterParams11;  // xyz=角色专用光方向(0.176,0.530,0.830) w=ramp偏移
+        float4 _CharacterParams12;  // x=1关逆光抬亮 y=光颜色覆盖权重 z=点光角色灯门槛 w=>=0.5展示模式
+        float4 _CharacterParams13;  // w=各向异性高光总乘数（hair/cloth 用）
+        float4 _CharacterParams15;  // w=0=CP9.xy世界轴 1=相机轴
+
         TEXTURE2D(_BaseMap);
         TEXTURE2D(_BumpMap);
         TEXTURE2D(_MetallicGlossMap);
@@ -533,14 +551,31 @@ Shader "Endfield/CharacterLit"
                     diffuse = albedo * shade;
                 }
 
-                // ==== 面部 SDF / 高光 / 发际 (近似 HGRP，语义见 _REVERSE_ENGINEERING_NOTES) ====
+                // ==== 面部 SDF / 高光 / 发际 (官方 b138 §9 对齐) ====
                 // SDF 面光：官方 _SDFLightmap.xy = 预烘焙面光照度(官方 _1553)，喂入 diffuse ramp
+                //   官方按物体空间水平光 Lh.x 左右翻转 UV，消除鼻子投影问题 (b138 §9 L1501-1512)
+                half3 _highlightSpec = 0;  // 延迟到 specular 段应用的 _HighlightMap 高光
+                half _sdfSpecW = 1.0;      // SDF specular 门控权重(=sdfW)，1=全 specular
                 if (_UseSDFLightmap > 0.5)
                 {
-                    half3 sdf = SAMPLE_TEXTURE2D(_SDFLightmap, sampler_Endfield_LinearClamp, uv).rgb;
+                    // 官方 b138 §9: Lh = normalize(mul(L, M_o2w)), Y≈0, lhSide = Lh.x>0 ? 1:0
+                    half3 objL = TransformWorldToObjectDir(L);
+                    half3 Lh = SafeNormalize(half3(objL.x, 6.103515625e-05, objL.z));
+                    half lhSide = Lh.x > 0.0 ? 1.0 : 0.0;
+                    // SDF UV 翻转：左/右半脸根据光方向
+                    half2 sdfUV = half2(lerp(1.0 - uv.x, uv.x, lhSide), uv.y);
+                    half3 sdf = SAMPLE_TEXTURE2D(_SDFLightmap, sampler_Endfield_LinearRepeat, sdfUV).rgb;
                     half sdfLight = saturate((sdf.r + sdf.g) * 0.5);
                     // 官方 _508 = _SDFMask.y，控制 SDF 面部光照强度(面部区域=1)
-                    half sdfW = SAMPLE_TEXTURE2D(_SDFMask, sampler_Endfield_LinearClamp, uv).y;
+                    half4 sdfMask4 = SAMPLE_TEXTURE2D(_SDFMask, sampler_Endfield_LinearRepeat, uv);
+                    half sdfW = sdfMask4.y;
+                    half sdfSkin = sdfMask4.z;  // skin vs face 选择
+                    // sdfN：混合 SDF 光照方向与表面法线 (b138 §9 _1529)
+                    half sdfRange = sdf.b * 2.0;
+                    half sdfAng = lerp(1.0 - sdfRange, sdfRange - 1.0, lhSide);
+                    half3 sdfLDirObj = half3(sdfAng, 6.103515625e-05, 1.0 - abs(sdfAng));
+                    half3 sdfLDir = SafeNormalize(TransformObjectToWorldDir(sdfLDirObj));
+                    half3 sdfN = SafeNormalize(lerp(sdfLDir, N, sdfW));
                     if (_UseDiffRampMap > 0.5)
                     {
                         half3 ramped = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_Endfield_LinearClamp, half2(sdfLight, 0.5)).rgb;
@@ -550,14 +585,17 @@ Shader "Endfield/CharacterLit"
                     {
                         diffuse = lerp(diffuse, albedo * sdfLight, sdfW);
                     }
+                    // 用 sdfN 替代 N 用于后续 specular 计算（仅 SDF 权重区域）
+                    N = lerp(N, sdfN, sdfW);
+                    // 存 SDF 权重，稍后门控 specularMask (官方 _1178 specStrength = lerp(0, _Specular, sdfW))
+                    _sdfSpecW = sdfW;
                 }
 
-                // 面部高光遮罩：官方 _HighlightMap(hl_M) 随光偏移的微弱高光
+                // 面部高光图：官方 b138 §11 _1728 — .rgb 采样，随视角偏移 UV，作为高光项(specLight 乘数)
                 if (_FaceHighlightMap > 0.5)
                 {
                     half2 highlightUV = uv + TransformWorldToObjectDir(V).xy * _HighlightMapVector.xy;
-                    half hl = SAMPLE_TEXTURE2D(_HighlightMap, sampler_Endfield_LinearClamp, highlightUV).r;
-                    diffuse += albedo * hl * saturate(NdotL);
+                    _highlightSpec = SAMPLE_TEXTURE2D(_HighlightMap, sampler_Endfield_LinearClamp, highlightUV).rgb;
                 }
 
                 // 发际/眉下阴影：官方 _DrawUnderBrow + _HairBrowMask(sw_M)
@@ -602,6 +640,13 @@ Shader "Endfield/CharacterLit"
                     smoothness = mg.a;
                     ao = lerp(1.0, mg.b, _OcclusionStrength);
                 }
+                // 官方 b138 §5: specStrength = lerp(0, _Specular, sdfW) — SDF 权重区域才允许高光
+                specularMask = lerp(0.0, specularMask, _sdfSpecW);
+                // SDF 修改了 N 后重算半角/光照相关量 (官方 b138 §11 用 sdfN 做高光)
+                NdotH = saturate(dot(N, H));
+                NdotV = saturate(dot(N, V));
+                signedNdotL = dot(N, L);
+                NdotL = saturate(signedNdotL);
                 if (_DebugView > 0.5)
                 {
                     half3 debugColor = albedo;
@@ -646,30 +691,44 @@ Shader "Endfield/CharacterLit"
                     half3 vXZ = SafeNormalize(half3(objectV.x, 0.0, objectV.z));
                     half edgeFade = pow(saturate(dot(nXZ, vXZ)), _AnisotropyEdgeFade);
 
-                    // 官方主高光：sin(T,H)^200 塑形后采样 _SpecRampMap
+                    // 官方主高光：sin(T,H)^200 塑形后采样 _SpecRampMap (b125 §10)
                     half specVal = saturate(pow(max(sinTH, 1e-4), 200.0) * specularMask);
                     half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_Endfield_LinearClamp, half2(specVal, (tDotH > 0.0 ? 1.0 : 0.0) * edgeFade * edgeFade)).rgb;
-                    half3 primaryRamp = specVal * specRamp * edgeFade;
-                    half3 hairF0 = lerp(half3(0.04,0.04,0.04) * specularMask, albedo, metallic);
-                    half3 primary = primaryRamp * hairF0 * (_AnisotropyIntensity * 5.0);
+                    half3 primaryRamp = specVal * specRamp * edgeFade;     // 官方 anisoSpec1 (_2337)
+                    half pmax = saturate(max(max(primaryRamp.r, primaryRamp.g), primaryRamp.b));  // spec1Max
+                    half3 specColor = half3(0.04, 0.04, 0.04) * specularMask;  // 官方 _2088（hair 非金属）
+                    half3 primary = primaryRamp * specColor * (_AnisotropyIntensity * 5.0);
 
-                    // 发丝线(LineMap)：frac(uv.x*_LineAmount) 阶梯与 _LineMap.r 混合
+                    // 发丝线宽度 TL + LineMap (官方 b125 §10)
                     half2 lineUV = uv * _LineMap_ST.xy + _LineMap_ST.zw;
-                    half streak = ceil(clamp(frac(lineUV.x * _LineAmount) - 0.5, 0.0, 1.0));
-                    half lineMapR = _UseLineMap > 0.5 ? SAMPLE_TEXTURE2D(_LineMap, sampler_Endfield_LinearRepeat, lineUV).r : streak;
-                    half lineMask = lerp(streak, 1.0 - lineMapR, _UseLineMap);
-                    half lineFactor = lerp(1.0 - _LineIntensity, 1.0, lineMask);
-                    if (_UseLineMap > 0.5) primary *= lineFactor;
+                    half4 lineMap = SAMPLE_TEXTURE2D(_LineMap, sampler_Endfield_LinearRepeat, lineUV);
+                    half lineProc = ceil(saturate(frac(lineUV.x * _LineAmount) - 0.5));
+                    half lineMask = lerp(lineProc, 1.0 - lineMap.r, _UseLineMap);
+                    // 第三切线 TL = T + N*(2*_LineValue-1)，宽度 sin(TL,H)^(200*(1-_LineRange))
+                    float3 lineT = SafeNormalize(T + Nhair * (2.0 * _LineValue - 1.0));
+                    half lineDotH = dot(lineT, H);
+                    half lineSin = sqrt(saturate(1.0 - lineDotH * lineDotH));
+                    half lineWidth = saturate(pow(max(lineSin, 1e-4), 200.0 * max(1.0 - _LineRange, 0.0)));
+                    // 官方嵌套 lineFactor：specMask 门控 → lineWidth → spec1Max(pmax) → lineMask/_LineIntensity
+                    half lineFactor = lerp(1.0,
+                        lerp(1.0, lerp(lerp(1.0 - _LineIntensity, 1.0, lineMask), 1.0, pmax), lineWidth),
+                        specularMask);
+                    // 官方：lineFactor 调制 diffuse（非 specular）+ 饱和度 (b125 §10 _2424)
+                    diffuse *= lineFactor;
+                    diffuse = lerp(dot(diffuse, half3(0.2126729, 0.7151522, 0.0721750)).xxx, diffuse,
+                                   lerp(_LineSaturation, 1.0, lineFactor));
 
-                    // 官方次高光：sin(T,H)^(200*(1-_AnisotropyRange2)) 用 _AnisotropyColor2
+                    // 官方次高光：sin(T2,H)^(200*(1-_AnisotropyRange2)) 用 _AnisotropyColor2 * spec2Mask(=smoothness)
                     half exponent2 = 200.0 * max(1.0 - _AnisotropyRange2, 0.0);
                     float3 secondaryT = SafeNormalize(T + Nhair * (_AnisotropyValue2 * 2.0 - 1.0));
                     half secondaryDot = dot(secondaryT, H);
                     half secondarySin = sqrt(saturate(1.0 - secondaryDot * secondaryDot));
                     half3 secondary = pow(max(secondarySin, 1e-4), exponent2) * _AnisotropyColor2.rgb * smoothness * edgeFade;
 
-                    half pmax = saturate(max(max(primaryRamp.r, primaryRamp.g), primaryRamp.b));
-                    specular = (primary + lerp(secondary, 0.0, pmax)) * _Anisotropy;
+                    // 官方合成：specTotal = (primary + lerp(secondary, 0, spec1Max)) * _Anisotropy * CP13.w
+                    //   CP1.w 门控：未接入 CP 全局时乘 1（no-op），捕获帧模式(CP1.w=1)时用 CP13.w
+                    half cp13w = lerp(1.0, _CharacterParams13.w, _CharacterParams1.w);
+                    specular = (primary + lerp(secondary, 0.0, pmax)) * _Anisotropy * cp13w;
                 }
                 else if (_UseMatcap > 0.5)
                 {
@@ -746,8 +805,23 @@ Shader "Endfield/CharacterLit"
                              * _EmissionColor.rgb * _EmissionBrightness;
                 }
 
+                // ---- 面部高光 specLight (官方 b138 §10-11) ----
+                // specLight = (litBlend*0.5+0.5) * lerp(CP0.z, 1, litBlend)
+                //   litBlend ≈ shade, CP0.z = _CharacterParams0.z (捕获=0.65), CP1.w 门控
+                half cp0z = lerp(0.65, _CharacterParams0.z, _CharacterParams1.w);
+                half specLightSkin = (shade * 0.5 + 0.5) * lerp(cp0z, 1.0, shade);
+                specular += _highlightSpec * lightColor * specLightSkin;
+
                 // ---- 合成 + AO ----
                 half3 color = (diffuse * lightColor + specular * lightColor + albedo * _CharacterAmbient.rgb) * ao + emission;
+
+                // ---- 官方 b138 §12: 饱和度提升 ----
+                // color = lerp(lum.xxx, color, (s*s+1).xxx) where s = clamp(lum-0.5, 0, 0.5)
+                {
+                    half lum = dot(color, half3(0.2126729, 0.7151522, 0.0721750));
+                    half sat = clamp(lum - 0.5, 0.0, 0.5);
+                    color = lerp(lum.xxx, color, (sat * sat + 1.0).xxx);
+                }
 
                 // ---- 色彩调节（含边缘光，仅在 _EnableVFXColorAdjustment 开启时生效）----
                 if (_EnableVFXColorAdjustment > 0.5)
