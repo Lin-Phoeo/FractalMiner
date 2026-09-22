@@ -732,11 +732,24 @@ Shader "Endfield/CharacterLit"
                 }
                 else if (_UseMatcap > 0.5)
                 {
-                    // 眼睛 matcap 高光 + 散射
-                    half3 r = reflect(-V, N);
-                    half2 mc = half2(r.x * 0.5 + 0.5, r.y * 0.5 + 0.5);
-                    half3 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_Endfield_LinearRepeat, mc).rgb;
-                    specular = matcap * _MatcapColor.rgb * _EyeTintColor.rgb
+                    // 官方 b28 §2: 球面法线从 UV 圆盘构造，非反射向量
+                    half2 fracUV = frac(uv);
+                    half2 ndc = fracUV * 2.0 - 1.0;
+                    half3 sphereN;
+                    sphereN.xy = ndc * (-_MatcapNormalScale);
+                    sphereN.z = sqrt(saturate(1.0 - dot(ndc, ndc)));
+                    // matcapUV = normalize(mul(ViewMatrix, mul(mcRaw, TBN))).xy * 0.5 + 0.5 (b28 §10)
+                    float3x3 tbn = CharTBN(input, N);
+                    half3 matcapWS = mul(sphereN, tbn);
+                    half3 matcapVS = mul((float3x3)UNITY_MATRIX_V, matcapWS);
+                    half2 matcapUV = SafeNormalize(matcapVS).xy * 0.5 + 0.5;
+                    // 官方 b28 §10: matcap.rgb * _MatcapColor.w + _MatcapColor.rgb * matcap.a (rgba 交叉混合)
+                    half4 matcap = SAMPLE_TEXTURE2D(_MatcapTex, sampler_Endfield_LinearRepeat, matcapUV);
+                    // specLight 近似（同 skin: (shade*0.5+0.5) * lerp(CP0.z, 1, shade)）
+                    half cp0z = lerp(0.65, _CharacterParams0.z, _CharacterParams1.w);
+                    half specLightEye = (shade * 0.5 + 0.5) * lerp(cp0z, 1.0, shade);
+                    specular = (matcap.rgb * _MatcapColor.w + _MatcapColor.rgb * matcap.a)
+                             * lightColor * specLightEye
                              + _EyeScatteringColor.rgb * (1.0 - NdotV)
                              + _EyeHighLightColor.rgb * _EyeHighLight * pow(NdotH, 64.0);
                 }
