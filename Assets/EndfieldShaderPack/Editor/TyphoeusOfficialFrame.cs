@@ -74,6 +74,12 @@ namespace EndfieldShaderPack
             Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams12"), new Vector4(1.0f, 1.0f, 1.0f, 0.0f));
             Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams13"), new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
             Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams15"), new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+
+            // cloth b401 环境/曝光全局参数（docs/research/official-forwardlit-cloth-b401.md §5）
+            //   _EnvironmentGlobalParams0.x = ambientScale 基值 (捕获 0.2877)
+            //   _ExposureWithMiscParams = (1,1,1.6,0.1)：x 乘 ambientScale，y 输出前乘 rgb
+            Shader.SetGlobalVector(Shader.PropertyToID("_EnvironmentGlobalParams0"), new Vector4(0.2877f, 0.0f, 0.0f, 0.0f));
+            Shader.SetGlobalVector(Shader.PropertyToID("_ExposureWithMiscParams"), new Vector4(1.0f, 1.0f, 1.6f, 0.1f));
         }
 
         /// Batch entry: open saved scene, apply official camera/light, render 1600x1000.

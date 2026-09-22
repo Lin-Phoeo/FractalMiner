@@ -301,6 +301,10 @@ Shader "Endfield/CharacterLit"
         float4 _CharacterParams13;  // w=各向异性高光总乘数（hair/cloth 用）
         float4 _CharacterParams15;  // w=0=CP9.xy世界轴 1=相机轴
 
+        // 官方 HGRP 全局环境/曝光（cloth b401 环境光 & IBL 用，捕获帧值）
+        float4 _EnvironmentGlobalParams0;   // x=ambientScale 基值 (捕获 0.2877)
+        float4 _ExposureWithMiscParams;     // x=乘 ambientScale, y=输出前乘 rgb (捕获 1,1,1.6,0.1)
+
         TEXTURE2D(_BaseMap);
         TEXTURE2D(_BumpMap);
         TEXTURE2D(_MetallicGlossMap);
@@ -320,10 +324,13 @@ Shader "Endfield/CharacterLit"
         TEXTURE2D(_EmotionMap);
         TEXTURE2D(_HighlightMap);
         TEXTURE2D(_HairBrowMask);
+        // cloth b401 角色环境立方体反射（官方全局绑定，LOD 由 rough 决定）
+        TEXTURECUBE(_CharMaxCubemap);
 
         // Private inline sampler avoids version-dependent URP global declarations.
         SAMPLER(sampler_Endfield_LinearRepeat);
         SAMPLER(sampler_Endfield_LinearClamp);
+        SAMPLER(sampler_CharMaxCubemap);
 
         struct Attributes
         {
@@ -755,39 +762,69 @@ Shader "Endfield/CharacterLit"
                 }
                 else
                 {
+                    // ==== cloth/body b401：解析式 GGX 高光 + ClearCoat 双层 (§12-13) ====
+                    half rough = 1.0 - smoothness;
+                    half roughSq = max(rough * rough, 0.0078125);
+                    // b401 §7: specColor = lerp(0.04*glossMask, albedo, metallic)
+                    half3 specColor = lerp(half3(0.04, 0.04, 0.04) * specularMask, albedo, metallic);
+
                     if (_UseSpecRampMap > 0.5)
                     {
+                        // 非 cloth 材质保留 ramp 高光路径
                         half3 specRamp = SAMPLE_TEXTURE2D(_SpecRampMap, sampler_Endfield_LinearClamp, half2(NdotH, 0.5)).rgb;
                         half3 F0 = lerp(half3(0.04,0.04,0.04) * specularMask, albedo, metallic);
                         specular = specRamp * F0 * NdotL;
                     }
                     else
                     {
-                        half roughness = 1.0 - smoothness;
-                        half ggx = roughness <= 0.0 ? 1.0 :
-                            (half)((roughness*roughness) / max(3.14159 * pow(NdotH*NdotH*(roughness*roughness-1.0)+1.0, 2.0), 1e-4));
-                        half3 F0 = lerp(half3(0.04,0.04,0.04) * specularMask, albedo, metallic);
-                        half3 F  = F0 + (1.0-F0)*pow(1.0-NdotV, 5.0);
-                        specular = ggx * F;
+                        // b401 §12: 解析 GGX（基础层）
+                        half a4 = roughSq * roughSq;
+                        half denom = ((NdotH * a4) - NdotH) * NdotH + 1.0;
+                        half denom2 = denom * denom;
+                        half ggxD = ((a4 != denom2) ? (a4 / denom2) : 1.0) * (0.5 / ((2.0 * NdotV) + roughSq + 1e-5)) - 6.103515625e-05;
+                        half3 baseSpec = specColor * clamp(ggxD, 0.0, 20.0);
+
+                        // b401 §13: ClearCoat 双层（逐像素 ccMaskV 门控）
+                        half ccMaskV = 0.0;
+                        if (_ClearCoat > 0.5)
+                            ccMaskV = SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_Endfield_LinearRepeat, uv).x;
+                        half3 ccAtten = 1.0;
+                        half3 ccSpec = baseSpec;
+                        if (ccMaskV > 0.001)
+                        {
+                            half ccRough0 = 1.0 - _ClearCoatSmoothness;
+                            half ccRough = max(ccRough0 * ccRough0, 0.0078125);
+                            half3 ccF0 = _ClearCoatColor.rgb * lerp(0.04, 1.0, _ClearCoatMetallic);
+                            half cNdotH = dot(N, H);
+                            half cNdotV = clamp(dot(N, V), 0.0, 1.0);
+                            half oneMinusVdotH = 1.0 - clamp(dot(V, H), 0.0, 1.0);
+                            half f3 = oneMinusVdotH * oneMinusVdotH * oneMinusVdotH;
+                            half3 ccFres = (ccF0 * (1.0 - f3) + f3.xxx) * ccMaskV;
+                            ccAtten = lerp(1.0, 1.0 - ccFres, ccMaskV);
+                            half ccA4 = ccRough * ccRough;
+                            half ccDenom = ((cNdotH * ccA4) - cNdotH) * cNdotH + 1.0;
+                            half ccDenom2 = ccDenom * ccDenom;
+                            half f4 = f3 * oneMinusVdotH;
+                            half ccGGX = clamp((((ccF0 * (1.0 - f4) + f4.xxx) * ccMaskV) * ((ccA4 != ccDenom2) ? (ccA4 / ccDenom2) : 1.0)) * (0.5 / ((2.0 * cNdotV) + ccRough + 1e-5)), 0.0, 20.0);
+                            ccSpec = baseSpec * ((1.0 - ccFres) * (1.0 - ccFres)) + ccGGX;
+                        }
+                        specular = ccSpec;
                     }
 
-                    // 环境反射 (IBL)
-                    half roughness = 1.0 - smoothness;
-                    half3 refl = reflect(-V, N);
-                    half3 env = GlossyEnvironmentReflection(refl, roughness, 1.0);
-                    half3 Fenv = lerp(half3(0.04,0.04,0.04), albedo, metallic);
-                    specular += env * Fenv * max(metallic, 0.04);
-
-                    // 清漆 Clear Coat
-                    if (_ClearCoat > 0.5)
-                    {
-                        half ccMask = SAMPLE_TEXTURE2D(_ClearCoatMask, sampler_Endfield_LinearRepeat, uv).r;
-                        half ccRough = 1.0 - _ClearCoatSmoothness;
-                        half cc = ccRough <= 0.0 ? 1.0 :
-                            (half)((ccRough*ccRough) / max(3.14159 * pow(NdotH*NdotH*(ccRough*ccRough-1.0)+1.0, 2.0), 1e-4));
-                        half3 Fcc = lerp(half3(0.04,0.04,0.04), _ClearCoatColor.rgb, _ClearCoatMetallic);
-                        specular += cc * Fcc * ccMask * _ClearCoat;
-                    }
+                    // ==== cloth b401 §15：Stylized Fresnel 环境 BRDF + _CharMaxCubemap ====
+                    half nvv = NdotV * NdotV;
+                    half nv3 = nvv * NdotV;
+                    half fresA = dot(mul(half2(1.0, NdotV), half2x2(half2(0.03654630109667778, 9.06319999694824), half2(3.32706999778748, -9.04755973815918))), half2(1.0, nvv))
+                               / dot(mul(half3(1.0, nvv, nv3), half3x3(half3(1.0, 9.04401016235352, 5.56588983535767), half3(3.59684991836548, -16.3173999786377, 19.7886009216309), half3(-1.36772000789642, 9.22949028015137, -20.2122993469238))), half3(1.0, nvv, nvv * nvv));
+                    half fresB = dot(mul(half2(1.0, NdotV), half2x2(half2(0.990440011024475, 1.29677999019623), half2(-1.28514003753662, -0.755906999111175))), half2(1.0, nvv))
+                               / dot(mul(half3(1.0, NdotV, nv3), half3x3(half3(1.0, 20.3225002288818, 121.563003540039), half3(2.92337989807129, -27.0301990509033, 626.130004882812), half3(59.4188003540039, 222.591995239258, 316.627014160156))), half3(1.0, nvv, nvv * nvv));
+                    half3 envFres = specColor * fresA + fresB.xxx;
+                    half envFresSum = fresA + fresB;
+                    half envRough = rough;
+                    half3 cubeRefl = SAMPLE_TEXTURECUBE_LOD(_CharMaxCubemap, sampler_CharMaxCubemap, reflect(-V, N),
+                                       (1.2 * log2(max(envRough, 0.001)) + 5.0))
+                                   * (envFres + (specColor * ((1.0 - envFresSum) / max(envFresSum, 1e-5))) * envFres);
+                    specular += cubeRefl * _CharacterParams0.w;
                 }
 
                 // ---- 假菲涅尔(服装边缘) ----

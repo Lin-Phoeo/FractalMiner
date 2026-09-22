@@ -9,7 +9,8 @@ SCENE = r"A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\Sc
 JSON_PATH = r"A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\Typhoeus\_typhoea_model_data.json"
 
 # ---------- 场景 YAML 解析 ----------
-doc_re = re.compile(r'^--- !u!(\d+) &(\d+) (.+)$', re.M)
+# Unity YAML 文档头格式： "--- !u!<classid> &<fileid>\n<TypeName>:"（类型名在下一行）
+doc_re = re.compile(r'^--- !u!(\d+) &(\d+)\s*$', re.M)
 with open(SCENE, 'r', encoding='utf-8') as f:
     text = f.read()
 
@@ -19,7 +20,9 @@ matches = list(doc_re.finditer(text))
 for i, m in enumerate(matches):
     start = m.end()
     end = matches[i+1].start() if i+1 < len(matches) else len(text)
-    docs.append((int(m.group(1)), int(m.group(2)), m.group(3).strip(), text[start:end]))
+    body = text[start:end]
+    typename = body.strip().split('\n', 1)[0].rstrip(':') if body.strip() else '?'
+    docs.append((int(m.group(1)), int(m.group(2)), typename, body))
 
 def parse_vec3(s):
     m = re.search(r'x:\s*([-\d.eE+]+),\s*y:\s*([-\d.eE+]+),\s*z:\s*([-\d.eE+]+)', s)
