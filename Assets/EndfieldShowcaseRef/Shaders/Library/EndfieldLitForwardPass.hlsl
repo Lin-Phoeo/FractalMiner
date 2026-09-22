@@ -1,7 +1,7 @@
 #ifndef ENDFIELD_FORWARD_LIT_PASS_INCLUDED
 #define ENDFIELD_FORWARD_LIT_PASS_INCLUDED
 
-#include "Assets/Shaders/Library/EndfieldLighting.hlsl"
+#include "Assets/EndfieldShowcaseRef/Shaders/Library/EndfieldLighting.hlsl"
 #if defined(LOD_FADE_CROSSFADE)
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/LODCrossFade.hlsl"
 #endif

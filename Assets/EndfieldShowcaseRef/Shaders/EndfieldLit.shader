@@ -225,8 +225,8 @@ Shader "Endfield/Lit"
             #pragma instancing_options renderinglayer
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
 
-            #include "Assets/Shaders/Library/EndfieldLitInput.hlsl"
-            #include "Assets/Shaders/Library/EndfieldLitForwardPass.hlsl"
+            #include "Assets/EndfieldShowcaseRef/Shaders/Library/EndfieldLitInput.hlsl"
+            #include "Assets/EndfieldShowcaseRef/Shaders/Library/EndfieldLitForwardPass.hlsl"
             ENDHLSL
         }
         
@@ -252,8 +252,8 @@ Shader "Endfield/Lit"
             
             #pragma shader_feature_local _OUTLINE_ON
             
-            #include "Assets/Shaders/Library/EndfieldLitInput.hlsl"
-            #include "Assets/Shaders/Library/EndfieldOutlinePass.hlsl"
+            #include "Assets/EndfieldShowcaseRef/Shaders/Library/EndfieldLitInput.hlsl"
+            #include "Assets/EndfieldShowcaseRef/Shaders/Library/EndfieldOutlinePass.hlsl"
             ENDHLSL
         }
 
