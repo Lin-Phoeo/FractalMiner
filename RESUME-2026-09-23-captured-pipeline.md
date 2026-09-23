@@ -118,6 +118,59 @@ C997CED59304D695D99B81CAB14B7E8BD6D411A63432CDD5216DDCCB958A6463
 
 边界（不要外推）：沙箱证明的是快照/所有权/回滚算法与其字节精确性，不模拟 Unity 自身序列化器；后者由真工程门禁"先规范化一次→快照→Build两次→无新 diff"覆盖。仍未做的是把官方还原交付拆成独立终末地 Unity 工程（QODER-HANDOFF §4 推荐项4），当前仍留在 FractalMiner 主工程内以显式激活方式隔离。
 
+### 5.2 阶段2-1 已完成：角色自阴影证据导出器（2026-09-23 21:40 +08:00）
+
+新增 `Tools/capture_character_shadow_evidence.py` 与 `Tools/tests/test_capture_character_shadow_evidence.py`。严格 TDD：先写测试并看到 RED（`ModuleNotFoundError`，全套 58→59 tests / 1 error），再写实现至 GREEN 22/22，全套 **80/80 OK**。
+
+两个改变设计的实证发现：
+
+1. **事件 748 = `ScreenSpaceShadowResolve_Character`**，由绑定表证实而非猜测：t4→`58994`(GBuffer1 法线)、t5→`58985`(GBuffer0 角色索引)、t7→`32538`(角色 shadow atlas)、t8→`59000`(camera depth)，与反编译 pass 里 `register(t4..t10, space3)` 的声明逐一对应。744 是方向阴影 pass，**两者都写 `58932`**（R8G8 2560×1600）：R=方向项（本帧被常量短路），G=角色自阴影。
+2. **SPIR-V 反射把常量名全剥成 `_childN`，按名字取常量不可行。** 必须按字节定位：阴影 cbuffer 由唯一大小 `11440` 识别，各字段按 packoffset×16 定位。28 个 child 的尺寸累加恰好等于 11440，且复现出 `_CharacterShadowParams=(1,1,7,0)`、`_CharacterShadowTexelSize=(1/4096,1/2048,4096,2048)`（与 atlas 4096×2048 自洽）。字段偏移：W2S@7168(c448)、Biases@8128(c508)、LightDir@8368(c523)、AtlasParams@8608(c538)、TexelSize@8848(c553)、Params@8864(c554)。数组长度均为 15 槽，本帧 `.z=7` 表示前 7 槽有效；atlas 每槽 0.25×0.5，即 4×2 网格用 7 格。
+
+因此导出器有专门的**布局漂移测试**：故意把 child14 从 47 项改成 48 项使后续偏移错位，导出器必须报错而不是静默返回错数据。GBuffer0/1 是 `R10G10B10A2_UNORM`，正好解释官方索引解码里的 `*1023`（10位）与 `*3`（2位）。
+
+已从官方源码 `screenspaceshadowresolve.shader` 第1077-1127行完整解出 G 通道算法（下一步 GPU 实验的直接输入，不要重新推导）：
+
+```text
+index    = log2(pack10_10_10_2(GBuffer0.Load(px))) - 8        // 有效当 0 <= index < Params.z
+若无效   -> G = 1
+recv     = 1 - clamp(dot(N, LightDir[i].xyz), 0, 0.9)          // N = 解码后的 GBuffer1 法线
+sp       = mul(W2S[i], float4((P - LightDir[i].xyz*(recv*Biases[i].x)) + N*(recv*Biases[i].y), 1))
+refDepth = max(sp.z, 0.01)
+若 sp.xyz 任一分量 <=0 或 >=1，或 refDepth 为 NaN/Inf -> G = 1
+atlasUV  = AtlasParams[i].xy + sp.xy * AtlasParams[i].zw
+m        = (px % 4) * 4 + (py % 4)                             // 逐像素 4x4 抖动
+rot      = float2x2(TBL248[m], float2(-TBL248[m].y, TBL248[m].x))
+sumPos = countLit = 0
+for k in 0..15:
+    g        = CharacterShadowmapTex.GatherRed(samplerLinearMirror,
+                 atlasUV + mul(TBL247[k], rot) * (4 * TexelSize.x)) - refDepth
+    lit      = step(0, g)                                      // 4 个 texel
+    sumPos  += dot(g, lit);  countLit += dot(lit, 1)
+f  = 2*clamp(countLit/64, 0, 1) - 1
+s  = sign(f);  o = 1 - s*f
+G  = min(1, 0.5 - 0.5*(1 - lerp(o^3, o, clamp((sumPos/countLit)/refDepth, 0, 1)))*s)
+```
+
+`TBL247`（16 个 Poisson 偏移）与 `TBL248`（16 个旋转基）是 shader 内 `static const`，在该文件第 616/617 行（角色 pass 内为相对第 64/65 行），不在 cbuffer 里。注意 `countLit==0` 时 `sumPos/countLit` 是 0/0，官方未做保护——GPU 实验必须按原样复现再用真实帧 G 通道对照，不要擅自"修正"这个除零。
+
+常量模式（`ENDFIELD_SHADOW_CONSTANTS_ONLY=1`）已对真实 RDC 实跑成功：`Validation/Captures/tifuluosi-front-20260917/character-shadow-constants-01/` 有 `complete.json`、无 `error.json`，帧 6411 / 事件 748 / 输出目标 58932 / cbuffer 11440 / 四个绑定 / 五个纹理契约全部核验通过。这三个值是导出器**独立从 RDC 重新算出**的，不是从旧 `replay-details-01` 抄的，构成交叉验证。
+
+RDC 有三个候选文件，必须按字节数 `1410912390` 精确选中 `正面.rdc`（`123.rdc`/`213.rdc` 是别的帧，用通配符取第一个会选错）。
+
+完整模式也已对真实 RDC 实跑成功：`Validation/Captures/tifuluosi-front-20260917/character-shadow-01/`，有 `complete.json`、无 `error.json`，5 个纹理各 DDS+EXR 共 292MB，均带 sha256。导出后做了独立数值复核（不经 Unity）：
+
+```text
+screen-shadow-resolved.dds = 8192128 B = 128 头 + 2560*1600*2，未压缩 R8G8，可直接解析
+R 通道 distinct=1 且全为 255            -> 证实"R 恒 1"（本帧方向项被常量短路为全亮）
+G 通道 distinct=238，min=0，max=255     -> 证实"G 范围 0~1"
+G/255 < 0.99 的像素 = 116890 / 4096000  -> 与交接记录逐位相同
+```
+
+**阈值陷阱（下一轮 GPU 对照会踩，务必按此比较）**：`116890` 对应 `byte/255.0 < 0.99`，即 `byte < 253`；若误用 `byte < round(0.99*255) = 252` 会得到 `115618`，差的正好是 `count(252)=1272`。两者相差 1.1%，足以让"阴影像素数对不上"被误判成 resolve 实现错误。
+
+阶段2 剩余：GPU resolve 实验（先 1-tap 验证世界位置重建/索引解码/矩阵方向/atlas rect/深度符号，再加 16-tap Poisson 与软化，对固定帧 G 逐像素比较）→ 动态 shadow depth/atlas → 统一屏幕空间 shadow 纹理接回 `EndfieldCharacterLit.shader:576-578`。**`selfShadow` 目前仍是 1.0，未改。**
+
 ## 6. 正确续作顺序
 
 1. **工程隔离门禁**：✅ 已完成，见 5.1 节。`BuildAndValidate` 正常退出、GUID 稳定、真实相机执行动态 Bloom、设置字节不变、跨重启还原全部满足；32 项主颜色/整模回归已重跑通过。**不要重做本项。**
