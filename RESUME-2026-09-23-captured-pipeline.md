@@ -89,10 +89,39 @@ C997CED59304D695D99B81CAB14B7E8BD6D411A63432CDD5216DDCCB958A6463
 
 2026-09-23 20:37 Qoder接续复核：Unity进程已全部退出，batchmode可运行。E61E哈希与Ultra→13fa…、GraphicsSettings E2EA…、用户index C997…、Python 58项通过均已在磁盘复验。**根因读码确认**：`Build()` 里 `scope.enabled=true` 触发 `OnEnable` 写 `QualitySettings.renderPipeline=生成管线` 并标脏，其后同函数的 `SaveScene`（及 `BuildAndValidate` 的 `OpenScene`）在污染状态下刷盘；`OnDisable` 只恢复内存且从不回刷。因此挂在scene生命周期上的管线激活**结构上不可能**通过字节门禁，必须改为显式、自行掌控 `SaveAssets` 时机的 Activate/Restore。
 
+### 5.1 阶段1已完成：阻塞解除（2026-09-23 21:00 +08:00）
+
+按上面的根因做了架构替换，不是放宽阈值：
+
+| 变更 | 说明 |
+|---|---|
+| 删除 `EndfieldCapturedPipelineScope.cs`+`.meta` | 唯一职责就是那个缺陷写入；记录分支 `b35eda8` 可恢复。生成场景已重建，`6655d8225fbc503478905ac0e728b6ef` 引用数为 0，无 missing script |
+| 新增 `Editor/EndfieldCapturedPipelineActivation.cs`（GUID `8e609c46a14e00383f530c5fd15a8181`） | Editor-only 显式 `Activate`/`Restore`+菜单+`ReportState`；状态存 `Library/EndfieldCapturedPipelineActivation.json`（已gitignore）；**先写状态文件再改设置**；`SaveAssets` 时机由本类独占；恢复前校验所有权，第三方改过就拒绝；回滚后按**重读值**决定是否删状态文件，而不是按哪个调用抛错 |
+| 新增 `Editor/EndfieldCapturedPipelineIsolationValidation.cs`（GUID `66945ca21082726025ac16672a69bee8`） | 在 `Library/EndfieldIsolationSandbox/` 的 ProjectSettings 副本上跑**同一套** activate/restore 状态机（Target 依赖注入），沙箱每次运行前清空、编号有界 |
+| `Build()` 改纯生成 | 去掉 scope 与实时预览；新增"已激活时拒绝 Build"守卫，否则会克隆生成管线而不是工程原管线 |
+| 实时预览移到显式激活路径 | `RenderShowcasePreview()` 要求先 Activate，因为 showcase renderer feature 只能经生成管线到达 |
+| 跨重启核对 | `ActivateForRestartCheck` / `VerifyAfterRestartAndRestore` 两个 executeMethod，由两个独立 Unity 进程完成 |
+
+三层门禁结果：
+
+```text
+沙箱隔离   18/18 PASS  Logs/captured-pipeline-isolation.txt
+真工程门禁  9/9  PASS  Logs/captured-scene-validation.txt      (qoder-scene-gate-01.log, EXIT=0)
+跨重启门禁  4/4  PASS  Logs/captured-scene-restart-validation.txt (A/B 两进程均 EXIT=0)
+```
+
+关键证据（跨重启这一层才真正证明落盘）：A 进程激活后退出，磁盘 `QualitySettings.asset` = `BBAAD56816657EAA364F668F7D9BD92BF288EA158306F698566F733179442228`，`f351291399134454680985801f0e93e8` 出现 1 次；B 全新进程从磁盘读回并 Restore 后，精确回到 `E61ECBD3B831C8356DF6283D012E330AC34DDC4D552A993B7778A910C83C2163`。`GraphicsSettings.asset` 全程 `E2EAD59B…52E68`，`Typhoeus_OfficialFrame_Recovered.unity` 全程 `0185EB58…E7FB`。两个 ProjectSettings 里 `f351…` 残留计数为 0，状态文件与重启标记均已清除。
+
+沙箱覆盖的路径：6 个质量档位逐个字节精确往返、persist 抛错回滚、写入未生效回滚、激活期间切档位（恢复归属档位且**不劫持用户当前档位选择**）、第三方改写拒绝、第三方清空拒绝、激活幂等、陈旧状态拒绝、无状态时 Restore 空操作、值已恢复时清理陈旧状态、原 GUID 不可解析时拒绝。每档还断言"激活后文件必须真的变了"，防止门禁空过。
+
+回归未被扰动：Python 58/58 OK；`EndfieldCapturePipelineValidation.RunAll` EXIT=0、0 条 FAIL，动态 Bloom relativeL1=0.00027051 / MAE=0.00001651 / max=0.015625，post meanByteError=0.120543 / withinOneLSB=1.0，与上一轮记录逐位相同。**Bloom/Post 算法与阈值一行未改。**
+
+边界（不要外推）：沙箱证明的是快照/所有权/回滚算法与其字节精确性，不模拟 Unity 自身序列化器；后者由真工程门禁"先规范化一次→快照→Build两次→无新 diff"覆盖。仍未做的是把官方还原交付拆成独立终末地 Unity 工程（QODER-HANDOFF §4 推荐项4），当前仍留在 FractalMiner 主工程内以显式激活方式隔离。
+
 ## 6. 正确续作顺序
 
-1. **工程隔离门禁**：先解决第5节；保持原主颜色场景不变。重跑BuildAndValidate，正常退出、稳定GUID、真实相机执行、设置字节不变都满足才标记新场景集成通过。然后重跑32项主颜色/整模回归。
-2. **动态角色自阴影G**：当前selfShadow仍为1，不是完整官方。导出atlas/depth/GBuffer/矩阵，先复现单点投影/深度比较，再实现动态atlas和resolve，再接回各族Shader。不要把捕获G图投射回实时人物冒充动态阴影。
+1. **工程隔离门禁**：✅ 已完成，见 5.1 节。`BuildAndValidate` 正常退出、GUID 稳定、真实相机执行动态 Bloom、设置字节不变、跨重启还原全部满足；32 项主颜色/整模回归已重跑通过。**不要重做本项。**
+2. **动态角色自阴影G（当前从这里开始）**：当前selfShadow仍为1，不是完整官方。导出atlas/depth/GBuffer/矩阵，先复现单点投影/深度比较，再实现动态atlas和resolve，再接回各族Shader。不要把捕获G图投射回实时人物冒充动态阴影。
 3. **姿态与镜头**：核对同LOD、动画时间、面部表情、骨骼矩阵、投影矩阵、viewport和分辨率。轮廓不对齐时不以全帧色差推导材质错误。
 4. **覆盖层/透明与细节Pass**：按真实draw定位，不按文件名猜。核对头发/角/布料局部覆盖与dither，不用“开透明”一概处理。
 5. **最终多视角验收**：同输入条件分开脸/发/衣/角/眼睛，保存误差、轮廓与转动测试；只有这些通过才能谈整个人物达到官方效果。

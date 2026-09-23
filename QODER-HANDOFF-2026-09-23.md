@@ -115,6 +115,13 @@ flowchart LR
 
 ## 4. 第一项任务：重构管线激活，不要继续修补 ExecuteAlways
 
+> **状态：已完成（2026-09-23 21:00 +08:00）。** 采用下面"推荐架构"的第1、2、3条，未做第4条（独立终末地工程）。
+> 三层门禁全绿：沙箱隔离 18/18（`Logs/captured-pipeline-isolation.txt`）、真工程 9/9（`Logs/captured-scene-validation.txt`）、跨重启 4/4（`Logs/captured-scene-restart-validation.txt`）。
+> 跨重启这层才真正证明落盘：A 进程激活后退出，磁盘 `QualitySettings.asset` 变为 `BBAAD568…2228` 且含 `f351…` 1 次；B 全新进程读回并 Restore 后精确回到 `E61ECBD3…2163`。
+> 回归未被扰动：Python 58/58；capture pipeline 的 Bloom relativeL1=0.00027051、post meanByteError=0.120543 与上一轮逐位相同；主颜色 11 + 皮肤 21 = 32 项通过，GPU 探针 C3/C6/C0 = 53242/0.472840、23955/0.383542、36024/0.036097 与基线一致。**Bloom/Post 算法与阈值一行未改。**
+> 实际文件所有权与下面建议略有差异：`EndfieldCapturedPipelineScope.cs`+`.meta` 是**删除**（不是修改），记录分支 `b35eda8` 可恢复；生成场景已重建，其 GUID `6655d8225fbc503478905ac0e728b6ef` 引用数为 0。
+> 下一位接手者从第 5 节（动态角色自阴影 G）开始，不要重做本节。
+
 当前失败：`EndfieldShaderPack.EndfieldCapturedSceneBuilder.BuildAndValidate` 最后报告：
 
 ```text
