@@ -30,6 +30,25 @@ ATLAS0 = [0.75, 0.0, 0.25, 0.5]
 TEXEL_SIZE = [0.000244140625, 0.00048828125, 4096.0, 2048.0]
 SHADOW_PARAMS = [1.0, 1.0, 7.0, 0.0]
 
+# The resolve also needs the view transform and the screen size, which live in two
+# other cbuffers. Descriptor binding numbers drift between events (the same block is
+# binding 13 at event 748 and 12 at 744), so only byte size can identify a block.
+INV_VIEW_PROJ = [float(i + 1) / 16.0 for i in range(16)]
+CAMERA_POS = [1.5, 2.5, 3.5, 1.0]
+SCREEN_SIZE = [2560.0, 1600.0, 1.0 / 2560.0, 1.0 / 1600.0]
+
+# (count, element bytes, value) tiling to the real block sizes. Runs we never read
+# are collapsed into one oversized leaf so the fixture stays cheap; variable_bytes
+# still accounts for every byte, which is what offset resolution depends on.
+TRANSFORM_SPEC = [(1, 384, None), (1, 64, INV_VIEW_PROJ), (1, 256, None),
+                  (1, 16, CAMERA_POS), (1, 592, None)]
+GLOBAL_SPEC = [(1, 16, SCREEN_SIZE), (1, 3184, None)]
+LIGHT_SPEC = [(1, 32864, None)]
+
+# reflection_index -> (name, size), as observed at event 748. Binding numbers are
+# deliberately not part of the contract because they drift between events.
+BLOCKS = [('uniforms6', 1312), ('uniforms17', 32864), ('uniforms21', 11440), ('uniforms8', 3200)]
+
 
 def variable(count, element, value=None):
     """Build one reflection child. `element` is bytes per array entry (16 or 64)."""
@@ -164,6 +183,21 @@ class ConstantExtractionTests(unittest.TestCase):
             evidence.select_constants(block)
 
 
+def spec_variables(spec):
+    children = []
+    for count, element, value in spec:
+        child = variable(count, element, value)
+        child.name = '_child{}'.format(len(children))
+        children.append(child)
+    return children
+
+
+def all_block_variables():
+    """Reflection variables per block index at event 748: transform, light, shadow, global."""
+    return [spec_variables(TRANSFORM_SPEC), spec_variables(LIGHT_SPEC),
+            shadow_block()['variables'], spec_variables(GLOBAL_SPEC)]
+
+
 def runtime(bindings=None, output_target='ResourceId::58932', frame=6411):
     controller, capture, state = Mock(), Mock(), Mock()
     if bindings is None:
@@ -178,17 +212,21 @@ def runtime(bindings=None, output_target='ResourceId::58932', frame=6411):
     state.GetShaderReflection.return_value = NS(
         readOnlyResources=[NS(name='res{}'.format(binding), fixedBindNumber=binding, fixedBindSetOrSpace=3)
                            for binding, _ in bindings],
-        constantBlocks=[NS(name='uniforms21', fixedBindNumber=13, fixedBindSetOrSpace=3)],
+        constantBlocks=[NS(name=name, fixedBindNumber=11 + index, fixedBindSetOrSpace=3)
+                        for index, (name, _) in enumerate(BLOCKS)],
         entryPoint='main', rawBytes=b'')
-    state.GetConstantBlock.return_value = NS(
-        descriptor=NS(resource='ResourceId::864', byteOffset=610944, byteSize=11440))
+    state.GetConstantBlock.side_effect = lambda stage, index, array: NS(
+        descriptor=NS(resource='ResourceId::864', byteOffset=500000 + index * 1000,
+                      byteSize=BLOCKS[index][1]))
     controller.GetPipelineState.return_value = state
     controller.GetFrameInfo.return_value = NS(frameNumber=frame)
     controller.GetTextures.return_value = [
         NS(resourceId='ResourceId::{}'.format(row['id']), width=row['width'], height=row['height'],
            arraysize=row['slices'], mips=row['mips'], format=NS(Name=lambda row=row: row['format']))
         for row in evidence.TEXTURE_PLAN]
-    controller.GetCBufferVariableContents.return_value = shadow_block()['variables']
+    blocks = all_block_variables()
+    # Signature: (pipeline, shader, stage, entryPoint, blockIndex, resource, offset, size)
+    controller.GetCBufferVariableContents.side_effect = lambda *args: blocks[args[4]]
     events = []
     controller.SetFrameEvent.side_effect = lambda event, force: events.append(event)
     rd = NS(ShaderStage=NS(Pixel='ShaderStage.Pixel', Vertex='ShaderStage.Vertex'),
@@ -292,8 +330,9 @@ class RunTests(unittest.TestCase):
         def mutate(rd, cap, controller, state):
             shapes = list(CHILD_SHAPES)
             shapes[14] = (48, 16)
-            controller.GetCBufferVariableContents.return_value = [
-                variable(count, element) for count, element in shapes]
+            drifted = all_block_variables()
+            drifted[2] = [variable(count, element) for count, element in shapes]
+            controller.GetCBufferVariableContents.side_effect = lambda *args: drifted[args[4]]
         _, _, save, manifest, record, error, _ = self.run_mock(mutate=mutate)
         self.assertIsInstance(error, ValueError)
         self.assertIsNone(manifest)
@@ -321,6 +360,92 @@ class RunTests(unittest.TestCase):
                 with self.assertRaises(FileExistsError):
                     evidence.run()
                 opening.assert_not_called()
+
+
+class TransformCbufferTests(unittest.TestCase):
+    def test_plans_use_the_declared_packoffsets(self):
+        transform = {row['name']: row for row in evidence.TRANSFORM_PLAN}
+        self.assertEqual(transform['invViewProjMatrix']['offset'], 24 * 16)
+        self.assertEqual(transform['invViewProjMatrix']['rows'], 4)
+        self.assertEqual(transform['invViewProjMatrix']['columns'], 4)
+        self.assertEqual(transform['worldSpaceCameraPos']['offset'], 44 * 16)
+        global_plan = {row['name']: row for row in evidence.GLOBAL_PLAN}
+        self.assertEqual(global_plan['screenSize']['offset'], 0)
+
+    def test_fixtures_tile_to_the_real_block_sizes(self):
+        for spec, size in ((TRANSFORM_SPEC, evidence.TRANSFORM_CBUFFER_BYTES),
+                           (GLOBAL_SPEC, evidence.GLOBAL_CBUFFER_BYTES),
+                           (LIGHT_SPEC, 32864)):
+            self.assertEqual(sum(count * element for count, element, _ in spec), size)
+
+    def test_locates_each_cbuffer_by_size_among_the_four_real_blocks(self):
+        blocks = [dict(name=name, size=size, variables=[]) for name, size in BLOCKS]
+        self.assertEqual(evidence.shadow_block(blocks)['name'], 'uniforms21')
+        self.assertEqual(evidence.block_by_size(blocks, evidence.TRANSFORM_CBUFFER_BYTES, 'transform')['name'], 'uniforms6')
+        self.assertEqual(evidence.block_by_size(blocks, evidence.GLOBAL_CBUFFER_BYTES, 'global')['name'], 'uniforms8')
+
+    def test_rejects_absent_transform_cbuffer(self):
+        blocks = [dict(name='uniforms21', size=11440, variables=[])]
+        with self.assertRaises(ValueError):
+            evidence.block_by_size(blocks, evidence.TRANSFORM_CBUFFER_BYTES, 'transform')
+
+    def test_extracts_inv_view_proj_and_camera_position_by_offset(self):
+        block = dict(name='uniforms6', size=1312, variables=spec_variables(TRANSFORM_SPEC))
+        rows = evidence.select_fields(block, evidence.TRANSFORM_PLAN, 'transform')
+        self.assertEqual(rows['invViewProjMatrix'], [INV_VIEW_PROJ])
+        self.assertEqual(rows['worldSpaceCameraPos'], [CAMERA_POS])
+
+    def test_screen_size_contract_cross_validates_the_block_mapping(self):
+        """ScreenSize must agree with the render target, proving the offsets are right."""
+        evidence.validate_screen_size(SCREEN_SIZE, 2560, 1600)
+        for bad in ([1600.0, 2560.0, 1.0 / 1600.0, 1.0 / 2560.0],
+                    [1280.0, 800.0, 1.0 / 1280.0, 1.0 / 800.0],
+                    [0.0, 0.0, 0.0, 0.0]):
+            with self.assertRaises(ValueError):
+                evidence.validate_screen_size(bad, 2560, 1600)
+
+    def test_screen_size_reciprocals_must_match_its_dimensions(self):
+        with self.assertRaises(ValueError):
+            evidence.validate_screen_size([2560.0, 1600.0, 0.5, 0.5], 2560, 1600)
+
+
+class TransformRunTests(unittest.TestCase):
+    run_mock = RunTests.run_mock
+
+    def test_manifest_carries_transform_and_global_constants(self):
+        _, _, _, manifest, _, error, _ = self.run_mock()
+        self.assertIsNone(error)
+        self.assertEqual(manifest['transform']['invViewProjMatrix'], [INV_VIEW_PROJ])
+        self.assertEqual(manifest['transform']['worldSpaceCameraPos'], [CAMERA_POS])
+        self.assertEqual(manifest['global']['screenSize'], [SCREEN_SIZE])
+
+    def test_screen_size_disagreeing_with_the_target_fails_the_export(self):
+        def mutate(rd, cap, controller, state):
+            blocks = all_block_variables()
+            blocks[3] = spec_variables([(1, 16, [1280.0, 800.0, 1.0 / 1280.0, 1.0 / 800.0]),
+                                        (1, 3184, None)])
+            controller.GetCBufferVariableContents.side_effect = lambda *args: blocks[args[4]]
+        _, _, save, manifest, record, error, _ = self.run_mock(mutate=mutate)
+        self.assertIsInstance(error, ValueError)
+        self.assertIsNone(manifest)
+        self.assertIn('ScreenSize', record['traceback'])
+        save.assert_not_called()
+
+    def test_missing_transform_cbuffer_fails_the_export(self):
+        def mutate(rd, cap, controller, state):
+            original = state.GetConstantBlock.side_effect
+
+            def patched(stage, index, array):
+                block = original(stage, index, array)
+                if index == 0:
+                    block.descriptor.byteSize = 999999
+                return block
+            state.GetConstantBlock.side_effect = patched
+        _, _, save, manifest, record, error, _ = self.run_mock(mutate=mutate)
+        self.assertIsInstance(error, ValueError)
+        self.assertIsNone(manifest)
+        self.assertIn('transform', record['traceback'])
+        save.assert_not_called()
 
 
 if __name__ == '__main__':
