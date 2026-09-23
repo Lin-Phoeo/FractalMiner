@@ -20,11 +20,44 @@ namespace EndfieldShaderPack
         {
             BuildAndValidateScene();
             RenderOfficialBaseline();
+            RenderSourceComparisons();
         }
 
         static void Require(bool condition, string message)
         {
             if (!condition) throw new InvalidOperationException(message);
+        }
+
+        // Same geometry, camera and post stack. Only the source-shading profile
+        // switch changes, making regression previews reproducible across runs.
+        public static void RenderSourceComparisons()
+        {
+            if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            foreach (var item in new[] {
+                ("Assets/Scenes/CoralCoast_Repaired.unity", "coral"),
+                ("Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity", "official") })
+            {
+                EditorSceneManager.OpenScene(item.Item1, OpenSceneMode.Single);
+                var profile = Object.FindObjectOfType<Endfield.EndfieldOfficialFrameGlobals>();
+                Require(profile != null, "Missing frame profile: " + item.Item1);
+                bool previous = profile.useSourceShading;
+                try
+                {
+                    foreach (bool source in new[] { false, true })
+                    {
+                        profile.useSourceShading = source;
+                        Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(source, profile.capturedEnvironment);
+                        TyphoeusGeometryValidation.SaveImage(Camera.main,
+                            item.Item2 + (source ? "-source-shading.png" : "-legacy-shading.png"), 1600, 1000);
+                    }
+                }
+                finally
+                {
+                    profile.useSourceShading = previous;
+                    Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(previous, profile.capturedEnvironment);
+                }
+            }
+            Debug.Log("[Recovery] PASS: fixed-camera legacy/source comparison previews");
         }
 
         public static void ValidateContract()

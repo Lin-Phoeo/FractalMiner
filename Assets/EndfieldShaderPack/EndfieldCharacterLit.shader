@@ -86,6 +86,7 @@ Shader "Endfield/CharacterLit"
         _ShadowColorSaturation ("Shadow Color Saturation", Range(0,2)) = 1
         _SkinRimOff ("Skin Rim Off", Range(0,1)) = 1
         _SkinRimOffScale ("Skin Rim Off Scale", Range(0,2)) = 0.8
+        _FaceRimOffScale ("Face Rim Off Scale", Range(0,2)) = 1
         _SDFRimColor ("SDF Rim Color", Color) = (1,1,1,1)
 
         // ---- 重阴影(服装) ----
@@ -238,6 +239,7 @@ Shader "Endfield/CharacterLit"
             float  _UseShadowLutTex;     float4 _ShadowLutTex_ST;
             float  _ShadowColorBrightness; float _ShadowColorSaturation;
             float  _SkinRimOff;          float  _SkinRimOffScale;  float4 _SDFRimColor;
+            float  _FaceRimOffScale;
             float  _CharacterHeavyShadow; float _CharacterHeavyShadowInt; float _EnableLegacyShaping;
             float4 _CharacterHeavyShadowColor;
             float  _CharacterHeavyShadowBackFaceFade; float _CharacterHeavyShadowBackFaceFadeRange;
@@ -283,6 +285,8 @@ Shader "Endfield/CharacterLit"
         float4 _CharacterLightColor;
         float4 _CharacterAmbient;     // 环境/补光颜色
         float _EndfieldOfficialFrameEnabled;
+        float _EndfieldOfficialShadingEnabled;
+        float _EndfieldCapturedCubemapAvailable;
         float _EndfieldCapturedLightIntensity;
 
         // 官方 HGRP _CharacterParamsN 全局参数（捕获帧已知值，由 C# SetGlobalVector 注入）
@@ -401,8 +405,9 @@ Shader "Endfield/CharacterLit"
             if (_EndfieldOfficialFrameEnabled > 0.5)
             {
                 L = SafeNormalize(lerp(L, _CharacterParams11.xyz, _CharacterParams1.w));
-                // Frame 6411: face/b138 uses CP4; body/b401 uses CP5 despite both
-                // having local MaterialFamily=1. This is a frame-specific mapping.
+                // Keep the previous reconstruction's light mapping for A/B.
+                // The source path below corrects body to skin b114 and CP4;
+                // the historical buffer-size-only b401 body match was false.
                 half3 capturedColor = _UseSDFLightmap > 0.5 ? _CharacterParams4.rgb : _CharacterParams5.rgb;
                 lightColor = lerp(lightColor, capturedColor, _CharacterParams12.y) * _EndfieldCapturedLightIntensity;
             }
@@ -456,6 +461,10 @@ Shader "Endfield/CharacterLit"
             n.xy *= scale;
             return n;
         }
+        #include "EndfieldOfficialHair.hlsl"
+        #include "EndfieldOfficialSkin.hlsl"
+        #include "EndfieldOfficialCloth.hlsl"
+        #include "EndfieldOfficialEye.hlsl"
         ENDHLSL
 
         // ============================================================
@@ -483,9 +492,13 @@ Shader "Endfield/CharacterLit"
             half4 frag(Varyings input, FRONT_FACE_TYPE frontFace : FRONT_FACE_SEMANTIC) : SV_Target
             {
                 float2 uv = input.uv;
+                bool sourceShading = _EndfieldOfficialFrameEnabled > 0.5
+                    && _EndfieldOfficialShadingEnabled > 0.5 && _CharacterParams1.y >= 0.5
+                    && _SurfaceType < 0.5 && _DebugView < 0.5
+                    && (_UseParallax < 0.5 || _MaterialFamily > 2.5);
 
                 // ---- 视差(布料流动)：采样前偏移 UV ----
-                if (_UseParallax > 0.5)
+                if (!sourceShading && _UseParallax > 0.5)
                 {
                     half3 T, B, Ntg;
                     Ntg = normalize(input.normalWS);
@@ -499,7 +512,10 @@ Shader "Endfield/CharacterLit"
                     uv -= (h - 0.5) * _ParallaxScale * viewDirTS.xy;
                 }
 
-                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
+                bool sourceClamp = sourceShading && (_MaterialFamily < 1.5 || _MaterialFamily > 2.5);
+                half4 baseMap = sourceClamp
+                    ? SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BaseMap))
+                    : SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
                 // 终末地角色为不透明表面，漫反射 _D 贴图 alpha 通道存的是其它数据(AO/mask)，
                 // 不是透明度，绝不能拿 baseMap.a 当 alpha，否则身体/布料会"像空气一样透明"。
@@ -510,7 +526,8 @@ Shader "Endfield/CharacterLit"
                 if (_UseEmotionMap > 0.5)
                 {
                     half2 euv = half2(fmod(_EmotionIndex, 2.0) * 0.5, floor(_EmotionIndex * 0.5) * 0.5) + 0.5 * uv;
-                    half4 emo = SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearRepeat, euv);
+                    half4 emo = sourceClamp ? SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearClamp, euv)
+                        : SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearRepeat, euv);
                     albedo = lerp(albedo, emo.rgb, emo.a * _EmotionBlend);
                 }
 
@@ -518,7 +535,7 @@ Shader "Endfield/CharacterLit"
 
                 // ---- 法线 ----
                 half3 N = normalize(input.normalWS);
-                if (_MaterialFamily > 1.5 && _MaterialFamily < 2.5 && _UseSpecBumpMap > 0.5)
+                if (!sourceShading && _MaterialFamily > 1.5 && _MaterialFamily < 2.5 && _UseSpecBumpMap > 0.5)
                 {
                     // Hair HN RG is the diffuse normal; BA is a separate specular normal.
                     half2 xy = SAMPLE_TEXTURE2D(_SplitNormalMap, sampler_Endfield_LinearRepeat, uv).rg * 2.0 - 1.0;
@@ -527,7 +544,10 @@ Shader "Endfield/CharacterLit"
                 }
                 else if (_UseBumpMap > 0.5)
                 {
-                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BumpMap)), _BumpScale);
+                    half4 normalSample = sourceClamp
+                        ? SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BumpMap))
+                        : SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BumpMap));
+                    half3 normalTS = UnpackEndfieldNormal(normalSample, _BumpScale);
                     N = normalize(mul(normalTS, CharTBN(input, N)));
                 }
                 // Source enum: 0 flips backface normals; 1 leaves them unchanged.
@@ -543,6 +563,53 @@ Shader "Endfield/CharacterLit"
                 half3 H = normalize(L + V);
                 half NdotH = saturate(dot(N, H));
                 half NdotV = saturate(dot(N, V));
+
+                if (sourceShading)
+                {
+                    // These are the dry flat-environment character paths, before the
+                    // former generic diffuse/specular approximation changes N or albedo.
+                    float3 sourceL = lerp(L, _CharacterParams11.xyz, _CharacterParams1.w);
+                    bool sourceSkin = _MaterialFamily > 0.5 && _MaterialFamily < 1.5;
+                    float3 sourceLightColor = sourceSkin ? _CharacterParams4.rgb : _CharacterParams5.rgb;
+                    float3 sourceLightI = sourceLightColor * lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
+                    // HGRP's two-channel screen shadow buffer is not yet reproduced.
+                    // Keep selfShadow=1 explicit; separated light currently has no URP shadow.
+                    float directionalShadow = lerp(shadowAtten, 1.0, _CharacterParams1.z);
+                    float selfShadow = 1.0;
+                    float3 sourceColor;
+                    if (_MaterialFamily > 2.5)
+                        sourceColor = EndfieldShadeOfficialEye(input.uv, input.normalWS, V, input.tangentWS,
+                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                    else if (_MaterialFamily > 1.5)
+                        sourceColor = EndfieldShadeOfficialHair(uv, albedo, N, V, input.tangentWS,
+                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                    else if (sourceSkin)
+                        sourceColor = EndfieldShadeOfficialSkin(uv, albedo, N, V,
+                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                    else
+                    {
+                        float3 vertexN = SafeNormalize(input.normalWS)
+                            * IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
+                        sourceColor = EndfieldShadeOfficialCloth(uv, albedo, N, vertexN, V,
+                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                    }
+                    // The emission-enabled cloth variants add it after saturation.
+                    if (_MaterialFamily < 0.5 && _UseEmission > 0.5)
+                        sourceColor += SAMPLE_TEXTURE2D(_EmissionMap, sampler_Endfield_LinearClamp,
+                            TRANSFORM_TEX(uv, _EmissionMap)).rgb * _EmissionColor.rgb * _EmissionBrightness;
+                    // Source order: saturation is already in each family helper,
+                    // then VFX, then output exposure. Never multiply the result by light again.
+                    if (_EnableVFXColorAdjustment > 0.5)
+                    {
+                        float sourceLum = dot(sourceColor, float3(.2126729, .7151522, .0721750));
+                        sourceColor = lerp(0.5.xxx, lerp(sourceLum.xxx, sourceColor, _ColorAdjustmentSaturation),
+                            _ColorAdjustmentContrast) * _ColorAdjustmentBrightness;
+                        sourceColor = lerp(sourceColor, _ColorAdjustmentColorBlend.rgb, _ColorAdjustmentColorBlend.a);
+                        sourceColor += _ColorAdjustmentRimColor.rgb * smoothstep(1.0 - _ColorAdjustmentRimWidth, 1.0,
+                            1.0 - saturate(dot(V, N))) * _ColorAdjustmentRimIntensity;
+                    }
+                    return half4(sourceColor * _ExposureWithMiscParams.y, alpha);
+                }
 
                 // 皮肤 rim（官方 characternpr_skin 反编译 L611-613）：
                 //   _1100 = clamp((1 - clamp(NdotV*0.85+0.15)) * _SkinRimOffScale)
@@ -822,7 +889,8 @@ Shader "Endfield/CharacterLit"
                             half ccDenom = ((cNdotH * ccA4) - cNdotH) * cNdotH + 1.0;
                             half ccDenom2 = ccDenom * ccDenom;
                             half f4 = f3 * oneMinusVdotH;
-                            half ccGGX = clamp((((ccF0 * (1.0 - f4) + f4.xxx) * ccMaskV) * ((ccA4 != ccDenom2) ? (ccA4 / ccDenom2) : 1.0)) * (0.5 / ((2.0 * cNdotV) + ccRough + 1e-5)), 0.0, 20.0);
+                            // Preserve the legacy scalar/red-channel approximation explicitly.
+                            half ccGGX = clamp((((ccF0 * (1.0 - f4) + f4.xxx) * ccMaskV) * ((ccA4 != ccDenom2) ? (ccA4 / ccDenom2) : 1.0)) * (0.5 / ((2.0 * cNdotV) + ccRough + 1e-5)), 0.0, 20.0).x;
                             ccSpec = baseSpec * ((1.0 - ccFres) * (1.0 - ccFres)) + ccGGX;
                         }
                         specular = ccSpec;
@@ -839,7 +907,7 @@ Shader "Endfield/CharacterLit"
                     half envFresSum = fresA + fresB;
                     half envRough = rough;
                     half3 cubeRefl = SAMPLE_TEXTURECUBE_LOD(_CharMaxCubemap, sampler_CharMaxCubemap, reflect(-V, N),
-                                       (1.2 * log2(max(envRough, 0.001)) + 5.0))
+                                       (1.2 * log2(max(envRough, 0.001)) + 5.0)).rgb
                                    * (envFres + (specColor * ((1.0 - envFresSum) / max(envFresSum, 1e-5))) * envFres);
                     specular += cubeRefl * _CharacterParams0.w;
                 }

@@ -95,3 +95,6 @@ crashlytics-build.properties
 /Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity.meta
 /Validation/coral-repaired-front.png
 /Validation/official-default-recovered.png
+/Validation/*-source-shading.png
+/Validation/*-legacy-shading.png
+/.coverage
