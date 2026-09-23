@@ -10,6 +10,8 @@
 
 ## 1. 首先打开的文档
 
+- `QODER-HANDOFF-2026-09-23.md`：交给Qoder的完整架构、文件所有权、正确续作路线、测试与Git硬约束。
+- `QODER-FIRST-PROMPT.md`：可直接复制给Qoder的第一条任务指令；本次只做管线激活隔离。
 - `docs/learning/提弗洛斯渲染还原自学手册.html`：六章离线整本，无AI/账户/插件依赖，浏览器搜索、打印。
 - `docs/learning/README.md`：总技术图谱、关卡、产物与阅读顺序。
 - 本文件：最新真实进度和下一步优先级。
@@ -82,6 +84,10 @@ C997CED59304D695D99B81CAB14B7E8BD6D411A63432CDD5216DDCCB958A6463
 恢复依据：记录分支中的QualitySettings内容与运行前保存的哈希完全相等，因此只恢复该文件；没有从main盲目checkout。原全局pipeline GUID是13fa23817c5a2784ebcdc28788b04b05，生成pipeline GUID是f351291399134454680985801f0e93e8。
 
 **修复前不要在唯一工作目录里重复运行Build/BuildAndValidate或打开实验场景继续保存。** 先用独立副本及设置快照做失败复现，再修正编辑器的管线生命周期/保存隔离。必须做到成功、异常、重载、切质量档位都恢复原设置。仅在finally改回QualitySettings.renderPipeline还不足以证明磁盘文件未变。
+
+2026-09-23 20:24复核更新：用户重新打开Unity后，QualitySettings被Unity从serializedVersion 2规范化成3，当前哈希为 `E61ECBD3B831C8356DF6283D012E330AC34DDC4D552A993B7778A910C83C2163`；Ultra档位语义上仍引用原pipeline GUID `13fa23817c5a2784ebcdc28788b04b05`，并非生成pipeline GUID。不要在运行中的Editor外部强行覆盖。后续应把“Unity自身一次性格式升级”与“Build/场景引入的全局设置污染”分开验证，详见QODER-HANDOFF第4节。
+
+2026-09-23 20:37 Qoder接续复核：Unity进程已全部退出，batchmode可运行。E61E哈希与Ultra→13fa…、GraphicsSettings E2EA…、用户index C997…、Python 58项通过均已在磁盘复验。**根因读码确认**：`Build()` 里 `scope.enabled=true` 触发 `OnEnable` 写 `QualitySettings.renderPipeline=生成管线` 并标脏，其后同函数的 `SaveScene`（及 `BuildAndValidate` 的 `OpenScene`）在污染状态下刷盘；`OnDisable` 只恢复内存且从不回刷。因此挂在scene生命周期上的管线激活**结构上不可能**通过字节门禁，必须改为显式、自行掌控 `SaveAssets` 时机的 Activate/Restore。
 
 ## 6. 正确续作顺序
 
