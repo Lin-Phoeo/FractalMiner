@@ -174,7 +174,7 @@ G/255 < 0.99 的像素 = 116890 / 4096000  -> 与交接记录逐位相同
 ## 6. 正确续作顺序
 
 1. **工程隔离门禁**：✅ 已完成，见 5.1 节。`BuildAndValidate` 正常退出、GUID 稳定、真实相机执行动态 Bloom、设置字节不变、跨重启还原全部满足；32 项主颜色/整模回归已重跑通过。**不要重做本项。**
-2. **动态角色自阴影G（当前从这里开始）**：当前selfShadow仍为1，不是完整官方。导出atlas/depth/GBuffer/矩阵，先复现单点投影/深度比较，再实现动态atlas和resolve，再接回各族Shader。不要把捕获G图投射回实时人物冒充动态阴影。
+2. **动态角色自阴影G**：🔶 部分完成（2026-09-23 23:20 +08:00）。证据导出器（`Tools/capture_character_shadow_evidence.py`，32 项单测）与**固定捕获输入的 GPU resolve 复现**已通过：官方 G 通道逐字节复现 **99.841895%**、±1LSB 0.99903857、阴影区 IoU **0.997334**，入口 `Endfield/Validate Character Shadow Resolve (fixed capture)`，报告 `Logs/character-shadow-resolve.txt`，全部细节与四条排错结论见 `docs/research/character-shadow-evidence-20260923.md` 第 10 节。**仍未做**：动态 shadow depth/atlas、接回 `EndfieldCharacterLit.shader`（`selfShadow` 仍是 `1.0`）、改回官方的全屏 pixel pass、转动相机/角色/灯光验证。不要把捕获的固定 G 图投射回实时人物冒充动态阴影。
 3. **姿态与镜头**：核对同LOD、动画时间、面部表情、骨骼矩阵、投影矩阵、viewport和分辨率。轮廓不对齐时不以全帧色差推导材质错误。
 4. **覆盖层/透明与细节Pass**：按真实draw定位，不按文件名猜。核对头发/角/布料局部覆盖与dither，不用“开透明”一概处理。
 5. **最终多视角验收**：同输入条件分开脸/发/衣/角/眼睛，保存误差、轮廓与转动测试；只有这些通过才能谈整个人物达到官方效果。

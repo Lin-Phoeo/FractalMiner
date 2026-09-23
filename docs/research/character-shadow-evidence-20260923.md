@@ -219,3 +219,47 @@ n = normalize(n);
 - **"日光直射强度"双状态**（秋大叔）：主光强度随时间/天气变化，且人物在墙角时应去除与主光相关的边缘光等效果，因此几乎所有着色环节都按"直射/非直射"走不同分支。=> 阶段5 做官方帧差分时必须同时锁定该状态；frame6411 只是单一状态的一张图，不能外推。候选对应字段：`_DirectionalShadowParams.x`、`_DirectionalShadowParams2.zw`。
 - **刘海阴影可能是独立错位网格 + 模板渲染**（秋大叔）："截帧时应该能拿到一个特殊的刘海模型，还帮你错位好了，直接做一个模板渲染即可"。=> 阶段4 应先在捕获 draw call 中找"与头部同源、顶点已错位、带 stencil 状态"的 draw，而不是假设它是屏幕空间效果。这与 Tiansing 的"overlay pass 做内偏移当 shadowproxy"互相印证，也对应本地已有的 `characternpr_overlayshadow` dump。
 
+## 10. 阶段2-3 已通过：固定捕获输入的 GPU resolve 复现
+
+新增 `EndfieldCharacterShadowTables.hlsl`（由官方 dump 程序化生成并往返校验）、`EndfieldCharacterShadowResolve.compute`、`Editor/EndfieldCharacterShadowAssets.cs`、`Editor/EndfieldCharacterShadowValidation.cs`。入口 `Endfield/Validate Character Shadow Resolve (fixed capture)`，报告 `Logs/character-shadow-resolve.txt`。
+
+**门禁全绿**（阈值在看到任何结果之前写死，未放宽过）：
+
+```text
+世界位置往返重投影   max 0.114270px  mean 0.016721px  非有限 0 / 4096000
+角色索引截断         distinct=1 值 0.011227 (x365226)  到下一整数余量 0.988773
+落格率               1.000000 (365226/365226)  refDepth [0.063766, 0.854424]
+参考 R 通道          恒 255，偏差 0
+16-tap vs 官方 G     meanByteError 0.010202   withinOneLsb 0.99903857   逐字节全同 0.99841895
+阴影区 (byte<253)    mine 116870 / official 116890 / both 116724 / IoU 0.997334
+零遮挡像素           232666 个角色像素，其中 G!=255 的为 0
+```
+
+即**官方 G 通道被逐字节复现到 99.84%**，阴影区域 IoU 0.9973。剩余 0.16% 的差异集中在半影边缘，与 atlas 经 `D16 -> UINT32 EXR -> float -> R16_UNORM` 往返造成的极值 11 LSB 偏移（55636 -> 55647）一致。
+
+### 10.1 排错过程中确立的四个事实（都曾被我的假设搞错）
+
+1. **索引不要求是整数。** GBuffer0 全帧只有 4 个 distinct raw 值：`258`(365226 像素，角色)、`1047552`(1633999)、`665844736`(2094636)、`0`(2139)，**没有一个是 2 的幂**。官方是 `int _837 = int(_829)` 截断，有效性判据作用于小数值 `_829 ∈ [0, Params.z)`。我最初写的"必须精确整数"门禁是臆造的，`log2(258)-8 = 0.011227` 截断为 0 完全正确；11.99859→11 与 21.31→21 都 ≥7 判为无效。真正的不变量是**截断不歧义**（余量 0.988773）。
+2. **`step` 的语义是"遮挡"不是"受光"。** `gathered >= refDepth` 在 reversed-Z 阴影图里意味着存储深度更靠近光源，即存在遮挡物。所以计数为 0 表示**完全无遮挡 = 全亮 G=1**，计数为 64 表示全遮挡 G=0。变量名叫 `countLit` 会误导，理解错了就会把符号搞反。
+3. **0/0 不产生 NaN。** `sumPositive/countLit` 在无遮挡时是 `0 * (1/0)`，但 HLSL 的 `min`/`max` 遇到 NaN 返回**另一个非 NaN 操作数**，于是 `clamp(0*inf,0,1) = max(0, min(NaN,1)) = 1`，`lerp(o^3,o,1) = o = 0`，最终 `G = min(1, 0.5-0.5*((1-0)*(-1))) = 1`。实测 `nonFiniteG=0` 且 232666 个零遮挡像素全部 G=255。**在这里加 NaN 保护会静默改变全亮像素**，所以表达式必须原样保留。
+4. **捕获数据导入 Unity 后整体上下翻转，且必须区分两种坐标。** RenderDoc 顶向下写出、Unity 行 0 对应 v=0，导致导入结果相对官方 D3D 约定垂直镜像。实测证据（与 DDS 真值逐个吻合）：atlas 非零行 Unity `[1199,1925]` vs DDS 顶向下 `[122,848]`（列 `[3191,3943]` 两边相同，故只有垂直翻转）；官方阴影像素平均行 Unity `689.77` vs DDS `909.23`（差 219 行，判据无歧义）；角色像素行范围 Unity `[69,1513]` vs DDS `[86,1530]`。**深度目标与颜色目标翻转一致**，RenderDoc 未对两类目标使用不同行序。
+
+由此得到必须遵守的实现约定：`Load`/`store` 用 Unity 内存行 `q`，而 **NDC 与 4×4 旋转格索引必须用 D3D 行 `p=(q.x, H-1-q.y)`**；atlas 采样在官方空间算完 base+Poisson 偏移后，只对最终查找坐标做 `v -> 1-v`（偏移模式本身不镜像）。三处都由 `_CaptureFlipY` 单一开关门控，验证器传 1，将来 Unity 实时渲染的 atlas 必须传 0。
+
+**往返重投影检验抓不到这个错误**——它是自洽性检验，对整体镜像不敏感（修复前后都是 0.11px）。这正是必须用 DDS 侧的位置真值（平均行号）单独测量朝向的原因。
+
+### 10.2 导入格式的硬约束
+
+- atlas 必须 `TextureImporterFormat.R16`：128-bit float 在 D3D11 上只能 Load/Store，**不可过滤也不可 Gather**，与本项目 Bloom 阶段撞过的 R11G11B10 是同一堵墙；而 R16_UNORM 既可过滤又与源 D16 逐位同精度。
+- 其余四张只用 `Load`，保持 `RGBAFloat` 无损。
+- 不能用 RGBAHalf：half 在 1.0 附近精度仅 2^-11≈4.9e-4，而 D16 步长 1.5e-5，会毁掉深度比较所需的分辨率。
+- EXR 通道类型是 **UINT32** 而非 HALF/FLOAT（只有 `camera-depth` 是 HALF）。Unity 能正确处理：GBuffer0 导入后 4 个 distinct packed 值及其计数与 DDS 逐个精确吻合。
+
+### 10.3 尚未做
+
+- 动态 shadow depth/atlas（当前 SkinnedMeshRenderer 自己投影）未开始；本轮全程使用**捕获的固定 atlas**。
+- 未接回 `EndfieldCharacterLit.shader:576-578`，`selfShadow` 仍是 `1.0`。
+- 官方是全屏 pixel pass，本实验用 compute 只为便于回读中间量；最终集成必须改回 pixel pass，且 `_CaptureFlipY` 必须为 0。
+- 转动相机/角色/灯光的验证无法在固定捕获上做，属于动态 atlas 阶段。
+
+

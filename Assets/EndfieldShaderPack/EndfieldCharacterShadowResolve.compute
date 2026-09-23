@@ -1,0 +1,196 @@
+// Offline reproduction of the official ScreenSpaceShadowResolve_Character pass
+// (frame 6411, event 748) against fixed captured inputs.
+//
+// Source of truth: _dump_1.5.3/.../lighting/shadow/screenspaceshadowresolve.shader
+// lines 867-1127. Every formula below is transcribed from that pass; nothing is
+// "improved". Two behaviours that look like bugs are deliberately preserved:
+//
+//   * The atlas gather is not clamped to the character's cell, so pixels within
+//     about 6 atlas texels of a cell edge read the neighbouring character's depth.
+//   * When no tap occludes, sumPositive/countLit is a 0/0 that the official pass does
+//     not guard. It never becomes NaN: HLSL min/max return the non-NaN operand, so
+//     clamp(0*inf, 0, 1) evaluates to 1, lerp(o^3, o, 1) is o, which is 0 on that
+//     path, and the result is G = 1 (fully lit). Adding a NaN guard here would
+//     silently change those pixels, so the expression is left exactly as written.
+//
+// This is a validation experiment, not the shipping implementation. The official
+// resolve is a fullscreen pixel pass; the final integration must be one too. A
+// compute kernel is used here only because it makes readback of intermediates
+// trivial, and the arithmetic is identical either way.
+#pragma kernel CSResolve
+
+#include "Assets/EndfieldShaderPack/EndfieldCharacterShadowTables.hlsl"
+
+Texture2D<float4> _AtlasTex;
+Texture2D<float4> _GBuffer0;
+Texture2D<float4> _GBuffer1;
+Texture2D<float4> _CameraDepth;
+SamplerState sampler_LinearMirror;
+
+// Float4 arrays go through StructuredBuffers rather than SetVectorArray/SetMatrixArray,
+// whose availability varies across Unity versions. Matrices are 4 consecutive
+// column entries; HLSL's float4x4(float4,...) constructor takes ROWS, so the
+// columns are transposed explicitly here.
+StructuredBuffer<float4> _CharacterWorldToShadow;
+StructuredBuffer<float4> _CharacterShadowBiases;
+StructuredBuffer<float4> _CharacterShadowLightDir;
+StructuredBuffer<float4> _CharacterShadowAtlasParams;
+float4 _CharacterShadowTexelSize;
+float4 _CharacterShadowParams;
+float4 _ScreenSize;
+float4x4 _InvViewProj;
+float4x4 _ViewProj;
+int _Mode;
+// 1 when the inputs are captured frame data imported into Unity, 0 when they are
+// live Unity textures. RenderDoc writes every target top-down and Unity's importer
+// stores row 0 at v=0, so a captured frame arrives vertically mirrored relative to
+// the D3D convention the official constants assume. Measured, not assumed: the
+// captured atlas, GBuffer0 and resolved shadow all land exactly on the mirrored row
+// ranges predicted from their DDS exports. Two things follow, and both are gated by
+// this flag so a live atlas rendered by Unity cannot inherit them by accident:
+//   * the pixel coordinate fed to the NDC and rotation-cell maths must be the D3D
+//     row (height-1-y), while Load/store keep using the Unity memory row;
+//   * the atlas V coordinate must be flipped, because _CharacterShadowAtlasParams is
+//     expressed in the unflipped space.
+int _CaptureFlipY;
+
+float4x4 CharacterWorldToShadow(int slot)
+{
+    float4 c0 = _CharacterWorldToShadow[slot * 4 + 0];
+    float4 c1 = _CharacterWorldToShadow[slot * 4 + 1];
+    float4 c2 = _CharacterWorldToShadow[slot * 4 + 2];
+    float4 c3 = _CharacterWorldToShadow[slot * 4 + 3];
+    return float4x4(c0.x, c1.x, c2.x, c3.x,
+                    c0.y, c1.y, c2.y, c3.y,
+                    c0.z, c1.z, c2.z, c3.z,
+                    c0.w, c1.w, c2.w, c3.w);
+}
+
+RWTexture2D<float> _OutG;
+RWTexture2D<float4> _OutDiag0;
+RWTexture2D<float4> _OutDiag1;
+RWTexture2D<float> _OutDiag2;
+
+// GBuffer0 is R10G10B10A2_UNORM; the official pass repacks it into one uint and
+// reads the exponent back out. The 1023 and 3 multipliers are exactly the channel
+// maxima of that format.
+uint PackCharacterIndex(float4 g)
+{
+    return ((uint(g.w * 3.0 + 0.5) << 30) | (uint(g.z * 1023.0 + 0.5) << 20))
+         | ((uint(g.y * 1023.0 + 0.5) << 10) | uint(g.x * 1023.0 + 0.5));
+}
+
+// Official GBuffer1 decode. The reconstructed component lands in the MIDDLE slot
+// and the fold tests it, so the fold axis is Y, not the Z of the common formula.
+float3 DecodeNormalOctahedralY(float2 encoded)
+{
+    float z = 1.0 - (abs(encoded.x) + abs(encoded.y));
+    float3 n = float3(encoded.x, z, encoded.y);
+    if (z < 0.0)
+    {
+        float2 xz = n.xz;
+        float2 sg = float2(xz.x >= 0.0 ? 1.0 : -1.0, xz.y >= 0.0 ? 1.0 : -1.0);
+        float2 folded = (1.0 - abs(n.zx)) * sg;
+        n = float3(folded.x, n.y, folded.y);
+    }
+    return normalize(n);
+}
+
+// Offsets are added in the official, unflipped space and only the final lookup
+// coordinate is flipped, so the Poisson pattern the official pass actually used is
+// preserved rather than mirrored along with the atlas.
+float2 FlipAtlasV(float2 uv)
+{
+    return _CaptureFlipY != 0 ? float2(uv.x, 1.0 - uv.y) : uv;
+}
+
+[numthreads(8, 8, 1)]
+void CSResolve(uint3 id : SV_DispatchThreadID)
+{
+    int width = (int)_ScreenSize.x;
+    int height = (int)_ScreenSize.y;
+    if ((int)id.x >= width || (int)id.y >= height) return;
+    int2 px = int2(id.xy);
+    // px addresses Unity texture memory (Load and store). d3dPx addresses the frame
+    // the official constants describe (NDC and the 4x4 rotation cell). They differ
+    // only in the row, and only for captured input.
+    int2 d3dPx = _CaptureFlipY != 0 ? int2(px.x, height - 1 - px.y) : px;
+
+    // The official pass uses the integer pixel coordinate with no +0.5 offset.
+    float2 pixel = float2(d3dPx);
+    float2 ndc = (pixel * _ScreenSize.zw) * 2.0 - 1.0;
+    float depth = _CameraDepth.Load(int3(px, 0)).x;
+    float4 clip = mul(_InvViewProj, float4(ndc.x, -ndc.y, depth, 1.0));
+    float3 worldP = clip.xyz / clip.w;
+
+    // Round-trip: reproject and compare against the source pixel. A wrong matrix
+    // layout or depth convention cannot survive this. Note it is a self-consistency
+    // test and is deliberately blind to a global mirror, which is why the row
+    // convention above is measured against the DDS exports rather than inferred here.
+    float4 back = mul(_ViewProj, float4(worldP, 1.0));
+    float2 ndcBack = float2(back.x / back.w, -(back.y / back.w));
+    float2 pixelBack = (ndcBack * 0.5 + 0.5) * _ScreenSize.xy;
+    float roundTripError = length(pixelBack - pixel);
+
+    float4 gbuffer0 = _GBuffer0.Load(int3(px, 0));
+    float indexF = log2((float)PackCharacterIndex(gbuffer0)) - 8.0;
+    float3 normalWS = DecodeNormalOctahedralY(_GBuffer1.Load(int3(px, 0)).xy * 2.0 - 1.0);
+
+    float selfShadow = 1.0;
+    float inRange = 0.0;
+    float refDepth = 0.0;
+    float centerAtlasDepth = 0.0;
+    float countLit = 0.0;
+
+    if (indexF >= 0.0 && indexF < _CharacterShadowParams.z)
+    {
+        int slot = (int)indexF;
+        float receiver = 1.0 - clamp(dot(normalWS, _CharacterShadowLightDir[slot].xyz), 0.0, 0.9);
+        float3 biased = (worldP - _CharacterShadowLightDir[slot].xyz * (receiver * _CharacterShadowBiases[slot].x))
+                      + normalWS * (receiver * _CharacterShadowBiases[slot].y);
+        float4 shadowClip = mul(CharacterWorldToShadow(slot), float4(biased, 1.0));
+        refDepth = max(shadowClip.z, 0.01);
+        float3 boxTest = float3(shadowClip.xy, refDepth);
+        bool outside = any(boxTest <= 0.0) || any(boxTest >= 1.0) || !isfinite(refDepth);
+        if (!outside)
+        {
+            inRange = 1.0;
+            float2 atlasUV = _CharacterShadowAtlasParams[slot].xy
+                           + shadowClip.xy * _CharacterShadowAtlasParams[slot].zw;
+            if (_Mode == 0)
+            {
+                centerAtlasDepth = _AtlasTex.SampleLevel(sampler_LinearMirror, FlipAtlasV(atlasUV), 0.0).x;
+                selfShadow = step(0.0, centerAtlasDepth - refDepth);
+            }
+            else
+            {
+                int2 cell = int2(uint2(d3dPx) % uint2(4u, 4u));
+                int rotationIndex = cell.x * 4 + cell.y;
+                float2 basis = ENDFIELD_SHADOW_ROTATION[rotationIndex];
+                float2x2 rotation = float2x2(basis, float2(-basis.y, basis.x));
+                float offsetScale = 4.0 * _CharacterShadowTexelSize.x;
+                float sumPositive = 0.0;
+                countLit = 0.0;
+                for (uint tap = 0u; tap < 16u; tap++)
+                {
+                    float4 diff = _AtlasTex.GatherRed(sampler_LinearMirror,
+                                    FlipAtlasV(atlasUV + mul(ENDFIELD_SHADOW_POISSON[tap], rotation) * offsetScale))
+                                - refDepth;
+                    float4 lit = step(float4(0.0, 0.0, 0.0, 0.0), diff);
+                    sumPositive += dot(diff, lit);
+                    countLit += dot(lit, float4(1.0, 1.0, 1.0, 1.0));
+                }
+                float spread = (2.0 * clamp(countLit * 0.015625, 0.0, 1.0)) - 1.0;
+                float s = (float)((int)sign(spread));
+                float oneMinus = 1.0 - (s * spread);
+                float ratio = clamp((sumPositive * (1.0 / countLit)) * (1.0 / refDepth), 0.0, 1.0);
+                selfShadow = min(1.0, 0.5 - (0.5 * ((1.0 - lerp((oneMinus * oneMinus) * oneMinus, oneMinus, ratio)) * s)));
+            }
+        }
+    }
+
+    _OutG[px] = selfShadow;
+    _OutDiag0[px] = float4(indexF, inRange, refDepth, centerAtlasDepth);
+    _OutDiag1[px] = float4(worldP, roundTripError);
+    _OutDiag2[px] = countLit;
+}
