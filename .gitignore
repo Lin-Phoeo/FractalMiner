@@ -98,3 +98,8 @@ crashlytics-build.properties
 /Validation/*-source-shading.png
 /Validation/*-legacy-shading.png
 /.coverage
+/Assets/EndfieldShaderPack/GeneratedCapture/
+/Assets/EndfieldShaderPack/GeneratedCapture.meta
+/Assets/Scenes/Typhoeus_CapturedPipeline.unity
+/Assets/Scenes/Typhoeus_CapturedPipeline.unity.meta
+/Validation/*-captured-pipeline.png

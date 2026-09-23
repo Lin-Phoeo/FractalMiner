@@ -1,0 +1,55 @@
+Frame6411 captured-pipeline validation
+lutFlip=False inputFlip=False referenceFlip=False: meanByteError=33.020160 withinOneLSB=0.03890861 maxByteError=255
+lutFlip=False inputFlip=False referenceFlip=True: meanByteError=41.002939 withinOneLSB=0.02673446 maxByteError=254
+lutFlip=False inputFlip=True referenceFlip=False: meanByteError=41.002698 withinOneLSB=0.02673153 maxByteError=254
+lutFlip=False inputFlip=True referenceFlip=True: meanByteError=33.019638 withinOneLSB=0.03890885 maxByteError=255
+lutFlip=True inputFlip=False referenceFlip=False: meanByteError=0.120730 withinOneLSB=1.00000000 maxByteError=1
+lutFlip=True inputFlip=False referenceFlip=True: meanByteError=34.682362 withinOneLSB=0.01916064 maxByteError=249
+lutFlip=True inputFlip=True referenceFlip=False: meanByteError=34.682523 withinOneLSB=0.01916064 maxByteError=249
+lutFlip=True inputFlip=True referenceFlip=True: meanByteError=0.120543 withinOneLSB=1.00000000 maxByteError=1
+Shadow R=[1,1] G=[0,1] G<.99 pixels=116890/4096000
+Cube: BC6H, 128x128, mips=8
+Cube graphics format=RGB_BC6H_UFloat, EXR=R32G32B32A32_SFloat
+Cube face=0 compareEXR MAE=0.0001019239 referenceFlipY=True
+  center CubeGPU=RGBA(1.837891, 1.538086, 1.010742, 1.000000) EXRGPU=RGBA(1.837402, 1.537598, 1.010864, 1.000000)
+Cube face=1 compareEXR MAE=7.883707E-05 referenceFlipY=True
+  center CubeGPU=RGBA(0.244873, 0.248657, 0.241211, 1.000000) EXRGPU=RGBA(0.244812, 0.248657, 0.241242, 1.000000)
+Cube face=2 compareEXR MAE=0.0001733303 referenceFlipY=True
+  center CubeGPU=RGBA(0.661621, 0.842285, 1.182617, 1.000000) EXRGPU=RGBA(0.661499, 0.842041, 1.182617, 1.000000)
+Cube face=3 compareEXR MAE=7.633368E-05 referenceFlipY=True
+  center CubeGPU=RGBA(0.429688, 0.422363, 0.355469, 1.000000) EXRGPU=RGBA(0.429688, 0.422241, 0.355408, 1.000000)
+Cube face=4 compareEXR MAE=8.312861E-05 referenceFlipY=True
+  center CubeGPU=RGBA(0.244263, 0.243652, 0.234375, 1.000000) EXRGPU=RGBA(0.244202, 0.243591, 0.234406, 1.000000)
+Cube face=5 compareEXR MAE=0.0002142588 referenceFlipY=True
+  center CubeGPU=RGBA(0.347656, 0.345459, 0.323242, 1.000000) EXRGPU=RGBA(0.347595, 0.345459, 0.323303, 1.000000)
+PASS: all six BC6H cube faces reproduce captured face samples.
+Bloom support: compute=True, available=True, source=R16G16B16A16_SFloat/Tex2D/1/1
+R11 usage: loadStore=True, sample=False, linear=False
+Dynamic bloom inputFlip=False referenceFlip=False: MAE=0.00030222 relativeL1=0.00495055 max=0.343750
+Dynamic bloom inputFlip=False referenceFlip=True: MAE=0.04766464 relativeL1=0.78078050 max=1.179688
+Bloom event=1121 1280x800 relativeL1=0.00000000 signedMean=0.00000000 positive=0 negative=0
+Bloom event=1125 640x400 relativeL1=0.00000068 signedMean=-0.00000004 positive=0 negative=171
+Bloom event=1129 320x200 relativeL1=0.00000126 signedMean=-0.00000008 positive=0 negative=46
+Bloom event=1133 160x100 relativeL1=0.00000087 signedMean=-0.00000006 positive=0 negative=9
+Bloom event=1137 80x50 relativeL1=0.00000193 signedMean=-0.00000012 positive=0 negative=4
+Bloom event=1141 40x25 relativeL1=0.00000000 signedMean=0.00000000 positive=0 negative=0
+Bloom event=1145 20x13 relativeL1=0.00023449 signedMean=-0.00001455 positive=0 negative=13
+Bloom event=1149 10x6 relativeL1=0.00038993 signedMean=-0.00002306 positive=0 negative=6
+Bloom event=1153 5x3 relativeL1=0.00000000 signedMean=0.00000000 positive=0 negative=0
+Bloom event=1157 10x6 relativeL1=0.00004925 signedMean=-0.00000271 positive=0 negative=1
+Bloom event=1161 20x13 relativeL1=0.00013360 signedMean=-0.00000751 positive=0 negative=7
+Bloom event=1165 40x25 relativeL1=0.00021303 signedMean=-0.00000700 positive=10 negative=39
+Bloom event=1169 80x50 relativeL1=0.00023365 signedMean=-0.00000783 positive=48 negative=181
+Bloom event=1173 160x100 relativeL1=0.00029141 signedMean=-0.00001114 positive=213 negative=813
+Bloom event=1177 320x200 relativeL1=0.00028773 signedMean=-0.00001023 positive=990 negative=3246
+Bloom event=1181 640x400 relativeL1=0.00027203 signedMean=-0.00000835 positive=4746 negative=13480
+Bloom event=1185 1280x800 relativeL1=0.00027051 signedMean=-0.00000696 positive=21366 negative=53569
+Dynamic bloom inputFlip=True referenceFlip=False: MAE=0.04762211 relativeL1=0.78008383 max=1.117188
+Dynamic bloom inputFlip=True referenceFlip=True: MAE=0.00001651 relativeL1=0.00027051 max=0.015625
+PASS: dynamic 17-dispatch bloom relative L1=0.00027051
+Flat post input=0: finite, raw-to-live sRGB transfer PASS
+Flat post input=0.18: finite, raw-to-live sRGB transfer PASS
+Flat post input=1: finite, raw-to-live sRGB transfer PASS
+Flat post input=4: finite, raw-to-live sRGB transfer PASS
+Best: lutFlip=True inputFlip=True referenceFlip=True; meanByteError=0.120543; withinOneLSB=1.00000000
+PASS: captured post input + LUT + bloom reproduces event1205 within numerical tolerance.

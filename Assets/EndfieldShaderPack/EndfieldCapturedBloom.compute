@@ -1,0 +1,201 @@
+#pragma kernel Prefilter
+#pragma kernel Downsample
+#pragma kernel Upsample
+#pragma kernel QuantizeProbe
+
+// Frame 6411, events 1121 / 1125-1153 / 1157-1185, shaders 20453/20455/20463.
+// Re-expressed from captured SPIR-V, not the different pixel-shader Bloom path.
+Texture2D<float4> _Input;
+Texture2D<float4> _HighInput;
+RWTexture2D<float4> _Output;
+SamplerState sampler_LinearClamp;
+float4 _InputSize;  // xy = dimensions, zw = reciprocals
+float4 _OutputSize;
+float4 _Threshold;
+float _Exposure;
+float _Scatter;
+int _QuantizeOutput; // 0 = hardware/no explicit conversion, 1 = RNE, 2 = RTZ
+
+// R11/G11/B10 use unsigned 5-bit-exponent floats with 6/6/5 mantissa bits.
+// Reduce directly from float32, avoiding double rounding of float32->half->R11.
+// The fallback stores the decoded representable result in an RGBAFloat UAV.
+uint RoundRightEven(uint significand, uint shift)
+{
+    uint high = significand >> shift;
+    if (_QuantizeOutput == 2) return high;
+    uint remainder = significand & ((1u << shift) - 1u);
+    uint half = 1u << (shift - 1u);
+    return high + ((remainder > half || (remainder == half && (high & 1u) != 0u)) ? 1u : 0u);
+}
+
+float QuantizeUnsignedFloat(float value, uint mantissaBits)
+{
+    uint bits = asuint(value);
+    uint sourceExponent = (bits >> 23u) & 255u;
+    uint mantissa = bits & 0x7fffffu;
+    if (sourceExponent == 255u && mantissa != 0u) return asfloat(0x7fc00000u);
+    if ((bits & 0x80000000u) != 0u) return 0;
+    if (sourceExponent == 255u) return asfloat(0x7f800000u);
+    int exponent = (int)sourceExponent - 112;
+    if (exponent <= 0)
+    {
+        // Includes float32 subnormals and values strictly below the half-ULP tie.
+        if (exponent < -(int)mantissaBits) return 0;
+        uint subnormal = RoundRightEven(0x800000u | mantissa,
+            (uint)(24 - (int)mantissaBits - exponent));
+        // Exact power-of-two scale; a rounded subnormal may become min-normal.
+        return (float)subnormal * exp2(-14.0 - (float)mantissaBits);
+    }
+    // Finite overflow in toward-zero mode saturates; an input +Inf was handled above.
+    if (exponent >= 31)
+        return _QuantizeOutput == 2
+            ? asfloat((142u << 23u) | (((1u << mantissaBits) - 1u) << (23u - mantissaBits)))
+            : asfloat(0x7f800000u);
+    uint rounded = RoundRightEven(mantissa, 23u - mantissaBits);
+    if (rounded == (1u << mantissaBits)) { rounded = 0u; ++exponent; }
+    if (exponent >= 31) return asfloat(0x7f800000u);
+    return asfloat(((uint)(exponent + 112) << 23u) | (rounded << (23u - mantissaBits)));
+}
+
+void StoreBloom(uint2 pixel, float3 color)
+{
+    if (_QuantizeOutput != 0)
+        color = float3(QuantizeUnsignedFloat(color.r, 6u),
+            QuantizeUnsignedFloat(color.g, 6u), QuantizeUnsignedFloat(color.b, 5u));
+    _Output[pixel] = float4(color, 1);
+}
+
+// Diagnostic-only kernel: feed float32 thresholds/ties/subnormals and read back
+// without filtering. Not part of the 17-dispatch live Bloom graph.
+[numthreads(8,8,1)]
+void QuantizeProbe(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < (uint2)_OutputSize.xy))
+        StoreBloom(id.xy, _Input.Load(int3(id.xy, 0)).rgb);
+}
+
+static const float3 kPrefilterTaps[13] = {
+    float3(0,0,4), float3(-2,-2,1), float3(2,-2,1), float3(2,2,1),
+    float3(-2,2,1), float3(-2,0,2), float3(2,0,2), float3(0,2,2),
+    float3(0,-2,2), float3(-1,1,4), float3(1,1,4), float3(-1,-1,4),
+    float3(-1,1,4) // The capture really repeats this tap; do not symmetrize it.
+};
+
+[numthreads(8,8,1)]
+void Prefilter(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_OutputSize.xy)) return;
+    float2 uv = (float2(id.xy) + .5) * _OutputSize.zw;
+    float totalWeight = 0;
+    float3 totalColor = 0;
+    [loop] for (int i = 0; i < 13; ++i)
+    {
+        float3 color = _Input.SampleLevel(sampler_LinearClamp,
+            uv + kPrefilterTaps[i].xy * _InputSize.zw, 0).rgb;
+        // Original unsigned bit test also rejects negative values, infinities and NaNs.
+        uint3 bits = asuint(color);
+        color = float3(bits.x < 0x7f800000u ? color.x : 0,
+                       bits.y < 0x7f800000u ? color.y : 0,
+                       bits.z < 0x7f800000u ? color.z : 0);
+        float brightness = max(max(color.r, color.g), color.b);
+        float knee = clamp(brightness - _Threshold.y, 0, _Threshold.z);
+        color = (color * (max((_Threshold.w * knee) * knee,
+            brightness - _Threshold.x) / max(brightness, 1e-4))) * _Exposure;
+        float karis = 1 / (dot(color, float3(.2126729041337967,
+            .7151522040367126, .07217500358819962)) + 1);
+        totalWeight += kPrefilterTaps[i].z * karis;
+        totalColor += (color * kPrefilterTaps[i].z) * karis;
+    }
+    StoreBloom(id.xy, totalColor / totalWeight);
+}
+
+groupshared uint sPackedR[128];
+groupshared uint sPackedG[128];
+groupshared uint sPackedB[128];
+// Separate storage avoids overlapping input reads/output writes across GPU waves.
+// The captured arithmetic and intermediate half round-trip are unchanged.
+groupshared float3 sHorizontal[128];
+
+void StorePair(uint index, float3 a, float3 b)
+{
+    uint3 packed = f32tof16(a) | (f32tof16(b) << 16);
+    sPackedR[index] = packed.x;
+    sPackedG[index] = packed.y;
+    sPackedB[index] = packed.z;
+}
+
+float3 ReadPair(uint index, uint high)
+{
+    uint3 packed = uint3(sPackedR[index], sPackedG[index], sPackedB[index]);
+    return f16tof32((packed >> (high * 16)) & 65535u);
+}
+
+float3 Filter9(float3 a, float3 b, float3 c, float3 d, float3 e,
+    float3 f, float3 g, float3 h, float3 i)
+{
+    return ((((e * .2734375) + ((d + f) * .21875)) + ((c + g) * .109375))
+        + ((b + h) * .03125)) + ((a + i) * .00390625);
+}
+
+[numthreads(8,8,1)]
+void Downsample(uint3 group : SV_GroupID, uint3 local : SV_GroupThreadID,
+    uint3 id : SV_DispatchThreadID)
+{
+    // The inverse OUTPUT size is intentional: each sample spans two input pixels.
+    float2 p = float2(int2(local.xy * 2 + group.xy * 8) - 4);
+    float3 a = _Input.SampleLevel(sampler_LinearClamp, (p + .5) * _OutputSize.zw, 0).rgb;
+    float3 b = _Input.SampleLevel(sampler_LinearClamp, (p + float2(1.5,.5)) * _OutputSize.zw, 0).rgb;
+    float3 c = _Input.SampleLevel(sampler_LinearClamp, (p + float2(.5,1.5)) * _OutputSize.zw, 0).rgb;
+    float3 d = _Input.SampleLevel(sampler_LinearClamp, (p + 1.5) * _OutputSize.zw, 0).rgb;
+    uint baseIndex = local.x + local.y * 16;
+    StorePair(baseIndex, a, b);
+    StorePair(baseIndex + 8, c, d);
+    GroupMemoryBarrierWithGroupSync();
+
+    uint start = local.y * 16 + local.x + (local.x & 4);
+    float3 h0 = ReadPair(start, 0), h1 = ReadPair(start, 1);
+    float3 h2 = ReadPair(start + 1, 0), h3 = ReadPair(start + 1, 1);
+    float3 h4 = ReadPair(start + 2, 0), h5 = ReadPair(start + 2, 1);
+    float3 h6 = ReadPair(start + 3, 0), h7 = ReadPair(start + 3, 1);
+    float3 h8 = ReadPair(start + 4, 0), h9 = ReadPair(start + 4, 1);
+    uint destination = local.y * 16 + local.x * 2;
+    sHorizontal[destination] = Filter9(h0,h1,h2,h3,h4,h5,h6,h7,h8);
+    sHorizontal[destination + 1] = Filter9(h1,h2,h3,h4,h5,h6,h7,h8,h9);
+    GroupMemoryBarrierWithGroupSync();
+
+    uint row = local.y * 8 + local.x;
+    float3 result = Filter9(sHorizontal[row], sHorizontal[row+8], sHorizontal[row+16],
+        sHorizontal[row+24], sHorizontal[row+32], sHorizontal[row+40],
+        sHorizontal[row+48], sHorizontal[row+56], sHorizontal[row+64]);
+    // Guard after both barriers. Out-of-range threads must still populate the tile.
+    if (all(id.xy < (uint2)_OutputSize.xy)) StoreBloom(id.xy, result);
+}
+
+[numthreads(8,8,1)]
+void Upsample(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_OutputSize.xy)) return;
+    float2 uv = (float2(id.xy) + .5) * _OutputSize.zw;
+    float2 p = uv * _InputSize.xy + .5;
+    float2 cell = floor(p), f = frac(p);
+    float2 w0 = .1666666716337204 + f * (-.5 + f * (.5 - f * .1666666716337204));
+    float2 halfF = f * .5;
+    float2 term = (f * (-1 + halfF)) * f;
+    float2 w1 = .6666666865348816 + term;
+    float2 w2 = .1666666716337204 + f * (.5 + f * (.5 - halfF));
+    float2 w3 = ((.3333333134651184 - term) - w2) - w0;
+    float2 left = w0 + w1, right = w2 + w3;
+    float2 lo = -1 + w1 * (1 / left), hi = 1 + w3 * (1 / right);
+    float2 upperBound = 1 - _OutputSize.zw; // Uses HIGH size in the captured shader.
+    float3 s00 = _Input.SampleLevel(sampler_LinearClamp,
+        min((cell + lo - .5) * _InputSize.zw, upperBound), 0).rgb;
+    float3 s10 = _Input.SampleLevel(sampler_LinearClamp,
+        min((cell + float2(hi.x,lo.y) - .5) * _InputSize.zw, upperBound), 0).rgb;
+    float3 s01 = _Input.SampleLevel(sampler_LinearClamp,
+        min((cell + float2(lo.x,hi.y) - .5) * _InputSize.zw, upperBound), 0).rgb;
+    float3 s11 = _Input.SampleLevel(sampler_LinearClamp,
+        min((cell + hi - .5) * _InputSize.zw, upperBound), 0).rgb;
+    float3 low = ((s00 * left.x + s10 * right.x) * left.y)
+        + ((s01 * left.x + s11 * right.x) * right.y);
+    StoreBloom(id.xy, lerp(_HighInput.Load(int3(id.xy, 0)).rgb, low, _Scatter));
+}

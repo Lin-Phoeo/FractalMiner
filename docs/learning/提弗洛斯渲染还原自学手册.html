@@ -1,0 +1,1267 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'">
+<title>提弗洛斯渲染还原自学手册</title>
+<style>
+:root{color-scheme:light dark}*{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#252b32;font:17px/1.8 "Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+header{max-width:1120px;margin:auto;padding:40px 28px 20px;border-bottom:2px solid #d2ba78}header p{color:#58616b}nav{max-width:1120px;margin:18px auto;padding:0 28px;display:flex;gap:12px 24px;flex-wrap:wrap}a{color:#135d85;text-underline-offset:3px;overflow-wrap:anywhere}main{max-width:1120px;margin:auto;padding:0 28px 80px}section{padding:25px 0 35px;border-bottom:1px solid #d8d8d4}h1{font-size:1.75em;line-height:1.4}h2{margin-top:36px;font-size:1.3em}h3{font-size:1.08em}p,li{max-width:88ch}pre{overflow:auto;padding:18px;border:1px solid #d8d8d4;background:#eaece8;font:14px/1.7 Consolas,"Microsoft YaHei",monospace;tab-size:4}code{font-family:Consolas,"Microsoft YaHei",monospace;font-size:.9em}table{width:100%;border-collapse:collapse;font-size:15px;display:block;overflow-x:auto}th,td{padding:10px 12px;border:1px solid #c9ceca;vertical-align:top;min-width:120px}th{background:#e5e9e3;text-align:left}blockquote{margin-left:0;padding-left:16px;border-left:3px solid #b79c4b}hr{border:0;border-top:1px solid #c9ceca}footer{max-width:1120px;margin:auto;padding:25px 28px;color:#58616b;font-size:14px}
+@media(prefers-color-scheme:dark){body{background:#191e24;color:#e4e8e7}header p,footer{color:#b8c2c6}a{color:#8dcdec}pre,th{background:#252d34}section,pre,td,th{border-color:#46515a}}
+@media(max-width:600px){body{font-size:16px}header,main,nav,footer{padding-left:16px;padding-right:16px}h1{font-size:1.4em}}
+@media print{body{background:white;color:black;font-size:10.5pt}nav{display:none}main,header,footer{max-width:none;padding:0}section{break-before:page;border:none}section:first-child{break-before:auto}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:8pt;background:white}table{display:table;font-size:9pt}th,td{min-width:0}a{color:black}h1,h2,h3{break-after:avoid}tr{break-inside:avoid}}
+</style></head><body><header><h1>提弗洛斯渲染还原 · 独立学习手册</h1><p>从可信资产到可验证的官方画面。离线阅读，无账户、无插件、无模型服务依赖。<br>阅读顺序：理解原理 → 做最小实验 → 留下证据 → 再接完整角色。浏览器 Ctrl+F 搜索，Ctrl+P 打印。</p></header>
+<nav aria-label="章节"><a href="#chapter-0">总图谱与阅读顺序</a><a href="#chapter-1">01 基础与解包</a><a href="#chapter-2">02 模型与材质</a><a href="#chapter-3">03 截帧与Shader</a><a href="#chapter-4">04 管线与官方验收</a><a href="#chapter-5">05 独立续作工作台</a></nav><main><section id="chapter-0"><h1 id="chapter-0-提弗洛斯渲染还原从零独立学习图谱">提弗洛斯渲染还原：从零独立学习图谱</h1>
+<p>这套教材的用途：即使没有任何模型服务、聊天记录或代写工具，你也能沿着文件、命令、原理、练习和验收记录，独立复现目前做成的部分，并继续推进尚未完成的官方管线。它不是一串提示词，也不要求接入任何 AI 插件。</p>
+<p>范围：Windows、Unity 2022.3.30f1、提弗洛斯角色详情页、已有本地资源与 frame 6411 的离线捕获。模型/材质/四族主颜色的已验收基线为 Git <code>1b25951</code>。完整动态阴影、姿态、官方最终画面仍须逐关验证；不要把“教材覆盖了终点”误读为“工程已经到终点”。</p>
+<h2 id="chapter-0-先打开哪里">先打开哪里</h2>
+<p>最新暂停交接在仓库根目录 <code>RESUME-2026-09-23-captured-pipeline.md</code>。本轮离线数值测试通过，但实验场景构建的项目设置持久化门禁尚未通过；第04章已标出限制，不要在唯一工程里直接重复该实验。</p>
+<ol>
+<li>第一次学习：从本页和第 01 章开始，先用自制三角形练习，别直接改已经修好的角色。</li>
+<li>已会 Unity，只想复现当前成果：第 02 章的模型构建与验收 → 第 03 章的 Shader 实验 → 第 04 章管线。</li>
+<li>工程出错、忘记做到哪里：第 05 章的独立续作与排错记录。</li>
+<li>双击同目录生成的 <code>提弗洛斯渲染还原自学手册.html</code> 可离线阅读整本、搜索、打印为 PDF；不需要启动 Codex。Markdown 源文档可用普通文本编辑器或 GitHub 阅读。</li>
+</ol>
+<h2 id="chapter-0-章节导航">章节导航</h2>
+<ul>
+<li><a href="#chapter-1">01｜基础、工具与可信解包</a></li>
+<li><a href="#chapter-2">02｜网格、骨骼、材质与防炸验证</a></li>
+<li><a href="#chapter-3">03｜离线截帧、证据匹配与 Shader 实验室</a></li>
+<li><a href="#chapter-4">04｜环境反射、动态 Bloom、调色与阴影路线</a></li>
+<li><a href="#chapter-5">05｜不用助手时如何继续：练习、排错、验收与回退</a></li>
+</ul>
+<h2 id="chapter-0-总技术图谱">总技术图谱</h2>
+<p>读法：纵向是必须按顺序通过的关卡，横向是并行学习的基础；括号中的字是必须保存的产物。没有产物和验收，不算过关。</p>
+<pre><code class="language-text">文件/PowerShell ─┬─ Python/JSON/二进制 ─┐
+Git/备份 ───────┤                    │
+向量/矩阵/坐标 ─┼─ C#/Unity Editor ───┼─ 0. 建独立练习工程
+颜色/纹理采样 ──┘                    │   （版本表、三角形、最小测试）
+                                    ▼
+1. 原始包 → 格式识别 → 解包/导出 → 按对象ID建立资产索引
+   （原文件哈希、工具版本、资产清单，绝不直接覆盖源文件）
+                                    ▼
+2. Mesh → 坐标/索引/法线/UV → Bone路径与映射 → bindpose/权重
+   （模型JSON、静止蒙皮恒等式、范围/有限性检查）
+                                    ▼
+3. 持久化Unity网格/骨架 → 材质JSON → 纹理槽与颜色空间 → 深度/剔除
+   （可保存重开的场景、TBN、每槽ST、角色部件身份）
+                                    ▼
+4. 离线RDC → Event/Pass → 实际纹理绑定 → 常量字节偏移 → Shader候选
+   （证据表，不按文件名/大小/外观直接认定变体）
+                                    ▼
+5. 最小平面上的HLSL → CPU手算 → GPU读回 → 再接角色
+   ├─ skin：LUT、SDF、mask、GGX、rim
+   ├─ hair：RGorAG、切线、双各向异性、LineMap
+   ├─ cloth：ramp alpha、P图、specRamp、emission、IBL
+   └─ eye：球面/视差、matcap、透明度与光照mask的区别
+   （32组数值基线 + 整个人物回归）
+                                    ▼
+6. 管线对齐：Cubemap各面/mip + 角色自阴影atlas + Pass顺序/覆盖层
+   （资源导出清单、坐标对应、生成算法，不能贴静态截图代替动态）
+                                    ▼
+7. HDR → 9级Bloom → sharpen/vignette → LogC → 官方LUT → sRGB/dither
+   （相同HDR输入上的全帧数值比较；再换成Unity实时输入）
+                                    ▼
+8. 同姿态/镜头/裁剪/分辨率/曝光的官方对照 → 分区误差 → 转身/运动回归
+   （固定基准图、误差报告、验收清单、可回退Git提交）
+</code></pre>
+<h2 id="chapter-0-每一关的退出条件">每一关的退出条件</h2>
+<table>
+<thead>
+<tr>
+<th>关卡</th>
+<th>你要能独立回答的问题</th>
+<th>必须交付的东西</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 基础</td>
+<td>点、方向、法线为什么不能同样变换？0.5线性灰为什么不是sRGB0.5？</td>
+<td>三角形练习工程和说明</td>
+</tr>
+<tr>
+<td>1 解包</td>
+<td>这个对象来自哪个包、哪个 PathID、哪个版本？</td>
+<td>完整资产清单与哈希</td>
+</tr>
+<tr>
+<td>2 几何</td>
+<td>哪个矩阵把顶点带到哪个空间？权重索引指向谁？</td>
+<td>静止蒙皮数值报告</td>
+</tr>
+<tr>
+<td>3 材质</td>
+<td>这张图每个通道在 Shader 的哪一行使用？</td>
+<td>每部位材质契约表</td>
+</tr>
+<tr>
+<td>4 捕获</td>
+<td>当前事件是主颜色、深度、阴影还是覆盖层？</td>
+<td>draw/资源/常量/候选表</td>
+</tr>
+<tr>
+<td>5 Shader</td>
+<td>换成已知常量输入后，GPU为什么应输出这个数？</td>
+<td>CPU/GPU 对照测试</td>
+</tr>
+<tr>
+<td>6 光照管线</td>
+<td>阴影来自什么几何、矩阵、深度比较和滤波？</td>
+<td>可随相机/角色变化的正确结果</td>
+</tr>
+<tr>
+<td>7 后处理</td>
+<td>哪个阶段是线性HDR，哪里只做一次sRGB编码？</td>
+<td>捕获输入重放误差报告</td>
+</tr>
+<tr>
+<td>8 官方效果</td>
+<td>差异来自姿态、材质、光照还是后处理？</td>
+<td>固定条件下的分层验收证据</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-0-现有成果与你要补完的能力">现有成果与你要补完的能力</h2>
+<p>已有：合法可读的本地解包结果；JSON 角色重建；481 骨/17 Mesh 的基础映射；静止蒙皮与 TBN 检查；原版和珊瑚海岸的修复场景；body/face/hair/cloth/eye 的选定干燥主颜色路径；四族 32 项 GPU–CPU 测试；捕获与候选匹配脚本；对应 Git 回退点。</p>
+<p>本轮推进：官方环境cube保留6面/8mip，6面GPU采样通过；选定后处理在相同官方HDR输入上整帧RGB误差≤1个8-bit色阶；动态17-dispatch Bloom最终相对L1误差约0.0271%。第04章给出独立实时场景的构建、重载与验收入口。</p>
+<p>需要继续攻克：本帧 G 通道角色自阴影的生成、动态姿态与镜头的精确对齐、局部覆盖层/透明与材质dither、环境反射在完整角色上的最终一致性、最终全帧一致性。不能用已经通过的单Pass实验掩盖这些剩余任务。</p>
+<h2 id="chapter-0-第一晚的具体安排">第一晚的具体安排</h2>
+<ul>
+<li>建一个不含游戏资源的 <code>TyphoeusLearning</code> 练习文件夹和 Git 库。</li>
+<li>跑一个 Python 脚本，打印一个 JSON 的字段名与数值范围；再故意改坏索引，让脚本报错。</li>
+<li>在 Unity 空场景创建并保存一个三角形 Mesh，重新打开后验证它还在。</li>
+<li>自己手算 <code>dot((0,0,1),(0,.6,.8))=.8</code>，让 Shader 输出这个灰度，读取像素核对。</li>
+<li>写下今天的版本、输入、结果和一个未解决问题。通过这四项再碰真实角色。</li>
+</ul>
+<p>不是按“看完多少教程”计进度，而是按“能独立解释、复现、排错多少关”计进度。</p>
+<h2 id="chapter-0-使用资料的规则">使用资料的规则</h2>
+<p>本教材优先链接源码、数据和官方 API，而不是让你寻找一段神奇参数。C# 语言新教程可能使用 Unity 2022 不支持的新语法；这里只需掌握该工程实际使用的 C# 特性。<a href="https://learn.microsoft.com/zh-cn/dotnet/csharp/tour-of-csharp/">微软 C# 学习入口</a>。</p>
+<p>Python 侧学习字典、模块、文件、异常、<code>struct</code> 即可先做资源验证，不需要机器学习库。<a href="https://docs.python.org/zh-cn/3/tutorial/">Python 官方教程</a>。</p>
+<p>回退前先理解工作树、暂存区和提交；本机 main 与记录分支不同，不能直接强制切换。<a href="https://git-scm.com/book/zh/v2">Pro Git 中文版</a>。</p></section><section id="chapter-1"><h1 id="chapter-1-01从零建立能力与可信资产清单">01｜从零建立能力与可信资产清单</h1>
+<p>本章不是提示词或自动代做流程。目标是让你不用任何模型服务，也能自己读代码、运行工具、判断输出是否正确，并在几天后靠记录继续工作。学习对象限定为你有权研究的本地资源与已有离线截帧；不包含关闭、隐藏或绕过游戏保护的方法。</p>
+<p>核验日期：2026-09-23。本章命令以当前 Windows 目录为例。CLI 参数已用本机 <code>--help</code> 核对，但本次编写没有重新执行全量解包；游戏更新后的格式兼容性不能由这些命令保证。</p>
+<h2 id="chapter-1-1-先理解终点与证据层级">1. 先理解终点与证据层级</h2>
+<p>下面各层解决不同问题，后一层不能用来掩盖前一层错误：</p>
+<pre><code class="language-text">原始资源文件
+  └─ 容器读取与导出：找到了什么对象？源包和版本是什么？
+      └─ 网格、骨骼、材质重建：坐标、索引、绑定和纹理是否对应？
+          └─ Shader 数学：同样输入是否得到相同线性颜色？
+              └─ 渲染管线：阴影、反射、遮挡、绘制顺序是否一致？
+                  └─ 最终画面：同姿态、同镜头、同曝光、同后处理吗？
+</code></pre>
+<p>“解包成功”只说明某层数据被读出来；“模型没有炸开”只说明一部分几何问题被排除；“数值测试通过”也只覆盖测试中的输入与分支。最终目标是官方提弗洛斯角色详情页，但当前已验收的是阶段性模型、材质绑定以及选定源码光照分支，不是全游戏管线复制完成。</p>
+<p>证据优先顺序：原始文件及其哈希 → 捕获中的实际绑定/数值 → 导出器与导入器的可运行测试 → 研究笔记 → 旧会话中的判断。若笔记和原始数据矛盾，先停下来核验数据，不用另一套“看起来正常”的参数补偿。</p>
+<h2 id="chapter-1-2-必要知识每项都配一个能独立完成的小作品">2. 必要知识：每项都配一个能独立完成的小作品</h2>
+<p>零编程基础时，不必先学完全部 C++、引擎源码和微积分。按下表做小练习，做完再进入真实角色；时间按掌握程度安排，不能把看完视频算作通过。</p>
+<table>
+<thead>
+<tr>
+<th>先修模块</th>
+<th>必须理解的内容</th>
+<th>不靠现成答案完成的练习</th>
+<th>通过条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文件与 PowerShell</td>
+<td>绝对/相对路径、引号、工作目录、程序退出码、标准输出/错误、只读与写入</td>
+<td>找到指定 <code>.json</code>；读取前 20 行；把两个文件的 SHA-256 对比</td>
+<td>路径带空格仍正确；知道命令是否会写文件</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>工作树、暂存区、提交、分支、远端、忽略文件、差异</td>
+<td>在自己的小练习库新增一个脚本、提交，再写出两次提交的差别</td>
+<td>能解释“文件在硬盘上”与“文件在提交中”不是同一回事</td>
+</tr>
+<tr>
+<td>Python 基础</td>
+<td>变量、条件、循环、函数、异常、字典/列表、<code>json</code>、<code>pathlib</code>、<code>struct</code></td>
+<td>读取一个网格 JSON，输出顶点数、三角形数、包围盒、最大索引</td>
+<td>对一个故意越界的索引明确报错，不静默跳过</td>
+</tr>
+<tr>
+<td>二进制数据</td>
+<td>字节、位、大小端、uint16/uint32、float32、stride、offset</td>
+<td>自己编码并解码 3 个 float 和一个 uint32；改变 stride 看错误</td>
+<td>算出 <code>count = bufferBytes / stride</code>；说明余数非零为何有问题</td>
+</tr>
+<tr>
+<td>C# 基础</td>
+<td>类/结构体、数组、泛型、<code>static</code>、命名空间、引用、异常、生命周期</td>
+<td>在独立 Unity 练习项目写一个菜单，生成三角形并保存 Mesh 资产</td>
+<td>保存/关闭/重开后仍能显示；没有丢失引用</td>
+</tr>
+<tr>
+<td>向量</td>
+<td>长度、归一化、点积、叉积、投影</td>
+<td>计算两个方向夹角；用 <code>cross</code> 给三角形求法线</td>
+<td>知道点积为 0、1、-1 各代表什么；零向量不能直接当方向</td>
+</tr>
+<tr>
+<td>矩阵与坐标</td>
+<td>4×4 仿射变换、逆矩阵、乘法顺序、局部/世界空间、法线逆转置</td>
+<td>平移后旋转与旋转后平移各算一次；对点做变换再逆变换</td>
+<td>明确两结果通常不同；恢复误差在给定容差内</td>
+</tr>
+<tr>
+<td>四元数与骨骼</td>
+<td>父子 Transform、局部旋转、绑定姿态、权重混合</td>
+<td>两根骨骼带动一条 4 顶点长条</td>
+<td>静止时不变形；旋转父骨骼时子骨骼跟随；权重之和为 1</td>
+</tr>
+<tr>
+<td>GPU 管线</td>
+<td>顶点着色、光栅化、片元着色、深度、剔除、混合、RenderTexture</td>
+<td>输出 UV、法线、纯红色三种调试视图</td>
+<td>能分清缺几何、被深度挡住和 Shader 输出黑色</td>
+</tr>
+<tr>
+<td>纹理与颜色</td>
+<td>UV、ST、采样器、mip、线性/sRGB、HDR、数据图和颜色图</td>
+<td>生成线性 0.5 灰与 sRGB 0.5 灰的对照</td>
+<td>不把两种 0.5 当成相同物理亮度</td>
+</tr>
+<tr>
+<td>材质与光照</td>
+<td>漫反射/高光、N·L、N·V、粗糙度、金属度、ramp、SDF、TBN</td>
+<td>用常量纹理和单个平面复现一个光照公式</td>
+<td>能手算预期值，再读回 GPU 像素验证</td>
+</tr>
+</tbody>
+</table>
+<p>学习资料只负责解释通用概念，项目事实仍要回到本地源码：</p>
+<ul>
+<li>编程零基础先用 <a href="https://learn.microsoft.com/en-us/dotnet/csharp/tour-of-csharp/">Microsoft C# 入门入口</a> 中的 beginner tutorials，不要直接学习网页默认展示的新语言特性；Unity 的可用语法由本项目编辑器决定。</li>
+<li>掌握基本编程后，按 <a href="https://docs.python.org/3.13/tutorial/">Python 3.13 官方教程</a> 的控制流、数据结构、文件、异常、模块与浮点误差章节做练习。该教程本身并不以完全没有编程经验的人为前提。</li>
+<li>网格属性的定义查 <a href="https://docs.unity3d.com/2022.3/Documentation/Manual/AnatomyofaMesh.html">Unity 2022.3 Mesh data</a>。不要把“顶点”只理解成一个坐标；它还可对应法线、UV、切线和蒙皮等数据。</li>
+</ul>
+<h3 id="chapter-1-一页数学备忘">一页数学备忘</h3>
+<pre><code class="language-text">dot(a,b) = ax*bx + ay*by + az*bz
+normalize(v) = v / length(v)                 # length 太小时必须另行处理
+lerp(a,b,t) = a + (b-a)*t                     # 不自带 t 的 [0,1] 截断
+saturate(x) = min(max(x,0),1)
+p_world = M_objectToWorld * float4(p_local,1)
+n_world ∝ transpose(inverse(M_objectToWorld)) * float4(n_local,0)
+</code></pre>
+<p>本项目多次错误来自“看懂了式子的形状，却改了式子的含义”：把 <code>lerp</code> 当成自动截断、把矩阵存储顺序当成坐标手性、把 alpha 永远当透明度。每次移植都要写出输入范围、输出空间和使用分支。</p>
+<h2 id="chapter-1-3-本机工作区地图与版本冻结">3. 本机工作区地图与版本冻结</h2>
+<pre><code class="language-text">A:\Hypergryph Launcher\games\Arknights Endfield\
+├─ Endfield_Data\StreamingAssets\VFS\         原始容器，保持只读
+├─ EndfieldUnpacker\                         解包与中间产物，独立于 Unity
+│  ├─ .venv\Scripts\python.exe               本项目 Python
+│  ├─ AnimeStudio-net10\AnimeStudio.CLI.exe   资产导出入口
+│  ├─ DecryptOutput\Bundles\Windows\         已解出的 AssetBundle
+│  ├─ _fullmap\assets_map.json               全量资产索引
+│  ├─ _typhoea_assets_map.json               角色资产清单
+│  └─ _typhoea_material_binding.json         材质/纹理来源线索
+└─ FractalMiner\                             Unity 工程及源码记录库
+   ├─ Assets\Typhoeus\                       本地官方导出数据
+   ├─ Assets\EndfieldShaderPack\             重建与渲染代码
+   ├─ Tools\                                离线检查和截帧分析
+   ├─ Validation\                           可再生报告/预览/本地捕获
+   └─ docs\learning\                        本学习手册
+</code></pre>
+<p>核验过的版本：Unity <strong>2022.3.30f1 (70558241b701)</strong>；URP 的 manifest/lock 请求 <strong>14.0.12</strong>，本机实际 PackageCache 内 package.json 是 <strong>14.0.11</strong>（不要混为已加载同一版本）；Python <strong>3.13.2</strong>；AnimeStudio CLI <strong>1.1.0+7cfb26b9c158f6150c887f9157de97a3fa7672e1</strong>。Python 当前包含 <code>pycryptodome=3.23.0</code>、<code>UnityPy=1.25.3</code>、<code>Pillow=12.3.0</code>。这三项不是整个环境的依赖锁定清单。当前环境没有 <code>pip</code> 模块，也没有 <code>numpy</code>；不要把“pip 不存在”当成解包程序损坏，更不要因为历史探索脚本引用 numpy 就给核心流程强行增加依赖。</p>
+<p>版本依据：<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/ProjectSettings/ProjectVersion.txt">ProjectVersion.txt</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Packages/manifest.json">manifest.json</a> 和本机程序输出。工程有历史工具包，但手动学习与 Unity 菜单/命令行验收不依赖聊天助手或 MCP 服务。</p>
+<p>先只运行下面的身份检查：</p>
+<pre><code class="language-powershell">$gameRoot = 'A:\Hypergryph Launcher\games\Arknights Endfield'
+$projectRoot = Join-Path $gameRoot 'FractalMiner'
+$unpackRoot = Join-Path $gameRoot 'EndfieldUnpacker'
+$pythonExe = Join-Path $unpackRoot '.venv\Scripts\python.exe'
+$assetCli = Join-Path $unpackRoot 'AnimeStudio-net10\AnimeStudio.CLI.exe'
+
+Get-Content -LiteralPath (Join-Path $projectRoot 'ProjectSettings\ProjectVersion.txt')
+&amp; $pythonExe --version
+&amp; $assetCli --version
+&amp; $assetCli --help
+&amp; $pythonExe -c &quot;from importlib.metadata import distributions; print('\n'.join(sorted(d.metadata['Name']+'=='+d.version for d in distributions())))&quot;
+git -C $projectRoot status --short --branch
+git -C $projectRoot log -1 --oneline fix/typhoeus-render-explosion-20260917
+</code></pre>
+<p>把输出复制到自己的学习日志。全新机器先根据它建立隔离 Python 环境和相同 Unity 版本，不在已验收 <code>.venv</code> 内直接全量升级；不要把不同电脑间直接复制 <code>.venv</code> 当成可靠安装方法。</p>
+<h3 id="chapter-1-特别注意当前-main-不是恢复记录分支">特别注意：当前 main 不是恢复记录分支</h3>
+<p>编写时当前 checkout 是上游 <code>main</code>，其工作树有大量现存改动、删除和未跟踪资产；阶段性恢复代码的记录在 <code>fix/typhoeus-render-explosion-20260917</code>，上一阶段提交为 <code>1b2595116e020371d29dbc9742d7a8fe07fb2a90</code>。后续提交会继续前进。</p>
+<p>不能在此直接 <code>git add .</code>、清理未跟踪文件、强制切分支或硬重置。“相对 main 未跟踪”并不表示可以删除。学习实验最好放到另外的目录/工作树；干净代码副本通常<strong>不含</strong>原游戏资源、mod、<code>.rdc</code>、生成场景和大部分预览，需要按清单单独准备本地数据。当前主目录的特殊隔离索引提交办法见总路线中的保存与恢复章节；新手不要自行用普通提交把整个游戏目录纳入 Git。</p>
+<h2 id="chapter-1-4-解包先查层次再决定是否重做">4. 解包：先查层次，再决定是否重做</h2>
+<p>入口依据：<a href="#chapter-0">EndfieldUnpacker README</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/EndfieldUnpacker/config.py">config.py</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/EndfieldUnpacker/decrypt_vfs.py">decrypt_vfs.py</a>。阅读时不要把 README 中描述的所有工具都当成必须执行项。</p>
+<p>本任务的最短资产链是：</p>
+<pre><code class="language-text">VFS 下 BLC 索引 / CHK 容器
+  → 已授权的现有本地导出流程
+  → DecryptOutput/Bundles/Windows 中的 .ab
+  → AnimeStudio 的资源索引与 JSON/纹理导出
+  → 角色网格、Avatar 模板、材质、共享贴图
+  → Unity 重建
+</code></pre>
+<p>Lua、语音 WEM、地形等是其他分支，不是“角色图形还原必须全做”的前置。也不要为了读已经导出的 JSON 再启动游戏。</p>
+<h3 id="chapter-1-41-只读预检">4.1 只读预检</h3>
+<ol>
+<li>关闭正在修改这批资源的其他导出任务；保留原文件与已经通过检查的导出结果。</li>
+<li>检查 <code>EndfieldUnpacker/.game_dir</code>，它应指向含 <code>Endfield_Data</code> 的游戏目录，不是 <code>EndfieldUnpacker</code> 本身。<code>config.py</code> 读取缓存；无缓存时才会提示输入并写缓存。</li>
+<li>查看原始 VFS 目录结构、可用磁盘空间和目标输出目录。程序默认把结果写到自身目录的 <code>DecryptOutput</code>，并非当前终端目录。</li>
+<li>先读 <code>decrypt_vfs.py</code> 的 <code>if __name__ == '__main__'</code>；此脚本用的是位置参数，不是标准 <code>--help</code> CLI。</li>
+</ol>
+<p>README 确实提供以下命令；<code>dry</code> 不导出资源，但首次选择路径仍可能创建 <code>.game_dir</code>：</p>
+<pre><code class="language-powershell">Push-Location $unpackRoot
+try {
+    &amp; $pythonExe '.\decrypt_vfs.py' dry
+    if ($LASTEXITCODE -ne 0) { throw 'VFS 预检失败：保留完整错误输出' }
+}
+finally { Pop-Location }
+</code></pre>
+<p><strong>验收</strong>：能枚举预期 BLC/CHK，文件计数不是意外的 0，路径正确；出现 CRC、范围或读入错误时先分析原因，不能把退出码为 0 当成所有条目完整。</p>
+<p><strong>失败排查</strong>：路径缓存是否过期？文件是否属于同一游戏版本？容器是否下载完整？脚本依赖是否在指定解释器？<code>decrypt_blc</code> 的 CRC 检查目前只打印警告，而且读取有符号 i32 与 <code>crc32()</code> 的无符号结果可能产生符号差异；必须核对数值和后续结构，既不能忽略所有警告，也不能仅凭一条警告断言文件损坏。</p>
+<h3 id="chapter-1-42-全量导出不是日常操作">4.2 全量导出不是日常操作</h3>
+<p>现有资源能支持后续工作时跳过。确实需要重建且权限/数据完整性已确认时，在单独备份或新的工作副本中使用 README 已有命令：</p>
+<pre><code class="language-powershell"># 注意：会向该脚本目录下的 DecryptOutput 写入，已有同名文件可能被覆盖。
+# 先保留旧输出；本手册编写时没有执行此命令。
+Push-Location $unpackRoot
+try {
+    &amp; $pythonExe '.\decrypt_vfs.py' extract
+    if ($LASTEXITCODE -ne 0) { throw '导出未成功完成，请检查日志' }
+}
+finally { Pop-Location }
+</code></pre>
+<p>不要运行密钥搜寻/保护绕过工具来补救不兼容版本；可以继续用已有离线导出学习网格和 Shader。导出程序能读取的范围、是否包括所有 DLC/版本资源，要由清单证明，不能从“目标是提取全部资源”的 README 描述推导成“目前都已完整”。</p>
+<h3 id="chapter-1-43-assetbundle-索引-定向导出">4.3 AssetBundle → 索引 → 定向导出</h3>
+<p>本机 CLI 帮助确认支持以下参数：<code>--game ArknightsEndfield</code>、<code>--map_op Both</code>、<code>--map_type JSON</code>、<code>--map_name</code>、<code>--types</code>、<code>--names</code>、<code>--containers</code>、<code>--group_assets ByContainer</code>、<code>--export_type JSON/Convert/Dump/Raw</code>。不要照搬其他版本的 <code>--output</code>、<code>--export-json</code> 等参数。</p>
+<p>先复用已经存在的 <code>_fullmap/assets_map.json</code>；它关联 Name、Container、Source、PathID、Type、Hash、Offset。若原始版本更换才建立新索引，输出必须另起目录，例如：</p>
+<pre><code class="language-powershell">$bundleRoot = Join-Path $unpackRoot 'DecryptOutput\Bundles\Windows'
+$mapOutput = Join-Path $unpackRoot '_learning_map_new'
+
+# 大操作示例：扫描整个输入，可能连带导出大量所选对象；不是瞬间完成的只读命令。
+# 先在一个已知 .ab 上练习，再决定是否运行全量。
+&amp; $assetCli $bundleRoot $mapOutput --game ArknightsEndfield `
+    --map_op Both --map_type JSON --map_name assets_map `
+    --types Mesh --export_type JSON --group_assets ByContainer
+</code></pre>
+<p>不要因为输出文件有了就认为成功。核对 CLI 日志、<code>$LASTEXITCODE</code>、索引中的来源路径和目标 Mesh 数量。<code>--map_op Both</code> 表示 CAB/Asset map 组合，不等于“只建索引、不导出任何东西”；帮助没有提供足够依据支持这种假设。</p>
+<p>定向练习用本地已存在的原始包，不覆盖现在的工作产物：</p>
+<pre><code class="language-powershell">$oneBundle = Join-Path $bundleRoot 'main\9d16a8bf44730d81348ac3e2.ab'
+$oneOutput = Join-Path $unpackRoot '_learning_one_mesh'
+if (!(Test-Path -LiteralPath $oneBundle)) { throw '当前版本样例包不存在：从自己的索引重新选取' }
+&amp; $assetCli $oneBundle $oneOutput --game ArknightsEndfield `
+    --types Mesh --export_type JSON --group_assets ByContainer
+</code></pre>
+<p>包名来自本地 <code>_probe_typhoea_bundles.py</code> 的样例，不能假设下一版本也叫这个名字。批量导出材料、Avatar 模板、纹理时，先从索引确认 Source，再分别选择正确类型与导出形式：网格/材质/MonoBehaviour 需要结构化 JSON，Texture2D 的 Convert 用于可用纹理。共享 ramp/LUT 的名字未必含 <code>typhoea</code>，单用 <code>--names typhoea</code> 会漏依赖。</p>
+<p><strong>练习</strong>：取一个 face Material，沿它的 Shader 与每个 <code>m_TexEnvs</code> 引用，逐条找到 Texture2D 所在源包，做一张“材质槽 → Name → PathID → Source → 本地输出”表。先练一张材质，再扩大到全部。</p>
+<p><strong>验收</strong>：材质引用的每项要么能解析到正确对象，要么明确标注缺失/内置/运行时绑定。没有“凭名字看着像”的默认替代。</p>
+<h2 id="chapter-1-5-从索引走到角色统一-json">5. 从索引走到角色统一 JSON</h2>
+<p>按此顺序读已有脚本，不需要一次读完所有历史探索文件：</p>
+<table>
+<thead>
+<tr>
+<th>阅读入口</th>
+<th>学会什么</th>
+<th>必须警惕</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/EndfieldUnpacker/_build_typhoea_manifest.py">_build_typhoea_manifest.py</a></td>
+<td>从全量索引提取角色条目，按类型/名称去重</td>
+<td>脚本按行和字段顺序解析 JSON，格式变了会失效；名称筛选不会覆盖所有共享资源</td>
+</tr>
+<tr>
+<td><a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/EndfieldUnpacker/_resolve_materials.py">_resolve_materials.py</a></td>
+<td>从材料引用沿 PathID 找纹理与 Shader</td>
+<td>当前历史脚本把 PathID 当全局键，有跨源碰撞风险；<code>unresolved</code> 统计也不能证明全部 needed 已解析</td>
+</tr>
+<tr>
+<td><a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/EndfieldUnpacker/_build_typhoea_model_data.py">_build_typhoea_model_data.py</a></td>
+<td>合并骨架层级、网格、四权重、bindpose；以完整骨路径 CRC32 做局部→全局映射</td>
+<td>BASE/AV/MESH_DIR/OUT 硬编码；未知哈希变成 -1，应先拦截而非自动继续</td>
+</tr>
+</tbody>
+</table>
+<p>物件身份最好保留 <code>(版本、源 serialized file/bundle、PathID、引用 FileID)</code>，不要依赖整数 PathID 全库唯一；保存 64 位 PathID 时使用精确整数或十进制字符串，不经过浮点数转存。历史 <code>MiniJson</code> 把数值读成 double 是材质浮点参数使用上的便利，不是精确通用 Unity 引用解析器。</p>
+<p>统一模型构建脚本目前读取：</p>
+<ul>
+<li><code>AnimeStudio-net10/_avatar_test/assets/beyond/dynamicassets/gameplay/npc/avatartemplet/actor/data_npc_avatartemplet_typhoea.json</code></li>
+<li><code>AnimeStudio-net10/_all_meshes/assets/beyond/arts/entity/actor/loli/typhoea/models/*.json</code></li>
+<li>输出到 <code>FractalMiner/Assets/Typhoeus/_typhoea_model_data.json</code></li>
+</ul>
+<p>这些中间文件本机存在，但名称像 <code>_test</code> 并不表示没用。不要清理它们。如果从零重新导出，先把新产物放在新的练习目录并核对结构，修改<strong>练习副本</strong>中的这四个路径，再运行构建脚本；不要先覆盖已经验收的统一 JSON。</p>
+<p>运行前手工检查：<code>bonePathsStr</code>、<code>bonePaths[].boneIdxs</code>、每个 Mesh 的 <code>m_Vertices/m_Normals/m_UV0/m_Indices/m_SubMeshes/m_Skin/m_BoneNameHashes/m_BindPose</code> 是否齐全。运行后检查 481 根骨骼、17 个 Mesh 是否仍与<strong>本批</strong>数据相符；未来版本不同不能靠硬编码补齐到这两个数字。</p>
+<h2 id="chapter-1-6-离开本章前必须留下的四样东西">6. 离开本章前必须留下的四样东西</h2>
+<ol>
+<li><strong>环境表</strong>：Unity、URP、Python、导出器版本及完整依赖列表；游戏原始目录、捕获文件、数据批次哈希。</li>
+<li><strong>资产表</strong>：每个部件/材质/纹理的来源和绑定，不确定项单独列出。</li>
+<li><strong>执行日志</strong>：命令、工作目录、起止时间、退出码、警告、输出目录。记录“没有执行”的步骤，避免未来误当作已验收。</li>
+<li><strong>练习结果</strong>：自己写出的网格计数/范围检查程序，以及一个故意错误输入会失败的例子。</li>
+</ol>
+<p>无助手时的恢复顺序是：打开自己的环境表 → 检查目录仍存在 → <code>git status</code> 和记录分支最新提交 → 运行只读资产检查 → 找第一个失败阶段 → 只重做该阶段。错误在 Mesh 层时不要开始调曝光；没有找到共享纹理时不要靠刷基础颜色填空。</p>
+<p>下一章：<a href="#chapter-2">02｜网格、骨骼、材质重建与防炸验证</a>。</p></section><section id="chapter-2"><h1 id="chapter-2-02网格骨骼材质重建与防炸验证">02｜网格、骨骼、材质重建与防炸验证</h1>
+<p>目标：自己解释并重现“官方默认提弗洛斯模型为什么能正确站立、蒙皮、绑定材质”，而不是只会按生成按钮。再把珊瑚海岸静态 mod 当作独立的二进制/UV 排错练习，不混进官方还原验收。</p>
+<p>本章依据 2026-09-23 的源码与验收记录；源码光照基线提交为 <code>1b25951</code>。当前工作树仍在 <code>main</code>，恢复记录在 <code>fix/typhoeus-render-explosion-20260917</code>，不允许为了学习直接重置/清理这个目录。先阅读 <a href="#chapter-1">01 的环境与资产清单</a>。本章带生成动作的 Unity 菜单会修改资产或场景，先另存当前场景、在学习副本练习。</p>
+<h2 id="chapter-2-1-一条数据链不是把-fbx-扔进-unity">1. 一条数据链，不是“把 FBX 扔进 Unity”</h2>
+<pre><code class="language-text">Avatar 模板 bonePathsStr + bonePaths
+          │ 完整路径 CRC32 → 全局骨骼序号
+          ▼
+源 Mesh JSON ─→ 统一模型 JSON ─→ TyphoeusModelBuilder
+ 顶点/法线/UV     bones[]            ├─ 481 个 Transform
+ 索引/子网格      meshes[]           ├─ 17 个持久化 Mesh
+ 局部骨索引/权重                     └─ 17 个 SkinnedMeshRenderer
+ bindpose                                     │
+                                              ▼
+Material JSON + Texture2D ─→ 材质导入器 ─→ 展示场景
+                                              │
+                      保存/重开 + 静止/运动蒙皮测试 + 通道检查
+</code></pre>
+<p>主入口：<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/TyphoeusModelBuilder.cs">TyphoeusModelBuilder.cs</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/TyphoeusSceneSetup.cs">TyphoeusSceneSetup.cs</a>。</p>
+<p>已有 <code>chr_0034_typhoea_uimodel.fbx</code> 的优化骨架与源 bindpose 不一致，直接使用曾导致顶点飞散。当前 Setup 保留它为禁用的 <code>Typhoeus_SourceFBX</code> 参考对象，真正显示的是 <code>chr_0034_typhoea_rebuilt</code>。不要把禁用原 FBX 误认为“丢了模型”，也不要为了恢复显示同时启用两套人物。</p>
+<h2 id="chapter-2-2-先给-json-建立数据契约">2. 先给 JSON 建立数据契约</h2>
+<p>打开 <code>_typhoea_model_data.json</code> 时用可折叠 JSON 编辑器，或用小程序只输出统计，不要把几十万浮点数直接刷满终端。以下是 <code>TyphoeaModelData</code> 的契约：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+<th>长度/范围约束</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bones[].name,parent</code></td>
+<td>全局骨骼名、父序号</td>
+<td>parent 为 -1 或有效序号；无环；当前构建器要求父先于子</td>
+</tr>
+<tr>
+<td><code>vertices</code></td>
+<td>扁平 xyz</td>
+<td>长度 <code>3V</code>，所有值有限</td>
+</tr>
+<tr>
+<td><code>normals</code></td>
+<td>每顶点法线 xyz</td>
+<td>长度 <code>3V</code>；使用到的向量不能近零</td>
+</tr>
+<tr>
+<td><code>uvs</code></td>
+<td>原始 uv0</td>
+<td>长度 <code>2V</code>；有限；不强行截断为 [0,1]</td>
+</tr>
+<tr>
+<td><code>indices</code></td>
+<td>三角形顶点序号</td>
+<td>每个索引在 <code>[0,V)</code>；总长为 3 的倍数</td>
+</tr>
+<tr>
+<td><code>subMeshIndexCounts</code></td>
+<td>每个子网格索引数量</td>
+<td>每项为 3 的倍数；和等于索引总数</td>
+</tr>
+<tr>
+<td><code>boneWeightIndices</code></td>
+<td>每顶点 4 个<strong>局部</strong>骨序号</td>
+<td>长度 <code>4V</code>；非零权重项必须有有效局部索引</td>
+</tr>
+<tr>
+<td><code>boneWeightValues</code></td>
+<td>每顶点 4 个权重</td>
+<td>长度 <code>4V</code>；有限、非负、和接近 1</td>
+</tr>
+<tr>
+<td><code>bones</code>（Mesh 内）</td>
+<td>局部骨序号 → 全局骨序号</td>
+<td>每项有效；不应有未解析的 -1</td>
+</tr>
+<tr>
+<td><code>bindPoses</code></td>
+<td>每局部骨骼一组 16 个 float</td>
+<td>长度 <code>16B</code>；矩阵有限、可逆</td>
+</tr>
+</tbody>
+</table>
+<p><strong>练习</strong>：自己写一个检查器，对每个 Mesh 输出 V、三角形数、最大索引、UV min/max、权重和的最大偏差、未解析骨骼数。再复制一份小数据，把一个索引改成 V，确认程序能指出具体 Mesh 和索引位置。</p>
+<p><strong>为什么不能只看数量</strong>：481 根骨骼顺序错了一项仍然是 481；两个贴图名字对调仍然有两张；一张 Mesh 对应另一个身体部件也可能顶点数恰好相同。数量通过后还要检查对应关系。</p>
+<h3 id="chapter-2-源-json-转统一-json-的潜在限制">源 JSON 转统一 JSON 的潜在限制</h3>
+<p><code>_build_typhoea_model_data.py</code> 直接取源 <code>m_Indices</code>，子网格只保留 <code>indexCount</code>。当前数据已由后续测试验证，但把脚本移植到另一批资源时必须核对 <code>firstByte/baseVertex/topology</code>，确认它们已经在导出结果中展开或不需额外处理。不能对任何 Unity Mesh 都假设所有 submesh 恰好连续、baseVertex 为零。</p>
+<h2 id="chapter-2-3-坐标变换让整条链说同一种语言">3. 坐标变换：让整条链说同一种语言</h2>
+<p>本批官方数据的模型是 Z-up。当前做法把根对象旋转 <code>Quaternion.Euler(-90,0,0)</code>；顶点、骨架和 bindpose 保持在同一个源空间。对这个纯旋转，它的点坐标效果是：</p>
+<pre><code class="language-text">(x, y, z) → (x, z, -y)
+</code></pre>
+<p><strong>不是</strong>“所有游戏都这样转”，也不是“Unity 和 DirectX 必然要翻某一轴”。先拿已知头顶、脚底、面朝方向的点验证；坐标轴方向、矩阵存储顺序、UV 方向是三件不同的事。</p>
+<p>为什么只转顶点会炸：蒙皮矩阵仍以原坐标解释这些已旋转点，等价于对不同数据施加了不同基变换。若确实要烘焙坐标转换，所有相关变换都需要一致变换；这是一个完整推导任务，不是再补一个负 scale。</p>
+<p><strong>手算练习</strong>：取源点 <code>(0,0,1)</code>、<code>(0,1,0)</code>，分别经过上述旋转；在 Unity 用三个小方块表示它们。取一个点先应用旋转再应用逆旋转，核对误差。</p>
+<p><strong>验收</strong>：整体站立；源部件相对位置不变；不靠每个部件单独居中拼脸；没有不明负缩放；骨架和静态网格一起转。</p>
+<h2 id="chapter-2-4-bindpose用恒等式而不是凭眼睛修骨骼">4. bindpose：用恒等式而不是凭眼睛修骨骼</h2>
+<p>本节通用接口可查 <a href="https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Mesh-bindposes.html">Unity 2022.3 Mesh.bindposes</a>，实际数组读取规则必须按本地 <code>ReadMatrix</code> 验证。</p>
+<p>令：</p>
+<ul>
+<li><code>R</code>：SkinnedMeshRenderer 对象的世界矩阵。</li>
+<li><code>Wj</code>：第 j 根骨骼的当前世界矩阵。</li>
+<li><code>Bj</code>：第 j 根骨骼对应的 bindpose。</li>
+<li><code>wj</code>：顶点对该骨骼的权重。</li>
+</ul>
+<p>在 Renderer 的局部空间里，线性混合蒙皮为：</p>
+<pre><code class="language-text">Sj = inverse(R) * Wj * Bj
+p_skinned = Σj wj * Sj * p_source
+</code></pre>
+<p>绑定姿态下应有 <code>Sj ≈ I</code>，因而 <code>p_skinned ≈ p_source</code>。这条式子就是“为什么没有炸”的可测解释。不能拿拍脑袋平移或关掉蒙皮作为修复完成的依据。</p>
+<h3 id="chapter-2-41-局部索引与全局索引">4.1 局部索引与全局索引</h3>
+<p>源 Mesh 的 <code>boneIndex</code> 是该 Mesh 的局部骨索引。<code>mesh.bindposes[j]</code> 与 <code>renderer.bones[j]</code> 必须同序。统一 JSON 的 Mesh <code>bones[j]</code> 再把 j 映射到全局 Transform 数组。</p>
+<p>例：某顶点 <code>boneIndex0=3</code>，该 Mesh 的 <code>bones[3]=120</code>，其 weight0 应作用于全局第 120 根骨骼和局部第 3 个 bindpose。把权重中的 3 直接改成 120，会让 Renderer 去查它自己数组的第 120 项，含义已经变了。</p>
+<p>完整路径通过 CRC32 匹配 <code>m_BoneNameHashes</code>，不是只 hash 最后一段骨骼名。检查两个同名骨骼的父路径，解释为什么只按短名不能唯一对应；遇到 CRC 碰撞或未知哈希要停下来解析，不要用第一项顶替。</p>
+<h3 id="chapter-2-42-矩阵扁平数组的读取">4.2 矩阵扁平数组的读取</h3>
+<p>本地构建器实际使用 <code>M[row,column] = flat[column*4 + row]</code>，因此源数组的 12、13、14 三项进入 Unity 的 m03、m13、m23（平移列）。判断依据是这个实际映射及恒等式检查，不是“行主序/列主序”几个字。</p>
+<p>从 bindpose 取逆得到理论绑定世界矩阵；子骨局部矩阵由 <code>inverse(parentWorld) * childWorld</code> 得到。当前代码把局部 scale 设置为 1，适用于这批已验收数据；如果未来输入含非均匀缩放、镜像或剪切，直接取 rotation 加 scale=1 不保证等价。应先量化矩阵分解误差，再设计支持方式，不要套历史推测就宣布现有骨骼坏了。</p>
+<h3 id="chapter-2-43-两道验收门">4.3 两道验收门</h3>
+<p>阅读 <a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/TyphoeusGeometryValidation.cs">TyphoeusGeometryValidation.cs</a>：</p>
+<ol>
+<li><code>Inspect(root,true)</code>：计算每个 <code>inverse(R)*Wj*Bj</code> 与单位矩阵的最大元素误差；再 <code>BakeMesh</code>，比较静止顶点。当前门限均为 <code>1e-4</code>。</li>
+<li><code>ValidateMovingBone</code>：把 <code>Bip001_Head</code> 临时旋转 15 度，自己按公式算顶点，和 Unity 的 BakeMesh 比较；要求误差 ≤ <code>1e-4</code>，且确有顶点运动；<code>finally</code> 恢复原旋转。</li>
+</ol>
+<p>此前本批静止顶点最大误差约 <code>2.16243e-5</code>。它是该数据/编辑器组合的回归参考，不是所有游戏都应使用的统一精度标准。应记录最大值和最差部件，不只保存“PASS”。</p>
+<p><strong>失败排查顺序</strong>：源数组是否有限 → 索引/权重是否有效 → 本地/全局骨映射 → bindpose 读取顺序 → 根/Renderer 矩阵 → 父子顺序 → scale/镜像 → 动画。几何没过时不要动材质亮度。</p>
+<h2 id="chapter-2-5-法线与切线几何位置对了仍可能光照不对">5. 法线与切线：几何位置对了仍可能光照不对</h2>
+<p>一个三角形正常显示不代表法线正确。N 是表面法线，T 是切线，B 是副切线；常见构造为 <code>B = cross(N,T) * tangent.w</code>，还需正确处理对象变换中的手性。法线贴图的切线空间方向通过 TBN 转到光照计算空间。</p>
+<p>原版重建保留导出法线、保留 UV，再 <code>RecalculateTangents()</code>；不要无条件 <code>RecalculateNormals()</code> 抹掉美术特调的平滑法线。静态 mod 的未改动部件能逐点匹配源几何时也继承源法线；重建法线只是无可靠源数据时的有标注替代。</p>
+<p><strong>手工检查与练习</strong>：</p>
+<ol>
+<li>调试输出 <code>N*0.5+0.5</code>，旋转物体，确认它随正确空间变化。</li>
+<li>用平坦法线贴图检查 TBN，不叠加 anisotropy 或 SDF。</li>
+<li>检查所有被绘制顶点：<code>|N|²</code> 和 <code>|T.xyz|²</code> 接近 1，<code>abs(T.w)</code> 接近 1；进一步检查 N·T 接近 0。</li>
+<li>故意把 T.xyz 清零但保留 w=1，观察为什么检查 <code>length(float4 tangent)</code> 会假通过。</li>
+</ol>
+<p>当前回归检查会分别验证 tangent.xyz 和 w，不能用 <code>(0,0,0,1)</code> 冒充有效切线。完整验收仍需结合 UV 镜像边界与高光走向。</p>
+<h2 id="chapter-2-6-材质是有类型的参数表不是随便套-pbr-贴图">6. 材质是有类型的参数表，不是随便套 PBR 贴图</h2>
+<p>入口：<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/EndfieldMaterialImporter.cs">EndfieldMaterialImporter.cs</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/EndfieldMaterialValidation.cs">EndfieldMaterialValidation.cs</a>。</p>
+<p>按顺序阅读 <code>BuildMaterialsFromJson → ApplyJsonToMaterial → PropertyIs → ConfigureUrpRenderState</code>：</p>
+<ul>
+<li><code>m_TexEnvs</code> 给纹理及每个槽的 scale/offset。</li>
+<li><code>m_Floats</code> 给标量；<code>m_Colors</code> 可能给 ShaderLab Color，也可能给 Vector，不能全用同一种设置方法。</li>
+<li>先查 Shader 声明的属性类型，再写入。源材料可能同时残留同名 float/texture 旧条目，例如 <code>_ClearCoatMask</code>；“读出所有键并写入”会制造错误。</li>
+<li><code>MaterialFamily</code> 是本地路由标签，不是官方 Shader 变体身份。body 在本轮已纠正为 skin b114/b208，不再用错误的 cloth b401 推断其参数。</li>
+<li>未支持的源属性要记录。没有在本地 Shader 声明的某项即使存在 JSON 里，也不意味着它已经生效。</li>
+</ul>
+<h3 id="chapter-2-61-各类纹理与数据空间">6.1 各类纹理与数据空间</h3>
+<table>
+<thead>
+<tr>
+<th>槽/用途</th>
+<th>应按什么理解</th>
+<th>常见误区</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>_BaseMap</code></td>
+<td>通常是颜色，依实际源格式使用 sRGB；alpha 的意义随 Shader 分支</td>
+<td>不透明 skin 的 alpha 参与遮挡，不等于把皮肤变透明</td>
+</tr>
+<tr>
+<td><code>_BumpMap</code></td>
+<td>自定义法线数据；当前保持 Default + Linear 让 Shader 解码</td>
+<td>用 Unity Normal map 导入可能重打包通道，造成双重解码</td>
+</tr>
+<tr>
+<td><code>_MetallicGlossMap</code>，cloth</td>
+<td>R 金属、G 高光 mask、B 阴影 mask、A 光滑度的当前分支语义</td>
+<td>不能把 B 当全局最终 AO 乘数，也不能把通道说明泛化给所有材质族</td>
+</tr>
+<tr>
+<td><code>_MetallicGlossMap</code>，hair</td>
+<td>R 各向异性方向选择、G 主高光 mask、B 阴影 mask、A 副高光 mask</td>
+<td>头发 R 不等于金属度，A 不等于普通光滑度</td>
+</tr>
+<tr>
+<td><code>_SDFLightmap/_SDFMask</code></td>
+<td>数据场与选择权重，线性导入，采样/寻址按源码</td>
+<td>SDFMask.g=0 是 SDF，g=1 是普通 N·L；旧实现曾用反</td>
+</tr>
+<tr>
+<td><code>_DiffRampMap</code></td>
+<td>带 RGB 染色及 alpha 控制的查找表</td>
+<td>alpha 变化即使 RGB 不变也应影响光照</td>
+</tr>
+<tr>
+<td><code>_ShadowLutTex</code></td>
+<td>皮肤阴影颜色查找；根据捕获格式与源码解释</td>
+<td>不因名字叫 LUT 就统一关闭 sRGB；本帧有 BC7-sRGB LUT</td>
+</tr>
+<tr>
+<td><code>_SpecRampMap</code></td>
+<td>布料二维高光查表等，需按实际 uv/LOD</td>
+<td>不是一律用 N·L 取横坐标</td>
+</tr>
+</tbody>
+</table>
+<p>本地 <code>RepairPackedTextureImports</code> 把 Bump/SplitNormal/P/SDF/Mask 等数据槽设为 Default、关闭 sRGB/alphaIsTransparency、使用未压缩导入。这样保留原始通道，再由 Shader 决定解码。颜色图、数据图为何应区别处理，参见 <a href="https://docs.unity3d.com/2022.3/Documentation/Manual/LinearRendering-LinearTextures.html">Unity 2022.3 的线性纹理说明</a>。</p>
+<p>目前 RGorAG 法线解码：<code>x=2*(R*A)-1</code>，<code>y=2*G-1</code>，从 xy 恢复 z。它是当前已核对分支的约定，不是所有名为 N/HN 的文件通用公式。Shader 中的历史开头注释和 debug 名称可能比源码新分支更旧，判断以实际函数体为准。</p>
+<h3 id="chapter-2-62-每张纹理都有自己的-st">6.2 每张纹理都有自己的 ST</h3>
+<pre><code class="language-text">uv_sample = rawUV * textureScale + textureOffset
+</code></pre>
+<p>本批 DDS 转 PNG 的 mod 图像通过相应纹理槽设置 <code>scale=(1,-1), offset=(0,1)</code>。保留网格 rawUV，原版 SDF/辅助贴图仍按自己的 ST 取样。</p>
+<p><strong>练习</strong>：在副本里仅翻 BaseMap，比较脸图与 SDF；再恢复。解释为什么把网格 UV 全部翻一次会同时破坏没有经过 DDS 转换的辅助贴图。不要以“图形 API 不同”为借口统一翻所有 UV。</p>
+<h3 id="chapter-2-63-深度混合状态也是材质">6.3 深度/混合状态也是材质</h3>
+<p>官方 HGRP 的 <code>Equal</code> 深度测试可能依赖先前 depth prepass；独立 URP forward 没有对应前置深度时会使人物消失。当前适配设 <code>LessEqual</code>，不透明开启 ZWrite、One/Zero 混合，透明分支独立处理，队列随透明/alpha-test 调整。</p>
+<p>这属于必要的管线适配，不应描述成“所有官方状态原样照抄”。专用眼影、发影、VFX 壳层保留几何但默认不作为普通不透明身体渲染；后续应恢复对应 stencil/pass，不能给它们套 body Shader 后宣布完成。</p>
+<h2 id="chapter-2-7-亲手重建默认角色菜单路径与检查点">7. 亲手重建默认角色：菜单路径与检查点</h2>
+<p>在已经具备本地合法资产的 Unity 学习副本中操作：</p>
+<ol>
+<li>用 2022.3.30f1 打开工程。先看 Console 的<strong>第一条</strong>编译错误；有错误时不要继续连点菜单。</li>
+<li>核对 <code>Assets/Typhoeus/Materials/*.json</code>、所需纹理、统一模型 JSON、参考 FBX 均在。干净 Git 副本缺资源很正常，不能把源数据缺失当代码问题。</li>
+<li><code>Endfield / Repair Packed Texture Imports</code>：修复数据图导入约定。</li>
+<li><code>Endfield / Build Typhoeus Materials From JSON</code>：生成/更新 <code>.mat</code>。逐项检查缺纹理警告。</li>
+<li><code>Endfield / Setup Typhoeus Showcase Scene</code>：生成标准展示，保存到 <code>Assets/Scenes/Typhoeus_Showcase.unity</code>。先保存自己当前场景；此方法会新建场景。</li>
+<li>Hierarchy 验证一个启用的重建根、一个禁用的参考 FBX；17 个 SkinnedMeshRenderer 包含禁用的特殊壳层，不能要求 17 个全部可见。</li>
+<li><code>Endfield / Validate Saved Showcase</code>：会重新打开保存场景，检查持久化 Mesh、切线、材质深度、Shader 编译与静止/运动蒙皮，报告 <code>Validation/geometry-report.txt</code>。</li>
+<li>在展示场景运行 <code>Endfield / Validate Material Data and Capture Channels</code>：核对声明属性的源数值、类型和绑定；生成 <code>Validation/material-report.txt</code> 及分通道预览。</li>
+</ol>
+<p>单独 <code>Endfield / Rebuild Typhoeus Model</code> 不会替你管理旧根对象；反复执行会重复创建。需要可重复场景时用标准 Setup，或在练习场景中先明确移除自己上次生成的那个根，不能删除整个工程目录来“重来”。Humanoid/MMD 菜单不是此阶段必需品，打开它不等于原版动画恢复完成。</p>
+<p>无编辑器界面时可用已核对入口；同一工程只能有一个 Editor 实例，先退出已有编辑器且保存工作：</p>
+<pre><code class="language-powershell">$projectRoot = 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+$unityExe = 'A:\Unity\Editor\2022.3.30f1\Editor\Unity.exe'
+
+# 前提：Showcase 已按上面步骤生成。会打开该场景并写验证产物。
+&amp; $unityExe -batchmode -projectPath $projectRoot `
+    -executeMethod EndfieldShaderPack.TyphoeusGeometryValidation.VerifySavedShowcase `
+    -logFile &quot;$projectRoot\Logs\learning-geometry.log&quot; -quit
+if ($LASTEXITCODE -ne 0) { throw '几何验收未通过：检查 learning-geometry.log' }
+</code></pre>
+<p>需要 GPU 像素输出的检查不要加 <code>-nographics</code>。进程退出码、日志中的 PASS 和报告时间都要确认；上次残留报告不是本次通过证据。</p>
+<h3 id="chapter-2-71-资产持久化是一个单独知识点">7.1 资产持久化是一个单独知识点</h3>
+<p><code>new Mesh()</code> 只创建内存对象，场景当前能显示不代表重开能用。构建器把网格保存在 <code>Assets/Typhoeus/GeneratedMeshes/*.asset</code>；已有资产用 <code>CopySerialized</code> 更新内容，维持引用和 GUID。</p>
+<p><strong>练习</strong>：先在小测试工程创建但不保存 Mesh，观察重开差异；再 <code>AssetDatabase.CreateAsset</code> 保存；第三次更新同一路径资产而不是删除重建，检查 <code>.meta</code> GUID 是否稳定。不要在实际角色上用“删除重建一切”来做这个实验。</p>
+<h2 id="chapter-2-8-珊瑚海岸把历史错误变成可复现的排错题">8. 珊瑚海岸：把历史错误变成可复现的排错题</h2>
+<p>这条支线不是官方默认服装。当前是一个静态预设，不是完整 runtime mod，也没有完成 C13/C14 的精确运行时蒙皮。</p>
+<p>入口：<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/CoralCoastMeshImporter.cs">CoralCoastMeshImporter.cs</a>、<a href="file:///A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Assets/EndfieldShaderPack/Editor/TyphoeusRecoveryValidation.cs">TyphoeusRecoveryValidation.cs</a>。</p>
+<h3 id="chapter-2-81-从-ini-确定布局不从图像猜部位">8.1 从 INI 确定布局，不从图像猜部位</h3>
+<p>对每个组件先读 VB0/VB1 的 stride、IB 的 DXGI 格式、draw 的 firstIndex/indexCount。索引个数不是三角形个数；triangle count = index count / 3。字节偏移 = index * stride + attributeOffset。</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>逐点核验后的身份</th>
+<th>当前事实</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C0</td>
+<td>角，对应 cloth_05</td>
+<td>1060 顶点；以前误当脸删除</td>
+</tr>
+<tr>
+<td>C1</td>
+<td>头发 hair_01</td>
+<td>15306 顶点；继承对应源法线</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>face_01</td>
+<td>2109 顶点；正确脸图集 <code>6b12e27e</code></td>
+</tr>
+<tr>
+<td>C6</td>
+<td>iris_01</td>
+<td>162 顶点；瞳孔在正确脸部范围内</td>
+</tr>
+<tr>
+<td>C7</td>
+<td>eyeshadow_01</td>
+<td>特殊覆盖层，不是多出来一对瞳孔</td>
+</tr>
+<tr>
+<td>C13/C14</td>
+<td>眉部的另一布局/空间</td>
+<td>VB0 为 <strong>40</strong> 字节、VB1 为 8；不能按 16 字节解码</td>
+</tr>
+</tbody>
+</table>
+<p>部件身份验证用原 JSON 顶点数、逐顶点位置与 UV。C0/C1/C3/C6 的位置/UV 最大误差约 <code>6e-8</code> 以内，远小于导入器 <code>1e-5</code> 的匹配门限。这个证据否定了“脸 UV 被重排，所以必须额外烘焙脸”的旧推测。</p>
+<h3 id="chapter-2-82-画哪些索引也是模型的一部分">8.2 画哪些索引也是模型的一部分</h3>
+<p>当前 <code>DrawLists</code> 固定 INI 默认 <code>Main=0, Socks=1</code>，不把互斥服装同时画出来。C8 排除了 firstIndex 为 10404、54396、117732 的互斥片段。若自己更换预设，需要重新沿 INI 条件推导完整 draw list，不能随意加几个范围。</p>
+<p>C13/C14 使用 <code>gpu_posed=0</code> 的不同坐标空间，目前用源模型组合的 638 顶点 brow 替代。把这一点写进状态表：<strong>静态替代已通过，不是原运行时蒙皮已复原</strong>。</p>
+<h3 id="chapter-2-83-不靠截图的验收">8.3 不靠截图的验收</h3>
+<p>菜单 <code>Endfield / 珊瑚海岸 / ⑧ 构建并验证修复展示场景</code> 会先提示保存未保存场景，再导入两次、验证 GUID、保存/重开、清空再恢复全局参数并运行 GPU 探针。预期为 9 个部件、394445 个三角形。</p>
+<p>检查内容包括：无额外重复脸；虹膜中心在真正脸的包围盒内；FaceAtlas 正确；SDF 未误翻 UV；法线/切线有限且有效；组装人物中打开/关闭虹膜确实改变可见像素。最近基线有 1389 个可见变化像素，该数量仅是此诊断相机下的回归参照，不是“还原度 99%”。</p>
+<p><code>⑤ 导入 mod 静态模型</code> 用于已有场景；<code>⑦ 校验脸部与眼部（无需烘焙）</code> 已停用旧额外烘焙逻辑。旧 <code>analyze_coral_mesh.py</code>、<code>probe_coral_buffers.py</code> 中有固定/猜测步长，不能继续用它们对合法 buffer 下“损坏”结论。历史探索文件是需要审查的草稿，不是不可推翻的工具权威。</p>
+<h2 id="chapter-2-9-症状-第一项检查-不能乱改什么">9. 症状 → 第一项检查 → 不能乱改什么</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>先检查</th>
+<th>不要先做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>四肢、角、脸飞散</td>
+<td>静止 skin matrix 与顶点误差、局部/全局 bone index</td>
+<td>逐部件平移拼回去</td>
+</tr>
+<tr>
+<td>静止正常，转头炸开</td>
+<td>posed 测试、权重映射、bindpose 顺序</td>
+<td>删除骨骼、固定成静态并声称修复蒙皮</td>
+</tr>
+<tr>
+<td>整个人看不见</td>
+<td>相机/启用状态、深度测试、包围盒、材质 Shader 编译</td>
+<td>重做全部贴图</td>
+</tr>
+<tr>
+<td>模型发粉</td>
+<td>第一条 Shader 编译错误、Shader 引用</td>
+<td>调光颜色</td>
+</tr>
+<tr>
+<td>脸黑但 UV 正常</td>
+<td>BaseMap 身份、色彩空间、ramp alpha、SDF/阴影公式</td>
+<td>把所有阴影强度调成 0</td>
+</tr>
+<tr>
+<td>瞳孔单独可见，组装不可见</td>
+<td>深度/剔除/遮挡；开关虹膜贡献测试</td>
+<td>随机把眼睛向外移动</td>
+</tr>
+<tr>
+<td>某些部位花屏/细长尖刺</td>
+<td>stride、索引位宽、draw range、顶点有限性</td>
+<td>判定导出器全坏</td>
+</tr>
+<tr>
+<td>法线接缝/头发高光错方向</td>
+<td>TBN、w、法线通道解码、UV 镜像</td>
+<td>用更强 Bloom 掩盖</td>
+</tr>
+<tr>
+<td>衣服局部闪烁</td>
+<td>互斥 draw 是否同时绘制、重复对象、Z-fighting</td>
+<td>修改所有部件 ZTest=Always</td>
+</tr>
+<tr>
+<td>当前好，重开坏</td>
+<td>持久化 Mesh、GUID、场景全局参数恢复</td>
+<td>认为 Unity 缓存必然损坏并清空 Library</td>
+</tr>
+<tr>
+<td>远看颜色相近，细节仍不像</td>
+<td>同姿态/相机/光照、Shader 分支、后处理</td>
+<td>宣称模型已完美等于渲染已完美</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-2-10-无助手时的日常训练与升级门槛">10. 无助手时的日常训练与升级门槛</h2>
+<p>每次只做一个可反驳的假设，留一条失败到通过的证据。例如：“我认为脸黑由错误图集造成”，应先确认当前图集哈希与 INI 不同，再仅换图集、运行同相机检查；不能同时动曝光、灯光、SDF、相机后说原因找到了。</p>
+<p>自己的工作记录建议每次写 8 行：输入版本/哈希、源码提交、现象、假设、最小改动、测试命令、实际结果、剩余限制。失败记录同样保留，它能防止下次重走已证伪的路线。</p>
+<p>进入后续 Shader/管线章节前，你应能不看答案回答：</p>
+<ol>
+<li>为什么权重索引必须保持 Mesh 局部索引？</li>
+<li>静止时 <code>inverse(R)*W*B</code> 为何应接近 I？</li>
+<li>为什么不能同时改顶点坐标而不改 bindpose？</li>
+<li>为什么 <code>(0,0,0,1)</code> 不能作为有效 tangent？</li>
+<li>为什么一张叫 P 的纹理在头发和布料上语义不同？</li>
+<li>为什么原模型 UV 不应为某张 mod PNG 被全局翻转？</li>
+<li>为什么 HGRP 的 Equal depth 不能直接视作独立 URP forward 的正确状态？</li>
+<li>为什么当前 32 项 Shader 数值测试、35 项脚本测试通过，仍不能宣称官方全帧完全一致？</li>
+</ol>
+<p>回答时打开相应源码指出证据位置，并在小测试上演示。做到这一步，你已具备独立维护当前“模型还原通过”阶段的能力；下一步才是按捕获逐项对齐光照、环境反射、屏幕阴影和官方后处理。</p></section><section id="chapter-3"><h1 id="chapter-3-03离线截帧证据匹配与-shader-实验室">03｜离线截帧、证据匹配与 Shader 实验室</h1>
+<p>先通过第 02 章，再开始本章。目标不是“抄完几千行 HLSL”，而是建立能自己证伪的推理链：实际绘制使用了哪些输入 → 对应哪个公式 → 每一步得到什么数 → 输出差异发生在哪一步。</p>
+<h2 id="chapter-3-1-截图解包rdc-分别能回答什么">1. 截图、解包、RDC 分别能回答什么</h2>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>能回答</th>
+<th>不能单独回答</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>最终截图</td>
+<td>最终观感、轮廓、构图</td>
+<td>颜色从哪一层算来、纹理各通道语义</td>
+</tr>
+<tr>
+<td>解包模型/材质/贴图</td>
+<td>静态内容、部分配置</td>
+<td>当帧覆盖常量、实际编译变体、实时阴影与后处理</td>
+</tr>
+<tr>
+<td>RDC</td>
+<td>本帧GPU资源、绘制顺序、状态、实际常量与着色程序</td>
+<td>原始高层C++架构、源变量名、其他未捕获场景</td>
+</tr>
+<tr>
+<td>反编译HLSL</td>
+<td>编译后的表达式和绑定布局</td>
+<td>未被执行的原始功能、可靠的人类命名、引擎全部控制逻辑</td>
+</tr>
+</tbody>
+</table>
+<p>研究已有离线 <code>C:\Users\Administrator\Downloads\正面.rdc</code> 即可开始；不要因为正常抓帧受到保护程序阻止，就去关闭或隐藏保护。已有捕获不要求运行游戏。更换游戏版本或相机后，ResourceId/Event ID 都可能改变，不能照抄本帧编号。</p>
+<h2 id="chapter-3-2-一次完整的手工-renderdoc-阅读">2. 一次完整的手工 RenderDoc 阅读</h2>
+<ol>
+<li>用官方 RenderDoc 打开 <code>正面.rdc</code>，确认 Vulkan、frame 6411，而不是另一份 capture。</li>
+<li>在 Event Browser 找 875，查看 Pipeline State。记录 render target、深度、顶点/片元 shader ID、材质纹理集合与常量缓冲。</li>
+<li>对比 860、786、835、776。同一个角色的不同部位不会共用完全相同的纹理槽。</li>
+<li>Texture Viewer 分别查看 BaseMap、法线、ramp、mask 的 R/G/B/A；不要把“看起来像灰图”当成压缩数据坏掉。</li>
+<li>Mesh Viewer 检查 VS Input 与 VS Output。前者是输入属性，后者是该 draw 变换后的结果；不要混用其坐标空间。</li>
+<li>向前追某张 render target 的最后一次写入事件，再看消费者；依此画出 Pass 图。</li>
+<li>把观察写成表：事件、用途、输入ID/尺寸/格式、输出ID、状态、证据等级、未确定项。</li>
+</ol>
+<p>本帧主颜色事件：776 iris，786 body，835 cloth_01，850 cloth_02，860 face，875 hair。仅凭“同一个 mesh 又画了一次”不能删除后面的 draw，它可能是眼影、轮廓、深度或特效覆盖。</p>
+<h2 id="chapter-3-3-自动导出只是记录工具不代替理解">3. 自动导出只是记录工具，不代替理解</h2>
+<p>在 PowerShell 先把目录变量设成自己的实际路径。本例只写新的本地输出目录：</p>
+<pre><code class="language-powershell">$repo = 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+$env:ENDFIELD_CAPTURE_PATH = 'C:\Users\Administrator\Downloads\正面.rdc'
+$env:ENDFIELD_CAPTURE_OUTPUT = Join-Path $repo 'Validation\Captures\manual-learning-inventory-01'
+$env:ENDFIELD_CAPTURE_DETAILS = '1'
+$env:ENDFIELD_CAPTURE_PREVIEW = '1'
+&amp; 'C:\Program Files\RenderDoc\qrenderdoc.exe' --python (Join-Path $repo 'Tools\capture_replay_inventory.py')
+Get-Content (Join-Path $env:ENDFIELD_CAPTURE_OUTPUT 'complete.json')
+</code></pre>
+<p>输出目录必须为空。只看到窗口退出不算成功：检查 <code>complete.json</code>、<code>error.json</code> 和实际文件。当前基准应为 246 draws、44 dispatches。脚本不注入进程；读原始 RDC，输出独立文件。</p>
+<p>读代码顺序：<code>open_controller</code> → <code>collect_inventory</code> → <code>collect_draw_details</code> → <code>shader_variable</code> → <code>run</code>。理解 <code>try/finally</code> 为什么同时负责释放 controller 与 capture file。</p>
+<p><strong>重要 API 陷阱：</strong> Vulkan binding number 不是反射列表下标。例如 shader 只有一个常量缓冲，列表 index=0，但其 binding=17，读取时必须使用 index=0。参考 <a href="https://github.com/baldurk/renderdoc/blob/v1.46/docs/python_api/in_depth/descriptors_bindings.rst">RenderDoc 官方 descriptor 说明</a>。</p>
+<h2 id="chapter-3-4-没有变量名时怎样认常量">4. 没有变量名时怎样认常量</h2>
+<p>把每个 captured variable 的类型、偏移、长度与 HLSL <code>packoffset(cN.x)</code> 对齐。一个 c 寄存器是 16 字节；<code>c12.x</code> 的偏移是 192 字节。float3 的后面是否还能放一个 float，需要按缓冲布局规则计算，不能简单“第几个变量对第几个变量”。</p>
+<p>建立如下证据链：</p>
+<pre><code class="language-text">UPM字节长度吻合
+  → 每字段 offset/type/size 吻合
+    → set/binding集合吻合
+      → 纹理尺寸/格式/通道用途吻合
+        → 源公式真的使用对应字段
+          → 相同输入CPU/GPU数值吻合
+</code></pre>
+<p>任何一级出现矛盾，都要重新选候选，不要把后续参数调漂亮来遮盖。</p>
+<p>真实反例：body786 的 UPM=368 字节，cloth b401 的长度也相同。旧工具又把 body 限定在 cloth 文件夹，于是误选。可实际 t1 是 1024×32 LUT，t2 是 256×1 diffuse ramp；b401 却把它们当 P 图与 clearcoat mask。正确候选族是 skin b114/b208。身体光照应与脸一样使用 CP3/CP4，不能再沿错误候选解释成 CP2/CP5。</p>
+<p>当前工具 <code>Tools/extract_front_frame_constants.py</code> 已扩大到全族评分，并对本帧经过核验的 786/835 纹理语义添加约束。还有歧义的项目明确保留，不声称文件名已经唯一确定。读取新 <code>extracted-source-shading-reviewed-20260923</code>，不要继续信旧 <code>extracted</code> 里的 body 属性名。</p>
+<p>自己提取时必须显式指定三个目录，避免使用默认输出覆盖旧报告：</p>
+<pre><code class="language-powershell">Set-Location $repo
+$details = 'Validation/Captures/manual-learning-inventory-01'
+$dump = '_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr'
+$out = 'Validation/Captures/manual-learning-constants-01'
+if (Test-Path -LiteralPath $out) { throw '请换一个新的输出目录' }
+&amp; '..\EndfieldUnpacker\.venv\Scripts\python.exe' Tools/extract_front_frame_constants.py $details $dump $out
+Get-Content (Join-Path $out 'summary.md') -TotalCount 60
+</code></pre>
+<p>先确认 <code>$details</code> 有 <code>inventory.json</code> 和 <code>draw-details.json</code>，<code>$dump</code> 有相应HLSL目录。脚本输出的 MISMATCH 不能删掉；它们是未解决或无法唯一匹配的证据。</p>
+<p>练习：暂时在<strong>自己的副本</strong>把 body 的 folder hint 改错，运行 <code>test_wrong_hint_cannot_exclude_better_global_match</code>，理解为什么正确实现仍必须选更强证据。</p>
+<h2 id="chapter-3-5-学-hlsl-的最短有效路径">5. 学 HLSL 的最短有效路径</h2>
+<p>先掌握以下运算，每个都做一次手算和 Shader 输出：</p>
+<table>
+<thead>
+<tr>
+<th>运算</th>
+<th>含义</th>
+<th>易错点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dot</code> / <code>cross</code></td>
+<td>投影/夹角；正交方向</td>
+<td>非单位向量的 dot 不是角度余弦</td>
+</tr>
+<tr>
+<td><code>normalize</code></td>
+<td>只保留方向</td>
+<td>零向量要有明确处理</td>
+</tr>
+<tr>
+<td><code>lerp(a,b,t)</code></td>
+<td>a到b的线性插值</td>
+<td>a/b 颠倒会让 mask 方向相反</td>
+</tr>
+<tr>
+<td><code>saturate</code></td>
+<td>限制0到1</td>
+<td>随手加 clamp 可能改变原函数，尤其SDF/ramp坐标</td>
+</tr>
+<tr>
+<td><code>smoothstep</code></td>
+<td>平滑过渡</td>
+<td>参数次序、区间、反向区间必须按原式核对</td>
+</tr>
+<tr>
+<td><code>mul(M,v)</code> 与 <code>mul(v,M)</code></td>
+<td>矩阵/向量乘法</td>
+<td>转置与坐标空间约定不能靠名字猜</td>
+</tr>
+<tr>
+<td><code>Sample</code> / <code>SampleLevel</code></td>
+<td>纹理采样</td>
+<td>sampler地址模式、LOD、sRGB解码会改变数据</td>
+</tr>
+<tr>
+<td><code>asuint</code></td>
+<td>重新解释位模式</td>
+<td>不是普通数值转换，极小float不一定没用</td>
+</tr>
+</tbody>
+</table>
+<p>顺序：纯色 → UV → 法线 → Lambert → ramp → 高光 → 专用材质。每步保存最小场景和一张调试输出。</p>
+<h2 id="chapter-3-6-四个材质实验室">6. 四个材质实验室</h2>
+<h3 id="chapter-3-61-共用-diffuseramp-实验">6.1 共用 diffuse/ramp 实验</h3>
+<p>固定 albedo=(.2,.3,.4)、P图=(0,0,1,.5)、ramp RGB=(1,1,1)，只改变 ramp alpha=0/.5/1，禁用高光。</p>
+<p>旧版把 ramp 当 RGB 颜色相乘，三个结果相同。真实公式里 alpha 控制 litMask、环境染色、阴影混合，三个输出必须不同。独立 CPU 期望已经放在 <code>EndfieldOfficialShadingValidation.Expected</code>。先在纸上算它，再看 HLSL，不要两份代码互相照抄后宣称验证成功。</p>
+<p>源码入口：<code>EndfieldOfficialHair.hlsl</code> 的 <code>EFHairDiffuseLighting</code>；<code>EndfieldOfficialCloth.hlsl</code> 的 <code>EFClothDiffuseLighting</code>。蓝色 P 通道进入遮挡混合，不是最终颜色统一乘 AO。</p>
+<h3 id="chapter-3-62-skin-body">6.2 Skin / body</h3>
+<ul>
+<li>g=0 选择 SDF，g=1 选择普通 N·L。用全0/全1两张 mask 单独验证方向。</li>
+<li>阴影 LUT 用 rim 染色前的 albedo，先转换索引颜色到 sRGB，再找32个蓝色切片。</li>
+<li>法线的 RGorAG 解码：<code>x=2*R*A-1</code>，<code>y=2*G-1</code>，z由单位长度补出；不要把 normal texture 当颜色图读。</li>
+<li>direct GGX 用原始贴图法线；SDF 重建法线不该替代它。</li>
+<li>body 没有 SDF/面部高光图，使用等价 mask=(1,1,1,0) 的皮肤分支。</li>
+</ul>
+<p>练习：把 BaseMap alpha 从1改成.25，检查颜色变化但表面仍不透明；让 SDF ramp 坐标跨过1，确认 Repeat 行为。对应 21 项 <code>EndfieldSkinShadingValidation</code>。</p>
+<h3 id="chapter-3-63-hair-cloth">6.3 Hair / cloth</h3>
+<p>头发先理解 T、B、N 各向异性方向，再实现主/副高光，最后接 LineMap。不要同时改变 flow、roughness、光向、曝光，否则无法定位差异。</p>
+<p>布料的 specRamp 是二维查表：x 与 GGX 分布或 N·V² 有关，y 与粗糙度和金属度有关；不等价于 <code>(N·H,.5)</code>。clearcoat 若启用有独立法线/粗糙度；环境 IBL 与直接高光的缩放不同。</p>
+<p>练习：P图四通道各做一个0/1棋盘，明确谁影响金属、镜面、遮挡、smoothness；再输出 specRampUV 调试颜色，不看最终漂亮与否。</p>
+<h3 id="chapter-3-64-eye">6.4 Eye</h3>
+<p>raw UV 负责解析虹膜球面，ST 只负责具体贴图方向。模组 Y 翻转不应先作用在球面坐标上。b28 固定视差，与旧布料 <code>_UseParallax</code> 开关不是同一个功能。</p>
+<p>matcap 合成不是简单相乘：<code>matcap.rgb*color.a + color.rgb*matcap.a</code>。练习固定两组RGBA手算；改变 alpha 时不能把虹膜挖透明。</p>
+<h2 id="chapter-3-7-编译单元实验整体验证缺一不可">7. 编译、单元实验、整体验证缺一不可</h2>
+<pre><code class="language-powershell">$repo = 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+&amp; 'A:\Unity\Editor\2022.3.30f1\Editor\Unity.exe' -batchmode `
+  -projectPath $repo -executeMethod EndfieldShaderPack.EndfieldOfficialShadingValidation.RunAll `
+  -logFile (Join-Path $repo 'Logs\manual-shading-validation.log') -quit
+</code></pre>
+<p>先关闭打开同一工程的其他 Unity 编辑器，别为了运行测试强杀正在编辑的实例。看最终退出码、日志异常、各报告的 PASS；检查生成的 scene/asset/PNG，不只看最后一行。</p>
+<p><code>RunAll</code> 不仅测试公式，还会调用珊瑚海岸修复和官方场景回归，因此需要原工程的mod目录、原版 <code>Typhoeus_Showcase.unity</code>、已导出的角色资产。若你只做最小数学练习，分别把入口改为 <code>EndfieldShaderPack.EndfieldOfficialShadingValidation.RunNumerical</code> 和 <code>EndfieldShaderPack.EndfieldSkinShadingValidation.RunNumerical</code>：它们创建合成纹理和平面，不需要游戏贴图或mod。不要为了让全量脚本通过而下载不相关资源。</p>
+<p>验收层级：Shader 能编译 → 常量输入数值正确 → 实际材质纹理正确 → 整个人物可见 → 多视角/动态正确 → 官方画面对齐。32 项数值测试没有覆盖全游戏的雨雪、点光、所有材质变体；不能把通过率写成“官方还原率100%”。</p></section><section id="chapter-4"><h1 id="chapter-4-04从材质正确到官方画面管线与验收">04｜从材质正确到官方画面：管线与验收</h1>
+<p>本章说明后续完整还原所需的技术路径，并把已经有数值证据的部分和仍在研究的部分分开。完成几何与单个 Shader 后，最大的误区是靠调色把缺失的光照、阴影和相机问题一起“调像”。这样在正面可能接近，转动角色就暴露错误。</p>
+<h2 id="chapter-4-1-最终颜色经过什么">1. 最终颜色经过什么</h2>
+<pre><code class="language-text">材质主颜色（linear HDR）
+  + 正确的环境反射/阴影/覆盖层
+  → 当帧HDR颜色19394
+  ├─ 13-tap prefilter → 8次downsample → 8次upsample → Bloom58923
+  └─ sharpen → exposure → Bloom合成 → vignette
+       → LogC编码 → LUT19397 → sRGB编码 → dither → RGBA8输出19599
+</code></pre>
+<p>这不是对所有游戏/场景的普遍声明，而是本帧 event1205 的实际路径。原始片元程序是 PS36235，参考 HLSL 是 <code>postprocessing/uberpost/Sub0_Pass0_Fragment_b354.hlsl</code>。不要用名称相似但关键字不同的 post pass 代替。</p>
+<h2 id="chapter-4-2-导出时就可能丢掉信息">2. 导出时就可能丢掉信息</h2>
+<p>PNG适合看最终画面，不适合保存大于1的HDR光照、BC6H预滤波反射或16-bit LUT。压缩块和全部 mip 保留在 DDS；EXR用于浮点分析与Unity线性导入。把 EXR 当 sRGB 导入、自动缩小2560×1600、或者重新生成环境 mip，都可能让正确 Shader 输出错误。</p>
+<p>当前已有可复现的离线导出器：</p>
+<pre><code class="language-powershell">$repo = 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+$env:ENDFIELD_CAPTURE_PATH = 'C:\Users\Administrator\Downloads\正面.rdc'
+$env:ENDFIELD_CAPTURE_OUTPUT = Join-Path $repo 'Validation\Captures\manual-learning-pipeline-01'
+$env:ENDFIELD_TOOLS_PATH = Join-Path $repo 'Tools'
+&amp; 'C:\Program Files\RenderDoc\qrenderdoc.exe' --python (Join-Path $repo 'Tools\capture_pipeline_export.py')
+Get-Content (Join-Path $env:ENDFIELD_CAPTURE_OUTPUT 'complete.json')
+$env:ENDFIELD_PIPELINE_EXPORT = $env:ENDFIELD_CAPTURE_OUTPUT
+</code></pre>
+<p>最后一行把本次导出目录交给Unity导入器；它与导出器的变量名不同。随后从同一终端启动Unity验证。已经打开的Unity不会继承新终端的环境变量，需保存后关闭并从此终端重开；不设置时导入器读取本工程默认的 <code>pipeline-textures-01</code>，不是上面新建的学习目录。</p>
+<p>新目录、完成标志、资源ID/尺寸/格式检查、每文件SHA-256，四项都要保留。本导出计划明确限定 frame6411，不应拿它盲扫其他捕获。</p>
+<table>
+<thead>
+<tr>
+<th>数据</th>
+<th>捕获属性</th>
+<th>使用原则</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14188 环境cube</td>
+<td>128²、6面、8mip、BC6_UFLOAT</td>
+<td>全面/全mip保存，不能当普通2D图</td>
+</tr>
+<tr>
+<td>58932 屏幕阴影</td>
+<td>2560×1600、R8G8</td>
+<td>数据图，不做sRGB解码</td>
+</tr>
+<tr>
+<td>19397 调色LUT</td>
+<td>1024×32、RGBA16F</td>
+<td>linear、Clamp、bilinear、无mip</td>
+</tr>
+<tr>
+<td>19394 HDR输入</td>
+<td>2560×1600、RGBA16F</td>
+<td>原始尺寸，不压成8-bit</td>
+</tr>
+<tr>
+<td>58923 Bloom</td>
+<td>1280×800、R11G11B10F</td>
+<td>仅作为生成算法对照，不贴进实时场景</td>
+</tr>
+<tr>
+<td>19599 post输出</td>
+<td>2560×1600、RGBA8_UNORM</td>
+<td>Shader已编码sRGB，数值比较时不再解码</td>
+</tr>
+</tbody>
+</table>
+<p>RenderDoc 的 DDS 保存可选所有切片与 mip；EXR只取指定面和级别。<a href="https://github.com/baldurk/renderdoc/blob/v1.46/renderdoc/api/replay/control_types.h">TextureSave 官方定义</a>。</p>
+<p>Unity 导入入口 <code>EndfieldCaptureAssets.ImportAll</code> 会验证校验和。生成资产在 <code>Assets/EndfieldShaderPack/GeneratedCapture</code>，默认不上传 GitHub。BC6H cube 直接读 DDS 子资源，不重新压缩或重新生成预滤波 mip。Unity 每面/每级写入 API 见 <a href="https://docs.unity3d.com/2022.3/Documentation/ScriptReference/Cubemap.SetPixelData.html">Cubemap.SetPixelData</a>。</p>
+<h2 id="chapter-4-3-环境反射不是随便挂个天空盒">3. 环境反射不是“随便挂个天空盒”</h2>
+<p>反射向量通常形如 <code>reflect(-V,N)</code>；roughness决定LOD。当前cloth源码是 <code>lod=1.2*log2(max(roughness,.001))+5</code>。mip不是单纯模糊贴图的缓存，而是不同粗糙度下预处理后的环境能量。</p>
+<p>自主练习：</p>
+<ol>
+<li>自制六个纯色面，验证 +X/-X/+Y/-Y/+Z/-Z 的面序。</li>
+<li>每个面画不同方向的渐变，再验证面内上下/左右方向；纯色面无法发现翻转。</li>
+<li>用已知法线与视向手算反射方向，GPU采样验证。</li>
+<li>使用捕获cube时，把每面GPU采样与独立EXR面导出比较，避免仅凭“看起来不黑”判定正确。</li>
+<li>逐级查询mip数据，不用 <code>Apply(true)</code> 重算；检查roughness变化没有异常跳变。</li>
+</ol>
+<p>未绑定 cube 的默认值不保证是黑色。上一阶段数值测试已经发现它会额外贡献布料亮度，所以用显式 <code>capturedEnvironment</code>/available标记管理；不要依赖隐式默认。</p>
+<h2 id="chapter-4-4-先还原后处理再接实时画面">4. 先还原后处理，再接实时画面</h2>
+<p>把官方19394、19397、58923作为已知输入，向Unity的linear浮点RenderTexture输出<strong>原始sRGB编码值</strong>，与19599对应像素比较。这隔离了模型、灯光、姿态等不确定因素，是最有力的排错顺序。</p>
+<p>本轮已经验证：在正确的导出坐标约定下，2560×1600整帧全部RGB通道误差不超过1个8-bit色阶，平均约0.12色阶。这个结果证明选定post pass在该输入上的数值对应，<strong>不证明Unity新模型已经与官方画面相同</strong>。</p>
+<p>LogC 本帧明确采用：</p>
+<pre><code class="language-text">logC(C) = saturate(0.2441609949 * log10(max(5.55555582*C + 0.04799599946,0))
+                    + 0.3860360086)
+</code></pre>
+<p>它不是直接套一个名字相同的现成函数。先验标量：C=0→约.0640377；.18→.3910070；1→.5687816；4→.7150978。然后将 logC 的 RGB 当作32³ LUT 的三维坐标：R/G定位片内，B选相邻两个蓝色切片并插值。</p>
+<h3 id="chapter-4-避免两次gamma">避免两次Gamma</h3>
+<p>参考测试写到 linear float RT，保存的是源Shader算出的sRGB数值；实时Unity相机最终还可能由硬件做linear→sRGB。因此实时Pass先把源sRGB+dither解码回linear交给Unity最终输出，不能直接让同一编码执行两次。</p>
+<p>相关入口：</p>
+<ul>
+<li><code>EndfieldCapturedPost.shader</code>：两个Pass共用公式，Pass1供Graphics.Blit参考测试，Pass0供URP实时。</li>
+<li><code>EndfieldCapturedPostProfile</code>：相机级显式开关、LUT、采样方向、捕获常量。</li>
+<li><code>EndfieldCapturedPostFeature</code>：URP14 RTHandle/Blitter执行；不使用Built-in管线的OnRenderImage。</li>
+<li><code>EndfieldCapturePipelineValidation</code>：输入、坐标、量化与全帧差分实验。</li>
+</ul>
+<p>URP版本适配先读本机PackageCache，不能只看manifest。当前manifest/lock请求14.0.12，实际缓存package.json为14.0.11；本轮使用二者兼容的14系列API，未升级引擎。<a href="https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@14.0/manual/renderer-features/how-to-fullscreen-blit.html">URP全屏Blit官方示例</a>。</p>
+<h2 id="chapter-4-5-动态-bloom-必须自己生成">5. 动态 Bloom 必须自己生成</h2>
+<p>原捕获Compute三类kernel：20453 Prefilter、20455 Downsample、20463 Upsample。单纯“开URP Bloom”不保证相同算法或参数。</p>
+<p>尺寸为：1280×800 → 640×400 → 320×200 → 160×100 → 80×50 → 40×25 → 20×13 → 10×6 → 5×3，然后8次上采样回1280×800。25→13→6并非每一步都向上取整，也不是递归向下取整，必须按捕获的实际尺寸查证。</p>
+<p>你要掌握：</p>
+<ul>
+<li>prefilter 的13个采样、软阈值、Karis亮度加权。</li>
+<li>downsample 的9-tap卷积与groupshared，为什么barrier不能被部分线程提前return绕开。</li>
+<li>half打包/解包和R11G11B10存储量化为何导致不同GPU有细小差异。</li>
+<li>upsample 的bicubic重建与 <code>lerp(high,low,.77)</code>；不是直接相加。</li>
+<li>中间RT的创建、尺寸变化、释放和相机生命周期。</li>
+</ul>
+<p>验证顺序：黑色 → 纯色HDR → 单像素脉冲 → 水平/竖直梯度 → 棋盘 → 官方HDR输入。先对第一层59945，再逐层比，最后对58923。最终调色很容易掩盖Bloom误差，不能只看最后PNG。</p>
+<p>动态实现入口是 <code>EndfieldCapturedBloom.compute/.cs</code>，每帧读取当前camera颜色。原版58923只用于reference测试，实时模式禁止把它当作当前角色Bloom。</p>
+<h3 id="chapter-4-本轮实际排错不是权重错而是写入量化错">本轮实际排错：不是权重错，而是写入量化错</h3>
+<p>在本机D3D11上，R11G11B10报告支持LoadStore，却不支持Sample/Linear。本实现改用RGBAFloat保存值，但每次写入仍显式量化到R11/G11/B10的可表示数，不能简单“提高精度”后就当成原版。</p>
+<p>第一版采用round-to-nearest-even，17层误差全部偏亮，最终相对L1为0.05620586。把算法、阈值、采样位置保持不动，只把存储转换改为round-toward-zero：第一层误差降为0，最终相对L1为0.00027051（约0.0271%），MAE为0.00001651。这是本捕获的实测支持，不是“所有Vulkan设备都截断”的普遍规律。两种模式都保留用于实验，测试阈值没有为通过而放宽。</p>
+<p>如何自己复现：先用 <code>Tools/capture_bloom_evidence.py</code> 按第2节同样的环境变量方式导出到一个新的目录；脚本限定frame6411，保存17个事件的资源与校验和。设置 <code>$env:ENDFIELD_BLOOM_EXPORT</code> 为该目录，从同一终端启动Unity，运行 <code>EndfieldShaderPack.EndfieldCaptureAssets.ImportAll</code> 后运行 <code>EndfieldShaderPack.EndfieldCapturePipelineValidation.RunAssetDiagnostics</code>。逐层日志在 <code>Logs/capture-asset-diagnostics.txt</code>。这一诊断必须读取完整17层导出，不是只导sampler的轻量模式。</p>
+<p>观察signedMean和正/负误差数非常重要：如果从第一层开始只向一侧累积，先怀疑量化/颜色转换；如果集中在上下边界，先查UV原点和尺寸。原prefilter最后一个tap重复<code>(-1,+1)</code>，并不Y对称；不能随意翻转输入，再翻转结果，就当成完全相同的实验。</p>
+<h3 id="chapter-4-接入实时场景的具体入口">接入实时场景的具体入口</h3>
+<p><strong>2026-09-23最新门禁：实验场景尚未整体通过。</strong> 它能执行真实HDR/Bloom并保存重开，但 <code>BuildAndValidate</code> 最后发现QualitySettings被Unity持久化改写。暂停前已恢复原设置。下面是待修复后使用的流程，现在不要在唯一原工程上直接执行Build或打开实验场景后保存。先读仓库根目录 <code>RESUME-2026-09-23-captured-pipeline.md</code> 第5节，在隔离副本修复设置保存生命周期。</p>
+<p>先完成模型基线及捕获导出，再依次运行：</p>
+<ol>
+<li><code>EndfieldShaderPack.EndfieldCapturePipelineValidation.RunAll</code>：完整捕获后处理、cube和Bloom数值回归。</li>
+<li><code>EndfieldShaderPack.EndfieldCapturedSceneBuilder.BuildAndValidate</code>：构建两次、检查GUID稳定、保存重开后实际渲染，检查退出后原管线设置恢复。</li>
+<li>在Unity打开 <code>Assets/Scenes/Typhoeus_CapturedPipeline.unity</code>，看Game视图。Scene视图不执行这套相机专属后处理。</li>
+</ol>
+<p>日常重新生成可以使用菜单 <code>Endfield &gt; Build Captured Pipeline Showcase</code>。新场景从 <code>Typhoeus_OfficialFrame_Recovered.unity</code> 派生，原场景和原pipeline asset保留。它加载真正的环境cube和官方LUT，并从当前相机HDR实时生成Bloom；没有绑定固定截图的Bloom或阴影。</p>
+<p>专用pipeline/renderer放在 <code>Assets/EndfieldShaderPack/GeneratedCapture/Settings</code>，由场景中的 <code>Captured Pipeline Scope</code> 接管当前质量档位。它意图在关闭场景时恢复，但当前只验证了内存恢复，磁盘设置恢复仍有上述阻塞。当前实现限定单场景、单个Base Game相机、Linear/HDR、非XR、无MSAA/动态分辨率；不要把这个小范围实现当成支持所有URP相机栈的通用插件。原URP后处理必须关掉，否则会重复调色。</p>
+<p>本地预览为 <code>Validation/official-captured-pipeline.png</code>；生成图、场景和捕获贴图默认不提交GitHub，需自己保留本地数据。不要把“重放官方HDR通过”和“新模型的最终整帧与官方相同”混为一谈。</p>
+<h2 id="chapter-4-6-阴影是目前仍需深入完成的一关">6. 阴影是目前仍需深入完成的一关</h2>
+<p>本帧阴影图实测 R恒为1，G范围0到1，约116890个像素的G&lt;.99。R代表方向阴影，G代表独立角色自阴影。因本帧常量使方向分支直接返回1，优先级是G，而不是先重做完整场景CSM。</p>
+<p>生产事件744/748；角色atlas资源32538，4096×2048 D16。resolve读取GBuffer角色索引、camera depth、每角色world-to-shadow矩阵/atlas rect，16次旋转Poisson GatherRed，累计64次比较并做非线性软化。普通URP主灯的单一shadowAttenuation不能未经测试就声称等价。</p>
+<p>独立实现路线：</p>
+<ol>
+<li>导出并核对 camera depth、GBuffer中的角色索引、atlas与其常量矩阵；记录每个矩阵的空间。</li>
+<li>先选一个角色的一块atlas rect，手算3个已知点的投影、深度和比较结果。</li>
+<li>在Unity实现只含一个角色的shadow depth pass，验证剔除、bias、骨骼变形和alpha test。</li>
+<li>先做1-tap比较输出灰度，再加原Poisson偏移、旋转噪声、Gather顺序与软化函数。</li>
+<li>把生成结果与官方G通道做差分，分开统计轮廓边缘、内部、未覆盖区域。</li>
+<li>接回四族Shader的 <code>selfShadow</code>，同时验证face、hair、cloth的不同遮挡混合。</li>
+<li>转动相机/灯光/角色验证；固定截图阴影只能做离线实验，不能拿来当动态完成品。</li>
+</ol>
+<p>这部分是明确待完成的研发内容。教程给出路径和证据，不提供一个未经验证的“万能阴影参数”。</p>
+<h2 id="chapter-4-7-最终官方效果的验收矩阵">7. 最终官方效果的验收矩阵</h2>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>锁定条件</th>
+<th>不能做的补偿</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>几何</td>
+<td>同模型、LOD、骨骼、动画时间、表情</td>
+<td>用FOV去遮掩身材比例/姿态错误</td>
+</tr>
+<tr>
+<td>镜头</td>
+<td>投影矩阵、位置/旋转、viewport、分辨率、裁剪</td>
+<td>仅按包围盒填满屏幕就声称相机1:1</td>
+</tr>
+<tr>
+<td>材质</td>
+<td>原始采样数据、每槽ST、颜色空间、mip/sampler</td>
+<td>用曝光修错贴图或错误gamma</td>
+</tr>
+<tr>
+<td>光照</td>
+<td>捕获常量、环境cube、角色阴影、覆盖层</td>
+<td>用补光抬平真正缺失的阴影</td>
+</tr>
+<tr>
+<td>后处理</td>
+<td>同HDR输入、Bloom、LUT、锐化、暗角、输出编码</td>
+<td>一边用ACES一边用官方LUT比较相似度</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>同像素位置、同颜色域、量化策略</td>
+<td>把经过缩放/截图压缩的图片当位级基准</td>
+</tr>
+</tbody>
+</table>
+<p>推荐分区：脸、头发、衣服、角、眼睛、背景。保存绝对差分、平均误差、最大误差、分位数/阈值内比例；同时看轮廓错位与颜色误差。先对齐几何和相机，再解释逐像素误差。指标必须写明只覆盖哪个Pass/场景/视角。</p></section><section id="chapter-5"><h1 id="chapter-5-05独立续作手册练习排错验收与回退">05｜独立续作手册：练习、排错、验收与回退</h1>
+<p>这章是没有外部助手时的工作台。每次只解决一个可观察的问题；保留能复现它的最小输入；修完后再回到完整角色。</p>
+<h2 id="chapter-5-1-每次开始先做五分钟登记">1. 每次开始先做五分钟登记</h2>
+<pre><code class="language-text">日期 / Unity版本 / 实际URP包版本：
+当前场景 / 当前Git分支与提交：
+输入资产 / RDC frame / Event / ResourceId：
+昨天通过的测试及日志路径：
+今天只改哪个变量：
+预期变化 / 如何测量：
+如果不符，先查哪一层：
+</code></pre>
+<p>然后执行只读检查：</p>
+<pre><code class="language-powershell">$repo = 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+git -C $repo status --short
+git -C $repo branch --show-current
+git -C $repo log -5 --oneline fix/typhoeus-render-explosion-20260917
+Get-Content (Join-Path $repo 'ProjectSettings\ProjectVersion.txt')
+</code></pre>
+<p>当前目录有很多其他项目改动和未跟踪资源，不能 <code>git add .</code>，不能强制清理。记录分支是恢复历史，main是当前checkout，两者不是同一个视图。</p>
+<h2 id="chapter-5-2-从安全副本开始练习">2. 从安全副本开始练习</h2>
+<p>不要在唯一工作目录里练习危险回退。可先对记录分支做只含受控源码的归档：</p>
+<pre><code class="language-powershell">$backup = 'A:\TyphoeusLearning-source.zip'
+if (Test-Path -LiteralPath $backup) { throw '备份已存在，请改用新文件名' }
+git -C $repo archive --format=zip --output=$backup fix/typhoeus-render-explosion-20260917
+</code></pre>
+<p>这是源码快照，不含被ignore的游戏资源、Library、captured textures或完整生成场景。要真正运行，按第01章资产清单另外备份你自己的必要本地资源；不能以“GitHub有提交”代替完整数据备份。</p>
+<p>ZIP也不含 <code>.git</code> 历史，不能直接执行后文的旧提交切换。需要练习分支与回退时，另建一个独立 <code>git clone</code> 的学习库，或在理解worktree后建立隔离工作树；不要在唯一原工程上试验。</p>
+<p>开始写脚本前，把它的输入、输出和是否覆盖已有文件列出来。优先新目录、拒绝覆盖、保留原始包。遇到输入文件字段缺失，要报错并定位版本，不要用默认0偷偷补齐。</p>
+<h2 id="chapter-5-3-错误图谱先查什么">3. 错误图谱：先查什么</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>优先检查</th>
+<th>最小实验</th>
+<th>不要先做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顶点炸开/长刺</td>
+<td>stride、索引宽度、骨映射、bindpose、坐标转换</td>
+<td>无材质静止模型；CPU蒙皮恒等式</td>
+<td>降曝光、换shader</td>
+</tr>
+<tr>
+<td>部件相互错位</td>
+<td>是否分别重居中、局部/世界空间混用、预变形buffer</td>
+<td>对应顶点坐标与官方JSON比较</td>
+<td>逐个凭眼睛移动部件</td>
+</tr>
+<tr>
+<td>黑脸/缺眼</td>
+<td>材质身份、图集、深度、alpha用途、UV</td>
+<td>独立部件纯色与BaseMap调试</td>
+<td>把脸删掉重烘焙</td>
+</tr>
+<tr>
+<td>一半纹理颠倒</td>
+<td>每槽ST、DDS/EXR导出方向</td>
+<td>UV棋盘和单独R/G输出</td>
+<td>翻整个网格全部UV</td>
+</tr>
+<tr>
+<td>高光乱跑</td>
+<td>TBN、RGorAG解码、specRamp坐标、光向空间</td>
+<td>固定平面、固定V/L、常量P图</td>
+<td>把roughness和光色同时调</td>
+</tr>
+<tr>
+<td>颜色整体偏灰/过亮</td>
+<td>sRGB、LUT方向、曝光、双重Gamma、默认cube</td>
+<td>.18/1/4线性输入与GPU读回</td>
+<td>加补光或套ACES</td>
+</tr>
+<tr>
+<td>转动后露馅</td>
+<td>固定截图投影、世界/切线方向错误、阴影缺失</td>
+<td>转90度、只显示法线/阴影</td>
+<td>只交付正面截图</td>
+</tr>
+<tr>
+<td>Unity重开后坏了</td>
+<td>生成Mesh是否持久化、GUID是否变化、globals是否恢复</td>
+<td>保存→清空globals→重开→读数</td>
+<td>只在当前内存Scene里验收</td>
+</tr>
+<tr>
+<td>自动匹配“唯一”却很怪</td>
+<td>候选搜索域、buffer/sampler误当texture、语义约束</td>
+<td>故意改hint看正确候选是否仍保留</td>
+<td>相信alphabetical first</td>
+</tr>
+<tr>
+<td>Bloom条纹/边缘错位</td>
+<td>group索引、barrier、尺寸取整、mip/UV原点</td>
+<td>脉冲/梯度和每层误差</td>
+<td>只看最终LUT图是否好看</td>
+</tr>
+<tr>
+<td>Bloom逐层偏亮</td>
+<td>R11/G11/B10舍入、half中转、隐式颜色转换</td>
+<td>每层signedMean与正负误差计数</td>
+<td>改强度压低亮度掩盖错误</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chapter-5-4-十个独立结业作品">4. 十个独立结业作品</h2>
+<ol>
+<li>文件清单工具：输出源包/对象ID/类型/名称/大小，重复名字不会互相覆盖。</li>
+<li>模型验证器：对合法/越界/NaN/权重和错误各有一个测试。</li>
+<li>双骨骼小长条：手算一个顶点的线性混合蒙皮，并与Unity一致。</li>
+<li>法线诊断材质：输出世界法线与切线方向，解释镜像UV和w符号。</li>
+<li>材质契约表：用代码行证明P图/SDF/ramp每通道用途。</li>
+<li>候选匹配器：错误hint、相同长度不同语义、缺字段都能正确报警。</li>
+<li>Skin平面：SDF权重0/1、alpha0/1四组合，CPU/GPU对照。</li>
+<li>Cube实验：六个方向渐变面、8级mip采样和面序验证。</li>
+<li>Post实验：相同HDR输入经LUT，量化后与已知参考比较，解释翻转与Gamma。</li>
+<li>角色回归：固定相机与转身两套，保存日志、差分、版本和回退点。</li>
+</ol>
+<p>做完一个再打开项目里的参考实现对照。能解释失败原因比抄出同样代码更重要。</p>
+<h2 id="chapter-5-5-用测试工作而不是凭记忆工作">5. 用测试工作，而不是凭记忆工作</h2>
+<p>脚本测试：</p>
+<pre><code class="language-powershell">Set-Location 'A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner'
+&amp; '..\EndfieldUnpacker\.venv\Scripts\python.exe' -m unittest discover -s Tools/tests -v
+</code></pre>
+<p>Unity主颜色回归：<code>EndfieldShaderPack.EndfieldOfficialShadingValidation.RunAll</code>。
+该全量入口依赖原版展示场景与珊瑚海岸mod；纯数学学习用第03章列出的两个 <code>RunNumerical</code> 入口即可，不依赖角色资源。
+捕获资源/后处理回归：<code>EndfieldShaderPack.EndfieldCapturePipelineValidation.RunAll</code>。
+该回归需要第04章成功导出的资源。若使用自建导出目录，先设置 <code>$env:ENDFIELD_PIPELINE_EXPORT</code> 并从同一终端启动Unity；默认目录是 <code>Validation/Captures/tifuluosi-front-20260917/pipeline-textures-01</code>。
+启动格式见第03章，替换 <code>-executeMethod</code> 和独立日志文件名即可。</p>
+<p>实时场景回归：<code>EndfieldShaderPack.EndfieldCapturedSceneBuilder.BuildAndValidate</code>。目前最后的设置持久化门禁失败，先按最新RESUME文档在隔离副本修复，再使用此入口。检查 <code>Logs/captured-scene-validation.txt</code>；完整通过后才能把 <code>Assets/Scenes/Typhoeus_CapturedPipeline.unity</code> 当作集成通过版本。生成资源依赖你本地的解包/截帧，不会随Git源码自动出现。</p>
+<p>判断成功要同时满足：脚本/Unity正常完成、报告存在、没有遗漏分支、预期的资源尺寸和像素数量正确。警告需区分类型：授权客户端网络消息不等同Shader失败；真正的CS编译错误和GPU非有限输出必须处理。一次导入中的旧程序集错误可能随后重新编译成功，最终再开干净批次验证，不能只挑PASS行。</p>
+<h2 id="chapter-5-6-自己进行一次完整修复">6. 自己进行一次完整修复</h2>
+<p>以“ramp alpha不生效”为例：</p>
+<ol>
+<li>写假设：当前实现只使用RGB，忽略alpha。</li>
+<li>写最小输入：RGB全白，alpha分别0/.5/1，关闭高光和额外后处理。</li>
+<li>写CPU期望：三个输出不相同，且每个值能逐步算出。</li>
+<li>跑旧实现，保存失败记录；如果测试原本就通过，假设可能错了。</li>
+<li>只改相关光照公式，不动摄像机/材质贴图/曝光。</li>
+<li>数值测试通过后，跑整模和场景重载回归。</li>
+<li>查看本次diff，提交只包含相关文件的改动，记录剩余限制。</li>
+</ol>
+<p>模型重建、UV翻转、cubemap默认亮度、body候选误配，都可以用同一流程，不需要聊天模型替你判断。</p>
+<h2 id="chapter-5-7-提交与回退的实际规则">7. 提交与回退的实际规则</h2>
+<p>你自己的干净学习库可正常 <code>git add 指定文件</code> → <code>git diff --cached</code> → <code>git commit</code> → <code>git push</code>。本机已有复杂工作树时，先向独立副本迁移学习改动，不要为了模仿历史提交方式立刻使用底层commit-tree命令。</p>
+<p>如果要恢复旧代码，先保存当前改动和需要的资源，再在学习副本上用 <code>git switch -c study-old &lt;提交号&gt;</code>。这样会新建学习分支，不改动原工作区。需要撤销公开提交时优先理解 <code>git revert</code>；不要未经确认强推或hard reset。</p>
+<p>每个检查点至少记录：提交号、Unity/URP版本、输入哈希、测试命令与结果、场景路径、生成资源是否被Git忽略、未完成项。旧研究笔记保持历史原貌，在新记录中明确“哪条结论被什么证据推翻”。</p>
+<h2 id="chapter-5-8-没网络没额度没助手时怎么查">8. 没网络、没额度、没助手时怎么查</h2>
+<ul>
+<li>C#报错：先看第一条编译错误所在文件/行和实际方法签名，再查本地Unity API/PackageCache；别追后续连锁错误。</li>
+<li>Python报错：看traceback最下面的具体异常，再逐层找你的代码；用print输出类型、长度、路径，避免一次输出数十万行。</li>
+<li>Shader报错：简化到最小Pass，检查变量声明、纹理采样类型、目标平台、关键词。</li>
+<li>数学不确定：用纸笔或10行Python构造3个输入，不用真实角色复杂纹理起步。</li>
+<li>数据不确定：查源文件哈希/结构/格式，做一个最小取样，拒绝“猜字段补零”。</li>
+<li>思路乱了：写下“已知事实 / 假设 / 下一项可证伪实验”三栏，回到最近通过的关卡。</li>
+</ul>
+<p>本地教材HTML、源代码、日志、已有官方软件帮助、PackageCache与RDC都能在离线时阅读。网页链接是补充来源，不是执行每一步的在线依赖。</p></section></main><footer>源文档位于同目录的 Markdown 文件。网页资料仅为补充来源；本手册正文、代码索引与本地练习流程无需网络即可阅读。模型和捕获数据不包含在此HTML中。</footer></body></html>
