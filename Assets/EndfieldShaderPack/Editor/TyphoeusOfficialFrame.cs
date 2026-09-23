@@ -29,6 +29,7 @@ namespace EndfieldShaderPack
             if (root == null) throw new System.InvalidOperationException("Rebuilt model missing: " + RootName);
 
             var cam = Camera.main;
+            if (cam == null) throw new System.InvalidOperationException("Main Camera missing");
             cam.orthographic = false;
             cam.fieldOfView = FovDeg;
             cam.aspect = Aspect;
@@ -54,6 +55,8 @@ namespace EndfieldShaderPack
             // 注入官方 HGRP _CharacterParamsN 捕获值（详见 docs/research/official-forwardlit-*-b*.md §4）
             // 让 shader 走捕获帧分支：CP1.y=1 平坦环境、CP1.w=1 光方向覆盖、CP13.w 各向异性总乘数等
             ApplyCharacterParams();
+            if (light.GetComponent<Endfield.EndfieldOfficialFrameGlobals>() == null)
+                light.gameObject.AddComponent<Endfield.EndfieldOfficialFrameGlobals>();
 
             Debug.Log($"[OfficialFrame] bounds={b.size} dist={dist:F3} camPos={cam.transform.position} L={-LightTravelDir}");
         }
@@ -61,25 +64,7 @@ namespace EndfieldShaderPack
         /// 注入捕获帧已知的 _CharacterParamsN 全局值（来自 front-frame constants 提取）。
         static void ApplyCharacterParams()
         {
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams0"),  new Vector4(0.0f, 1.0f, 0.65f, 0.9f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams1"),  new Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams2"),  new Vector4(0.849f, 0.896f, 1.151f, 0.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams5"),  new Vector4(1.0f, 1.0f, 1.0f, 1.62439f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams6"),  new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams7"),  new Vector4(0.15f, 1.5f, 0.5f, 0.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams8"),  new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams9"),  new Vector4(0.0f, -1.0f, 0.0f, 0.4f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams10"), new Vector4(0.0f, 0.0f, 2.25f, -100.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams11"), new Vector4(0.176f, 0.530f, 0.830f, -0.1f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams12"), new Vector4(1.0f, 1.0f, 1.0f, 0.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams13"), new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_CharacterParams15"), new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
-
-            // cloth b401 环境/曝光全局参数（docs/research/official-forwardlit-cloth-b401.md §5）
-            //   _EnvironmentGlobalParams0.x = ambientScale 基值 (捕获 0.2877)
-            //   _ExposureWithMiscParams = (1,1,1.6,0.1)：x 乘 ambientScale，y 输出前乘 rgb
-            Shader.SetGlobalVector(Shader.PropertyToID("_EnvironmentGlobalParams0"), new Vector4(0.2877f, 0.0f, 0.0f, 0.0f));
-            Shader.SetGlobalVector(Shader.PropertyToID("_ExposureWithMiscParams"), new Vector4(1.0f, 1.0f, 1.6f, 0.1f));
+            Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals();
         }
 
         /// Batch entry: open saved scene, apply official camera/light, render 1600x1000.

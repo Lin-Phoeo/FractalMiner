@@ -282,12 +282,14 @@ Shader "Endfield/CharacterLit"
         float4 _CharacterLightDir;    // xyz=指向光源, w=启用标记
         float4 _CharacterLightColor;
         float4 _CharacterAmbient;     // 环境/补光颜色
+        float _EndfieldOfficialFrameEnabled;
+        float _EndfieldCapturedLightIntensity;
 
         // 官方 HGRP _CharacterParamsN 全局参数（捕获帧已知值，由 C# SetGlobalVector 注入）
         // 详见 docs/research/official-forwardlit-{hair-b125,skin-b138,cloth-b401,eye-b28}.md §4
         float4 _CharacterParams0;   // x=? y=受光侧lightTerm乘数 z=阴影色深度系数(0.65) w=阴影侧lightTerm乘数(0.9)
         float4 _CharacterParams1;   // x=环境峰值映射 y=1=平坦环境(不采样辐照度体) z=1=忽略屏幕空间方向光阴影 w=1=用CP11.xyz覆盖光方向
-        float4 _CharacterParams2;   // xyz=平坦环境色调 (捕获 0.849,0.896,0.151)
+        float4 _CharacterParams2;   // xyz=平坦环境色调 (捕获 0.849,0.896,1.151)
         float4 _CharacterParams3;   // skin 用（hair 不引用）
         float4 _CharacterParams4;   // skin 用
         float4 _CharacterParams5;   // xyz=光颜色覆盖(权重CP12.y)
@@ -299,6 +301,7 @@ Shader "Endfield/CharacterLit"
         float4 _CharacterParams11;  // xyz=角色专用光方向(0.176,0.530,0.830) w=ramp偏移
         float4 _CharacterParams12;  // x=1关逆光抬亮 y=光颜色覆盖权重 z=点光角色灯门槛 w=>=0.5展示模式
         float4 _CharacterParams13;  // w=各向异性高光总乘数（hair/cloth 用）
+        float4 _CharacterParams14;
         float4 _CharacterParams15;  // w=0=CP9.xy世界轴 1=相机轴
 
         // 官方 HGRP 全局环境/曝光（cloth b401 环境光 & IBL 用，捕获帧值）
@@ -365,7 +368,9 @@ Shader "Endfield/CharacterLit"
             }
             output.tangentWS  = float4(SafeNormalize(tangentWS), input.tangentOS.w < 0 ? -1 : 1);
             output.viewDirWS  = GetWorldSpaceViewDir(output.positionWS);
-            output.uv         = TRANSFORM_TEX(input.uv, _BaseMap);
+            // Retain source UVs: each texture has its own transform. In particular,
+            // mod DDS exports need a V flip while inherited SDF/normal maps do not.
+            output.uv         = input.uv;
             output.fogFactor  = ComputeFogFactor(output.positionCS.z);
             return output;
         }
@@ -392,6 +397,14 @@ Shader "Endfield/CharacterLit"
                 L = mainLight.direction;
                 lightColor = mainLight.color * mainLight.distanceAttenuation;
                 shadowAttenuation = mainLight.shadowAttenuation;
+            }
+            if (_EndfieldOfficialFrameEnabled > 0.5)
+            {
+                L = SafeNormalize(lerp(L, _CharacterParams11.xyz, _CharacterParams1.w));
+                // Frame 6411: face/b138 uses CP4; body/b401 uses CP5 despite both
+                // having local MaterialFamily=1. This is a frame-specific mapping.
+                half3 capturedColor = _UseSDFLightmap > 0.5 ? _CharacterParams4.rgb : _CharacterParams5.rgb;
+                lightColor = lerp(lightColor, capturedColor, _CharacterParams12.y) * _EndfieldCapturedLightIntensity;
             }
         }
 
@@ -486,7 +499,7 @@ Shader "Endfield/CharacterLit"
                     uv -= (h - 0.5) * _ParallaxScale * viewDirTS.xy;
                 }
 
-                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, uv);
+                half4 baseMap = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
                 // 终末地角色为不透明表面，漫反射 _D 贴图 alpha 通道存的是其它数据(AO/mask)，
                 // 不是透明度，绝不能拿 baseMap.a 当 alpha，否则身体/布料会"像空气一样透明"。
@@ -514,7 +527,7 @@ Shader "Endfield/CharacterLit"
                 }
                 else if (_UseBumpMap > 0.5)
                 {
-                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, uv), _BumpScale);
+                    half3 normalTS = UnpackEndfieldNormal(SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BumpMap)), _BumpScale);
                     N = normalize(mul(normalTS, CharTBN(input, N)));
                 }
                 // Source enum: 0 flips backface normals; 1 leaves them unchanged.
@@ -622,9 +635,10 @@ Shader "Endfield/CharacterLit"
                     // 皮肤颜色 LUT：阴影区域用 LUT 采样基色作为阴影基色
                     // (精确 3D LUT 采样公式待读官方 _SHADOW_LUT_TEX 变体后进一步对齐)
                     half3 lutCol = SampleSkinLUT3D(_ShadowLutTex, sampler_Endfield_LinearClamp, albedo);
-                    half lum = dot(lutCol, half3(0.2126729, 0.7151522, 0.0721750));
-                    half3 shadowCol = lerp(lum.xxx, lutCol, _ShadowColorSaturation) * _ShadowColorBrightness;
-                    diffuse = lerp(diffuse, shadowCol, 1.0 - shade);
+                    // b138 reads the LUT result directly (_504). Its declared
+                    // ShadowColorBrightness/Saturation are not read by this variant.
+                    // Multiplying by the captured brightness=0 made skin shadows black.
+                    diffuse = lerp(diffuse, lutCol, 1.0 - shade);
                 }
 
                 // ---- 重阴影(服装冷色重影) ----
@@ -644,7 +658,7 @@ Shader "Endfield/CharacterLit"
                 half ao = 1.0;
                 if (_UseMetallicGlossMap > 0.5)
                 {
-                    half4 mg = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_Endfield_LinearRepeat, uv);
+                    half4 mg = SAMPLE_TEXTURE2D(_MetallicGlossMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _MetallicGlossMap));
                     metallic = mg.r;
                     specularMask = mg.g;
                     smoothness = mg.a;
@@ -972,7 +986,7 @@ Shader "Endfield/CharacterLit"
             half4 frag(Vary input) : SV_Target
             {
                 clip(_EnableOutline - 0.5);
-                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).rgb * _BaseColor.rgb;
+                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(input.uv, _BaseMap)).rgb * _BaseColor.rgb;
                 half lum = dot(base, half3(0.2126729, 0.7151522, 0.0721750));
                 half3 c = lerp(lum.xxx, base, _OutlineColorSaturation);
                 c *= _OutlineColorBrightness;
