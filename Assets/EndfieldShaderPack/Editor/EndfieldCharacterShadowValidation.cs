@@ -371,6 +371,38 @@ namespace EndfieldShaderPack
                 int union = mineShadowed + officialShadowed - bothShadowed;
                 double iou = union == 0 ? 1.0 : (double)bothShadowed / union;
 
+                // Visual evidence alongside the numbers. Greyscale G channel for both
+                // sides and an 8x-amplified absolute difference, so the 0.16% of pixels
+                // that disagree are visible instead of buried in an average.
+                var officialPng = new Texture2D(Width, Height, TextureFormat.RGBA32, false, true);
+                var minePng = new Texture2D(Width, Height, TextureFormat.RGBA32, false, true);
+                var diffPng = new Texture2D(Width, Height, TextureFormat.RGBA32, false, true);
+                var o = new Color[total]; var m = new Color[total]; var df = new Color[total];
+                try
+                {
+                    for (int i = 0; i < total; i++)
+                    {
+                        float ov = Quantize(referencePixels[i].g) / 255f;
+                        float mv = Quantize(fullG[i].r) / 255f;
+                        o[i] = new Color(ov, ov, ov, 1f);
+                        m[i] = new Color(mv, mv, mv, 1f);
+                        float d = Mathf.Min(1f, Mathf.Abs(ov - mv) * 8f);
+                        df[i] = new Color(d, 0f, 0f, 1f);
+                    }
+                    officialPng.SetPixels(o); minePng.SetPixels(m); diffPng.SetPixels(df);
+                    Directory.CreateDirectory("Validation");
+                    File.WriteAllBytes("Validation/character-shadow-official.png", officialPng.EncodeToPNG());
+                    File.WriteAllBytes("Validation/character-shadow-reproduced.png", minePng.EncodeToPNG());
+                    File.WriteAllBytes("Validation/character-shadow-diff-x8.png", diffPng.EncodeToPNG());
+                    report.AppendLine("    wrote Validation/character-shadow-official.png, -reproduced.png and -diff-x8.png");
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(officialPng);
+                    UnityEngine.Object.DestroyImmediate(minePng);
+                    UnityEngine.Object.DestroyImmediate(diffPng);
+                }
+
                 report.AppendLine("    meanByteError=" + meanByteError.ToString("F6", CultureInfo.InvariantCulture) +
                                   " withinOneLsb=" + withinOneLsb.ToString("F8", CultureInfo.InvariantCulture) +
                                   " exact=" + exactFraction.ToString("F8", CultureInfo.InvariantCulture));
