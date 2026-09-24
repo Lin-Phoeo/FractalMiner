@@ -189,9 +189,20 @@ namespace EndfieldShaderPack
             resolved = Ensure(resolved, screenShadow, ScreenTextureName);
         }
 
+        // The registry is only refreshed when empty and edit-mode toggles never fire
+        // OnDisable, so a disabled caster can linger in it; filter every frame.
+        // (Run 19: the live A/B gate's OFF render re-ran the whole chain on the
+        // stale registry entry and came out byte-identical to the ON render.)
+        readonly System.Collections.Generic.List<EndfieldCharacterShadowCaster> enabledCasters =
+            new System.Collections.Generic.List<EndfieldCharacterShadowCaster>(EndfieldCharacterShadowCaster.MaxSlots);
+
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var casters = EndfieldCharacterShadowCaster.Active;
+            enabledCasters.Clear();
+            foreach (var caster in EndfieldCharacterShadowCaster.Active)
+                if (caster != null && caster.isActiveAndEnabled)
+                    enabledCasters.Add(caster);
+            var casters = enabledCasters;
             if (casters.Count == 0 || atlasColor == null || resolved == null) return;
             if (light == null) light = Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
             if (light == null) return;
@@ -205,6 +216,12 @@ namespace EndfieldShaderPack
             {
                 using (new ProfilingScope(cmd, sampler))
                 {
+                    // EndfieldCharacterLight treats transform.forward as the direction
+                    // TOWARD the light (TyphoeusOfficialFrame.cs), not a Unity light's
+                    // travel direction. The official _CharacterShadowLightDir points
+                    // ALONG the travel, so travel is -forward here, and the box z axis
+                    // ends up toward the source (z=1 on the light side), matching the
+                    // frame-6411 decomposition.
                     Vector3 travel = -light.transform.forward;
                     FillSlotArrays(casters, travel, slots);
                     ApplyPerRendererShadowState(casters, travel);
@@ -215,10 +232,12 @@ namespace EndfieldShaderPack
                     // DrawRenderers submits immediately, so each target's bind and clear
                     // has to reach the GPU before its draw call.
                     cmd.SetRenderTarget(atlasColor);
-                    // Reversed-Z light space: an empty atlas is 0, which the resolve reads
-                    // as "nothing nearer than the receiver", i.e. fully lit.
-                    cmd.ClearRenderTarget(RTClearFlags.All, Color.clear,
-                        SystemInfo.usesReversedZBuffer ? 0f : 1f, 0x00);
+                    // Unity's reversed-Z path flips depth values into the buffer
+                    // (buffer = 1 - clip.z) even for the custom light matrix, so the
+                    // classic non-reversed clear value 1 is what "empty" means here.
+                    // The R16 colour still carries the authored clip.z, so an empty
+                    // texel stays 0 for the resolve regardless.
+                    cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0x00);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                     var atlasDraw = new DrawingSettings(AtlasPassTag, sorting);
@@ -226,8 +245,8 @@ namespace EndfieldShaderPack
 
                     cmd.SetRenderTarget(new RenderTargetIdentifier[] { indexTarget, normalTarget, depthTarget },
                         new RenderTargetIdentifier(indexTarget));
-                    cmd.ClearRenderTarget(RTClearFlags.All, Color.clear,
-                        SystemInfo.usesReversedZBuffer ? 0f : 1f, 0x00);
+                    // Same as the atlas: the buffer holds 1 - clip.z, so "empty" is 1.
+                    cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0x00);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
                     var gBufferDraw = new DrawingSettings(GBufferPassTag, sorting);

@@ -1100,8 +1100,17 @@ Shader "Endfield/CharacterLit"
             Name "EndfieldCharacterShadowAtlas"
             Tags { "LightMode"="EndfieldCharacterShadowAtlas" }
 
-            Cull [_Cull]
+            Cull Off
             ZWrite On
+            // Unity's reversed-Z handling flips the depth VALUE on the way to the
+            // buffer (buffer = 1 - clip.z) for every target, custom matrices
+            // included; only the colour output keeps the authored clip.z. So this
+            // pass behaves like a classic non-reversed shadow map: clear the depth
+            // to 1 and keep smaller values with LEqual, which selects the maximum
+            // light-space z, the surface nearest the light, exactly what the
+            // official resolve reads. (Measured across runs 13-17: GEqual+clear0
+            // kept the FAR side, systematic -(thickness) atlas/receiver error;
+            // LEqual+clear0 rejected every fragment.)
             ZTest LEqual
             ColorMask R
 
@@ -1154,6 +1163,10 @@ Shader "Endfield/CharacterLit"
 
             Cull [_Cull]
             ZWrite On
+            // Same buffer = 1 - clip.z reasoning as the atlas pass: the camera
+            // matrix already emits reversed clip z (near=1), so the camera-nearest
+            // fragment lands at buffer 0 and classic LEqual + clear-1 keeps it.
+            // GEqual + clear-0 stored the camera-FARTHEST surface instead.
             ZTest LEqual
 
             HLSLPROGRAM

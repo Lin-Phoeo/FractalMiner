@@ -188,8 +188,29 @@ namespace EndfieldShaderPack
                 Check(report, ref failures, "runtime index, depth and atlas agree in light space", () =>
                 {
                     Matrix4x4 invViewProj = CharacterShadowPass.LastViewProj.inverse;
+                    // EndfieldCharacterLight.forward points TOWARD the light, so the
+                    // toward-source axis is TowardLight(-forward) = +forward.
                     Vector3 toward = EndfieldCharacterShadowProjection.TowardLight(-light.transform.forward);
+                    // --- run-15 diagnostics: the raw median cannot discriminate
+                    // "atlas keeps the light-near surface" from "keeps the far one"
+                    // when the receiver reconstruction may itself be off, so dump
+                    // the convention inputs and the full error shape. ---
+                    report.AppendLine("    [diag] light.forward=" + light.transform.forward.ToString("F6") +
+                                      " toward(gate)=" + toward.ToString("F6"));
+                    var diagBox = EndfieldCharacterShadowProjection.Decompose(CharacterShadowPass.LastWorldToShadow);
+                    report.AppendLine("    [diag] box towardLight=" + diagBox.towardLight.ToString("F6") +
+                                      " min=" + diagBox.min.ToString("F4") + " max=" + diagBox.max.ToString("F4"));
+                    foreach (var r in caster.Casters)
+                    {
+                        var smr = r as SkinnedMeshRenderer;
+                        if (smr == null || !smr.enabled) continue;
+                        foreach (var m in smr.sharedMaterials)
+                            if (m != null && m.HasProperty("_Cull"))
+                                report.AppendLine("    [diag] mat " + m.name + " _Cull=" + m.GetFloat("_Cull"));
+                    }
                     var errors = new System.Collections.Generic.List<float>();
+                    var errorsFlippedV = new System.Collections.Generic.List<float>();
+                    int errPos = 0, errNeg = 0;
                     for (int row = 0; row < Height; row++)
                     {
                         for (int col = 0; col < Width; col++)
@@ -209,6 +230,11 @@ namespace EndfieldShaderPack
                                           lightSpace.y >= 0f && lightSpace.y <= 1f &&
                                           lightSpace.z >= 0f && lightSpace.z <= 1f;
                             if (inside) statistics.insideBox++;
+                            // The resolved G channel shadows back-facing pixels too (the official
+                            // frame's ~1/3 includes them), so the shadowed count has to cover
+                            // every character pixel, not only the front-facing subset.
+                            float g = BitConverter.ToSingle(resolved, pixel * 8 + 4);
+                            if (Mathf.RoundToInt(Mathf.Clamp01(g) * 255f) < ShadowByteLimit) statistics.shadowed++;
                             uint normalRaw = (uint)(normal[pixel * 4] | (normal[pixel * 4 + 1] << 8) |
                                                     (normal[pixel * 4 + 2] << 16) | (normal[pixel * 4 + 3] << 24));
                             var encoded = new Vector2(
@@ -222,13 +248,25 @@ namespace EndfieldShaderPack
                             int atlasPixel = atlasRow * atlasWidth + atlasCol;
                             ushort storedRaw = (ushort)(atlas[atlasPixel * 2] | (atlas[atlasPixel * 2 + 1] << 8));
                             if (storedRaw != 0) statistics.present++;
-                            errors.Add(storedRaw / 65535f - lightSpace.z);
-                            float g = BitConverter.ToSingle(resolved, pixel * 8 + 4);
-                            if (Mathf.RoundToInt(Mathf.Clamp01(g) * 255f) < ShadowByteLimit) statistics.shadowed++;
+                            float signedError = storedRaw / 65535f - lightSpace.z;
+                            errors.Add(signedError);
+                            if (signedError > 0.001f) errPos++;
+                            else if (signedError < -0.001f) errNeg++;
+                            int flippedRow = atlasHeight - 1 - atlasRow;
+                            ushort storedFlipped = (ushort)(atlas[(flippedRow * atlasWidth + atlasCol) * 2] |
+                                                            (atlas[(flippedRow * atlasWidth + atlasCol) * 2 + 1] << 8));
+                            errorsFlippedV.Add(storedFlipped / 65535f - lightSpace.z);
                         }
                     }
                     errors.Sort();
                     statistics.median = errors.Count == 0 ? float.NaN : errors[errors.Count / 2];
+                    errorsFlippedV.Sort();
+                    float medianFlipped = errorsFlippedV.Count == 0 ? float.NaN : errorsFlippedV[errorsFlippedV.Count / 2];
+                    report.AppendLine("    [diag] error sign: pos(>+1e-3)=" + errPos + " neg(<-1e-3)=" + errNeg +
+                                      " p10=" + (errors.Count == 0 ? float.NaN : errors[errors.Count / 10]).ToString("E4", CultureInfo.InvariantCulture) +
+                                      " p90=" + (errors.Count == 0 ? float.NaN : errors[errors.Count * 9 / 10]).ToString("E4", CultureInfo.InvariantCulture));
+                    report.AppendLine("    [diag] median with V-flipped atlas read=" + medianFlipped.ToString("E4", CultureInfo.InvariantCulture) +
+                                      " (closer to 0 would indict the row convention)");
                     report.AppendLine("    character pixels=" + statistics.characterPixels +
                                       " insideBox=" + Fraction(statistics.insideBox, statistics.characterPixels) +
                                       " frontFacingWithCaster=" + errors.Count);

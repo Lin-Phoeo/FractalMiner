@@ -35,10 +35,15 @@ namespace EndfieldShaderPack
         // OnEnable/OnDisable keep the registry warm, but scene loads in batchmode have
         // shown the registry empty while the component is live, so the render path can
         // rebuild it from the scene instead of silently skipping the whole chain.
+        // FindObjectsOfType returns disabled components on active GameObjects, so the
+        // refresh has to re-apply the enabled filter: the live A/B gate relies on
+        // caster.enabled = false actually disabling the whole chain.
         public static IReadOnlyList<EndfieldCharacterShadowCaster> Refresh()
         {
             registry.Clear();
-            registry.AddRange(FindObjectsOfType<EndfieldCharacterShadowCaster>());
+            foreach (var caster in FindObjectsOfType<EndfieldCharacterShadowCaster>())
+                if (caster.isActiveAndEnabled)
+                    registry.Add(caster);
             return registry;
         }
 
