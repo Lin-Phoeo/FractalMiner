@@ -69,8 +69,23 @@ namespace EndfieldShaderPack
                 try
                 {
                 EditorSceneManager.OpenScene(EndfieldCapturedSceneBuilder.ScenePath, OpenSceneMode.Single);
+                // Pass metadata (Material.passCount/FindPass and the SRP pass-tag
+                // filtering used by DrawRenderers) is only populated once a shader is
+                // fully loaded, and Unity loads shaders lazily on first render use.
+                // Without warmup every custom-pass draw silently filters to zero
+                // geometry (proven by EndfieldPassProbe: cold = 1 unnamed pass and
+                // FindPass -1 for every pass of every shader, warm = all 5 passes
+                // present with atlas=2/gbuf=3). Shader.WarmupAllShaders alone does
+                // NOT register the pass metadata; one real camera render does.
+                Shader.WarmupAllShaders();
                 var camera = Camera.main;
                 if (camera == null) throw new InvalidOperationException("Generated scene has no main camera.");
+                var warmupTarget = new RenderTexture(64, 64, 24);
+                camera.targetTexture = warmupTarget;
+                camera.Render();
+                camera.targetTexture = null;
+                warmupTarget.Release();
+                UnityEngine.Object.DestroyImmediate(warmupTarget);
                 var caster = UnityEngine.Object.FindObjectOfType<EndfieldCharacterShadowCaster>();
                 if (caster == null) throw new InvalidOperationException("Generated scene has no shadow caster.");
                 var light = UnityEngine.Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
