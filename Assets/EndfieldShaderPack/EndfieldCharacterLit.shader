@@ -337,7 +337,27 @@ Shader "Endfield/CharacterLit"
         // Private inline sampler avoids version-dependent URP global declarations.
         SAMPLER(sampler_Endfield_LinearRepeat);
         SAMPLER(sampler_Endfield_LinearClamp);
+        SAMPLER(sampler_Endfield_PointClamp);
         SAMPLER(sampler_CharMaxCubemap);
+
+        // Official screen-space character shadow (HGRP ScreenSpaceShadowResolve
+        // _Character, G channel), produced by EndfieldCharacterShadowFeature before
+        // opaques. The gate float is 0 whenever that feature did not run, so selfShadow
+        // stays exactly 1 and an unbound texture can never darken a character.
+        TEXTURE2D(_EndfieldCharacterShadowScreen);
+        float4 _EndfieldCharacterShadowScreenSize;
+        float _EndfieldCharacterSelfShadow;
+
+        // SV_POSITION in the fragment stage is the pixel centre of the current target,
+        // which is the same memory space the resolve wrote, so no flip or NDC round trip
+        // is involved here.
+        float EndfieldCharacterSelfShadow(float2 pixelPosition)
+        {
+            float2 uv = pixelPosition * _EndfieldCharacterShadowScreenSize.zw;
+            return lerp(1.0,
+                SAMPLE_TEXTURE2D(_EndfieldCharacterShadowScreen, sampler_Endfield_PointClamp, uv).g,
+                _EndfieldCharacterSelfShadow);
+        }
 
         struct Attributes
         {
@@ -572,10 +592,11 @@ Shader "Endfield/CharacterLit"
                     bool sourceSkin = _MaterialFamily > 0.5 && _MaterialFamily < 1.5;
                     float3 sourceLightColor = sourceSkin ? _CharacterParams4.rgb : _CharacterParams5.rgb;
                     float3 sourceLightI = sourceLightColor * lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
-                    // HGRP's two-channel screen shadow buffer is not yet reproduced.
-                    // Keep selfShadow=1 explicit; separated light currently has no URP shadow.
+                    // HGRP's two-channel screen shadow buffer is reproduced by
+                    // EndfieldCharacterShadowFeature; its G channel is the official
+                    // selfShadow argument. The gate keeps scenes without the feature at 1.
                     float directionalShadow = lerp(shadowAtten, 1.0, _CharacterParams1.z);
-                    float selfShadow = 1.0;
+                    float selfShadow = EndfieldCharacterSelfShadow(input.positionCS.xy);
                     float3 sourceColor;
                     if (_MaterialFamily > 2.5)
                         sourceColor = EndfieldShadeOfficialEye(input.uv, input.normalWS, V, input.tangentWS,
@@ -1068,6 +1089,118 @@ Shader "Endfield/CharacterLit"
         // ============================================================
         // Pass 2 : 阴影投射
         // ============================================================
+        // ============================================================
+        // Pass : character shadow atlas caster
+        // Renders the character's light-space depth into its atlas cell. The official
+        // resolve applies the receiver bias from _CharacterShadowBiases on the reading
+        // side, so the caster must be unbiased: no ApplyShadowBias, no normal offset.
+        // ============================================================
+        Pass
+        {
+            Name "EndfieldCharacterShadowAtlas"
+            Tags { "LightMode"="EndfieldCharacterShadowAtlas" }
+
+            Cull [_Cull]
+            ZWrite On
+            ZTest LEqual
+            ColorMask R
+
+            HLSLPROGRAM
+            #pragma target 5.0
+            #pragma vertex vertShadowAtlas
+            #pragma fragment fragShadowAtlas
+
+            float4x4 _EndfieldWorldToShadowClip;
+
+            struct AtlasVaryings
+            {
+                float4 positionCS : SV_POSITION;
+                float  shadowDepth : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+            };
+
+            AtlasVaryings vertShadowAtlas(Attributes input)
+            {
+                AtlasVaryings output = (AtlasVaryings)0;
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                float4 lightClip = mul(_EndfieldWorldToShadowClip, float4(positionWS, 1.0));
+                output.positionCS = lightClip;
+                output.shadowDepth = lightClip.z;
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                return output;
+            }
+
+            float4 fragShadowAtlas(AtlasVaryings input) : SV_Target
+            {
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).a;
+                if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+                return float4(input.shadowDepth, 0.0, 0.0, 1.0);
+            }
+            ENDHLSL
+        }
+
+        // ============================================================
+        // Pass : character index + normal prepass
+        // The forward renderer has no deferred GBuffer, so the two buffers the official
+        // resolve reads are rebuilt here with the official's own formats: R10G10B10A2
+        // for the packed slot index and the octahedral normal, R32F for the device
+        // depth. The hardware performs the 10-bit quantisation the captured evidence
+        // carries, so the resolve sees the same precision it saw in the capture.
+        // ============================================================
+        Pass
+        {
+            Name "EndfieldCharacterShadowGBuffer"
+            Tags { "LightMode"="EndfieldCharacterShadowGBuffer" }
+
+            Cull [_Cull]
+            ZWrite On
+            ZTest LEqual
+
+            HLSLPROGRAM
+            #pragma target 5.0
+            #pragma vertex vertShadowGBuffer
+            #pragma fragment fragShadowGBuffer
+            #include "EndfieldCharacterShadowEncode.hlsl"
+
+            float4 _EndfieldCharacterShadowIndexEncode;
+
+            struct GBufferVaryings
+            {
+                float4 positionCS : SV_POSITION;
+                float3 normalWS : TEXCOORD0;
+                float2 uv : TEXCOORD1;
+            };
+
+            struct GBufferOutput
+            {
+                float4 index  : SV_Target0;
+                float4 normal : SV_Target1;
+                float4 depth  : SV_Target2;
+            };
+
+            GBufferVaryings vertShadowGBuffer(Attributes input)
+            {
+                GBufferVaryings output = (GBufferVaryings)0;
+                float3 positionWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(positionWS);
+                output.normalWS = SafeNormalize(TransformObjectToWorldNormal(input.normalOS));
+                output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+                return output;
+            }
+
+            GBufferOutput fragShadowGBuffer(GBufferVaryings input)
+            {
+                GBufferOutput output = (GBufferOutput)0;
+                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).a;
+                if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+                output.index = _EndfieldCharacterShadowIndexEncode;
+                output.normal = float4(EndfieldOctahedralEncodeY(input.normalWS) * 0.5 + 0.5, 0.0, 1.0);
+                output.depth = float4(input.positionCS.z, 0.0, 0.0, 1.0);
+                return output;
+            }
+            ENDHLSL
+        }
+
         Pass
         {
             Name "ShadowCaster"

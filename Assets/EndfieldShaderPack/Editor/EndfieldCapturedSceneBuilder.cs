@@ -16,6 +16,7 @@ namespace EndfieldShaderPack
     {
         public const string ScenePath="Assets/Scenes/Typhoeus_CapturedPipeline.unity";
         public const string RecoveredScenePath="Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity";
+        public const string TyphoeusCharacterRoot="chr_0034_typhoea_rebuilt";
         const string ReportPath="Logs/captured-scene-validation.txt";
         const string RestartReportPath="Logs/captured-scene-restart-validation.txt";
         const string RestartCheckPath="Library/EndfieldCapturedRestartCheck.json";
@@ -63,9 +64,28 @@ namespace EndfieldShaderPack
             settings.FindProperty("bloomShader").objectReferenceValue=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/EndfieldShaderPack/EndfieldCapturedBloom.compute");
             settings.ApplyModifiedPropertiesWithoutUndo();
             feature.SetActive(true);feature.Create();renderer.rendererFeatures.Add(feature);
+            var shadowFeature=AssetDatabase.LoadAllAssetsAtPath(rendererPath).OfType<EndfieldCharacterShadowFeature>().FirstOrDefault();
+            if(shadowFeature==null){shadowFeature=ScriptableObject.CreateInstance<EndfieldCharacterShadowFeature>();AssetDatabase.AddObjectToAsset(shadowFeature,renderer);}
+            shadowFeature.name="Character Self Shadow";
+            var shadowSettings=new SerializedObject(shadowFeature);
+            shadowSettings.FindProperty("resolveShader").objectReferenceValue=
+                AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/EndfieldShaderPack/EndfieldCharacterShadowResolve.compute");
+            shadowSettings.ApplyModifiedPropertiesWithoutUndo();
+            shadowFeature.SetActive(true);shadowFeature.Create();renderer.rendererFeatures.Add(shadowFeature);
             renderer.SetDirty();EditorUtility.SetDirty(feature);EditorUtility.SetDirty(renderer);
-            if(renderer.rendererFeatures.Count!=1 || AssetDatabase.LoadAllAssetsAtPath(rendererPath).OfType<EndfieldCapturedPostFeature>().Count()!=1)
+            if(renderer.rendererFeatures.Count!=2 || AssetDatabase.LoadAllAssetsAtPath(rendererPath).OfType<EndfieldCapturedPostFeature>().Count()!=1 ||
+               AssetDatabase.LoadAllAssetsAtPath(rendererPath).OfType<EndfieldCharacterShadowFeature>().Count()!=1)
                 throw new InvalidOperationException("Duplicate or missing generated renderer feature.");
+
+            // The character shadow chain needs a slot owner in the scene; the recovered
+            // scene predates the feature, so Build attaches it once, idempotently.
+            var characterRoot=GameObject.Find(TyphoeusCharacterRoot);
+            if(characterRoot!=null && characterRoot.GetComponent<EndfieldCharacterShadowCaster>()==null)
+            {
+                var caster=characterRoot.AddComponent<EndfieldCharacterShadowCaster>();
+                caster.slot=0;
+                EditorUtility.SetDirty(characterRoot);
+            }
 
             var pipeline=Upsert(Object.Instantiate(originalPipeline),folder+"/CapturedPipeline.asset");
             pipeline.name="Endfield Captured Pipeline";pipeline.supportsHDR=true;pipeline.msaaSampleCount=1;pipeline.renderScale=1;

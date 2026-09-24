@@ -13,11 +13,17 @@
 //     path, and the result is G = 1 (fully lit). Adding a NaN guard here would
 //     silently change those pixels, so the expression is left exactly as written.
 //
-// This is a validation experiment, not the shipping implementation. The official
-// resolve is a fullscreen pixel pass; the final integration must be one too. A
-// compute kernel is used here only because it makes readback of intermediates
-// trivial, and the arithmetic is identical either way.
+// Reproduction of the official ScreenSpaceShadowResolve_Character pass (frame 6411,
+// event 748) with two entry points over one body: CSResolve against fixed captured
+// inputs with full diagnostics, and CSResolveScreen for the live forward pipeline.
+//
+// The official resolve is a fullscreen pixel pass. This project's pipeline asset is a
+// forward renderer, and the arithmetic here is per pixel over integer coordinates with
+// no derivatives or interpolation, so a dispatch evaluates the identical expression per
+// pixel; keeping it a compute kernel also keeps the readback of intermediates that the
+// fixed-capture gates depend on.
 #pragma kernel CSResolve
+#pragma kernel CSResolveScreen
 
 #include "Assets/EndfieldShaderPack/EndfieldCharacterShadowTables.hlsl"
 
@@ -43,13 +49,16 @@ float4x4 _ViewProj;
 int _Mode;
 // 1 when the inputs are captured frame data imported into Unity, 0 when they are
 // live Unity textures. RenderDoc writes every target top-down and Unity's importer
-// stores row 0 at v=0, so a captured frame arrives vertically mirrored relative to
+// stores them flipped, so a captured frame arrives vertically mirrored relative to
 // the D3D convention the official constants assume. Measured, not assumed: the
-// captured atlas, GBuffer0 and resolved shadow all land exactly on the mirrored row
-// ranges predicted from their DDS exports. Two things follow, and both are gated by
-// this flag so a live atlas rendered by Unity cannot inherit them by accident:
+// imported atlas holds its non-zero texels at rows [1199,1925] where the DDS export
+// has them top-down at [122,848], and the character targets flip the same way. Three
+// things follow, and all are gated by this flag so a live atlas rendered by Unity
+// cannot inherit them by accident:
 //   * the pixel coordinate fed to the NDC and rotation-cell maths must be the D3D
 //     row (height-1-y), while Load/store keep using the Unity memory row;
+//   * the NDC uses the official corner convention for captured input and the pixel
+//     centre convention for live input, because the live matrices are Unity's;
 //   * the atlas V coordinate must be flipped, because _CharacterShadowAtlasParams is
 //     expressed in the unflipped space.
 int _CaptureFlipY;
@@ -70,6 +79,7 @@ RWTexture2D<float> _OutG;
 RWTexture2D<float4> _OutDiag0;
 RWTexture2D<float4> _OutDiag1;
 RWTexture2D<float> _OutDiag2;
+RWTexture2D<float2> _OutScreen;
 
 // GBuffer0 is R10G10B10A2_UNORM; the official pass repacks it into one uint and
 // reads the exponent back out. The 1023 and 3 multipliers are exactly the channel
@@ -104,23 +114,40 @@ float2 FlipAtlasV(float2 uv)
     return _CaptureFlipY != 0 ? float2(uv.x, 1.0 - uv.y) : uv;
 }
 
-[numthreads(8, 8, 1)]
-void CSResolve(uint3 id : SV_DispatchThreadID)
+struct ResolveResult
+{
+    float selfShadow;
+    float4 diag0;
+    float4 diag1;
+    float countLit;
+};
+
+ResolveResult ResolvePixel(int2 px)
 {
     int width = (int)_ScreenSize.x;
     int height = (int)_ScreenSize.y;
-    if ((int)id.x >= width || (int)id.y >= height) return;
-    int2 px = int2(id.xy);
     // px addresses Unity texture memory (Load and store). d3dPx addresses the frame
     // the official constants describe (NDC and the 4x4 rotation cell). They differ
     // only in the row, and only for captured input.
     int2 d3dPx = _CaptureFlipY != 0 ? int2(px.x, height - 1 - px.y) : px;
 
-    // The official pass uses the integer pixel coordinate with no +0.5 offset.
-    float2 pixel = float2(d3dPx);
-    float2 ndc = (pixel * _ScreenSize.zw) * 2.0 - 1.0;
     float depth = _CameraDepth.Load(int3(px, 0)).x;
-    float4 clip = mul(_InvViewProj, float4(ndc.x, -ndc.y, depth, 1.0));
+    float2 ndc;
+    float2 referencePixel;
+    if (_CaptureFlipY != 0)
+    {
+        // The official pass uses the integer pixel coordinate with no +0.5 offset.
+        referencePixel = float2(d3dPx);
+        ndc = (referencePixel * _ScreenSize.zw) * 2.0 - 1.0;
+        ndc.y = -ndc.y;
+    }
+    else
+    {
+        referencePixel = float2(px) + 0.5;
+        float2 uv = referencePixel * _ScreenSize.zw;
+        ndc = float2(uv.x * 2.0 - 1.0, 1.0 - uv.y * 2.0);
+    }
+    float4 clip = mul(_InvViewProj, float4(ndc, depth, 1.0));
     float3 worldP = clip.xyz / clip.w;
 
     // Round-trip: reproject and compare against the source pixel. A wrong matrix
@@ -128,15 +155,18 @@ void CSResolve(uint3 id : SV_DispatchThreadID)
     // test and is deliberately blind to a global mirror, which is why the row
     // convention above is measured against the DDS exports rather than inferred here.
     float4 back = mul(_ViewProj, float4(worldP, 1.0));
-    float2 ndcBack = float2(back.x / back.w, -(back.y / back.w));
-    float2 pixelBack = (ndcBack * 0.5 + 0.5) * _ScreenSize.xy;
-    float roundTripError = length(pixelBack - pixel);
+    float2 ndcBack = float2(back.x / back.w, back.y / back.w);
+    float2 pixelBack = _CaptureFlipY != 0
+        ? float2(ndcBack.x * 0.5 + 0.5, 0.5 - ndcBack.y * 0.5) * _ScreenSize.xy
+        : float2(ndcBack.x * 0.5 + 0.5, 1.0 - (ndcBack.y * 0.5 + 0.5)) * _ScreenSize.xy;
+    float roundTripError = length(pixelBack - referencePixel);
 
     float4 gbuffer0 = _GBuffer0.Load(int3(px, 0));
     float indexF = log2((float)PackCharacterIndex(gbuffer0)) - 8.0;
     float3 normalWS = DecodeNormalOctahedralY(_GBuffer1.Load(int3(px, 0)).xy * 2.0 - 1.0);
 
-    float selfShadow = 1.0;
+    ResolveResult result = (ResolveResult)0;
+    result.selfShadow = 1.0;
     float inRange = 0.0;
     float refDepth = 0.0;
     float centerAtlasDepth = 0.0;
@@ -160,7 +190,7 @@ void CSResolve(uint3 id : SV_DispatchThreadID)
             if (_Mode == 0)
             {
                 centerAtlasDepth = _AtlasTex.SampleLevel(sampler_LinearMirror, FlipAtlasV(atlasUV), 0.0).x;
-                selfShadow = step(0.0, centerAtlasDepth - refDepth);
+                result.selfShadow = step(0.0, centerAtlasDepth - refDepth);
             }
             else
             {
@@ -184,13 +214,40 @@ void CSResolve(uint3 id : SV_DispatchThreadID)
                 float s = (float)((int)sign(spread));
                 float oneMinus = 1.0 - (s * spread);
                 float ratio = clamp((sumPositive * (1.0 / countLit)) * (1.0 / refDepth), 0.0, 1.0);
-                selfShadow = min(1.0, 0.5 - (0.5 * ((1.0 - lerp((oneMinus * oneMinus) * oneMinus, oneMinus, ratio)) * s)));
+                result.selfShadow = min(1.0, 0.5 - (0.5 * ((1.0 - lerp((oneMinus * oneMinus) * oneMinus, oneMinus, ratio)) * s)));
             }
         }
     }
 
-    _OutG[px] = selfShadow;
-    _OutDiag0[px] = float4(indexF, inRange, refDepth, centerAtlasDepth);
-    _OutDiag1[px] = float4(worldP, roundTripError);
-    _OutDiag2[px] = countLit;
+    result.diag0 = float4(indexF, inRange, refDepth, centerAtlasDepth);
+    result.diag1 = float4(worldP, roundTripError);
+    result.countLit = countLit;
+    return result;
+}
+
+[numthreads(8, 8, 1)]
+void CSResolve(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= (int)_ScreenSize.x || (int)id.y >= (int)_ScreenSize.y) return;
+    int2 px = int2(id.xy);
+    ResolveResult resolved = ResolvePixel(px);
+    _OutG[px] = resolved.selfShadow;
+    _OutDiag0[px] = resolved.diag0;
+    _OutDiag1[px] = resolved.diag1;
+    _OutDiag2[px] = resolved.countLit;
+}
+
+// Live entry point: only the two channels the official R8G8 target carries. R stays 1
+// because the directional half of that target (event 744) is not reproduced here; URP's
+// own main-light shadow feeds directionalShadow in the character shader instead. G is
+// quantised to 8 bits explicitly because the runtime target is float, so the character
+// shader reads the same value the official R8G8 store handed it. saturate flushes a
+// non-finite G to 0, which is what the official 8-bit store does too.
+[numthreads(8, 8, 1)]
+void CSResolveScreen(uint3 id : SV_DispatchThreadID)
+{
+    if ((int)id.x >= (int)_ScreenSize.x || (int)id.y >= (int)_ScreenSize.y) return;
+    int2 px = int2(id.xy);
+    float g = ResolvePixel(px).selfShadow;
+    _OutScreen[px] = float2(1.0, round(saturate(g) * 255.0) / 255.0);
 }
