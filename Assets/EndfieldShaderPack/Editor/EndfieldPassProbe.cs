@@ -5,6 +5,7 @@ using System.Text;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace EndfieldShaderPack
 {
