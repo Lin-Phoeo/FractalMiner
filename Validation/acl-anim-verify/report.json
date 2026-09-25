@@ -1,0 +1,13 @@
+{
+  "clips_loaded": 329,
+  "clips_empty": 4,
+  "total_length_s": 1708.63,
+  "attack01_sample_ok": true,
+  "samples": [
+    "t=0.00s pelvis_world=(0.0000,0.8206,0.0004) delta_bind=0.0000",
+    "t=0.50s pelvis_world=(0.0000,0.8206,0.0004) delta_bind=0.0000",
+    "t=1.50s pelvis_world=(0.0000,0.8206,0.0004) delta_bind=0.0000",
+    "t=2.50s pelvis_world=(0.0000,0.8206,0.0004) delta_bind=0.0000",
+    "t=4.50s pelvis_world=(0.0000,0.8206,0.0004) delta_bind=0.0000"
+  ]
+}
