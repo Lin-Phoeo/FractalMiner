@@ -35,7 +35,36 @@ namespace EndfieldShaderPack.EditorTools
         const int Height = 800;
         const float ExpectedFov = 35f;
         const float CameraGateTolerance = 0.001f;
-        static readonly Vector3 ExpectedCameraPosition = new Vector3(0f, 0.8438638f, 3.1107457f);
+        // Directly reconstructed from the capture's palette translation and camera
+        // offset: child0[12..14] - cam = (0,-0.7799988,-2.9599915), therefore
+        // camera in recovered model space is (0,0.7799988,2.9599915). Do not use
+        // the old scene heuristic (0,0.8438638,3.1107457): it was only close.
+        static readonly Vector3 ExpectedCameraPosition = new Vector3(0f, 0.7799988f, 2.9599915f);
+        // Pitch sign fixed 2026-09-25: capture VP gives forward (0,+0.00811,-0.99997)
+        // (camera looks slightly UP: cw row = (0,0.00811,-0.99997)). The old value
+        // pitched DOWN (forward y=-0.00811), a constant NDC-y error of 0.0515
+        // measured on all 917 body verts (nya = -nyb + 0.0515 exactly). X matched
+        // to 3e-4 NDC, so yaw/position/FOV were already correct.
+        static readonly Quaternion ExpectedCameraRotation = new Quaternion(
+            -1.7726111e-10f, 0.9999918f, +0.0040552616f, -4.371103e-8f);
+        // M5 instance rotation (2026-09-25 PM): the official shader chain is
+        //   inst = child0_3x3 x m + child0_col3 - camOffset
+        // and child0 is a COLUMN-MAJOR cbuffer dump, i.e. R_y(+45.5deg) x m + t.
+        // The character IS rotated +45.5 deg about the model-space origin in the
+        // capture (probe: VP x R_y(+45.5) x m matches frame-6411 post-input bbox
+        // right edge 0.7054 vs 0.7063, and lands dark (on-character) on the
+        // official screenshot, p50 luminance 59 vs 132 for the wrong sign).
+        // An orbit-camera emulation was attempted but its screen-y came out
+        // EXACTLY mirrored (truth_y + orbit_y = 1.0000 on every vertex) for all
+        // 8 quaternion compositions — so instead we rotate the CHARACTER under
+        // an origin pivot and keep the (independently viewport-validated)
+        // frontal camera. Unity's own matrix pipeline then computes V x (R x m)
+        // exactly, with no hand-composed quaternion to get wrong.
+        static readonly float M5InstanceYawDeg = 45.5f;
+        // Screen-space evidence (`pose-screentruth-03`) proves `pose_apply` is
+        // already expressed in the recovered model orientation (variant C hits
+        // every exported vertex). Do not apply child0's 3x3 again.
+        static readonly Matrix4x4 CaptureInstanceRotation = Matrix4x4.identity;
 
         public static void RunPoseApply()
         {
@@ -108,7 +137,7 @@ namespace EndfieldShaderPack.EditorTools
                 Matrix4x4 pose;
                 if (t != armature && poses.TryGetValue(t.name, out pose))
                 {
-                    newWorld[t] = rootFix * pose;
+                    newWorld[t] = rootFix * CaptureInstanceRotation * pose;
                     applied++;
                 }
                 else
@@ -119,20 +148,9 @@ namespace EndfieldShaderPack.EditorTools
             }
             report.Add(string.Format("applied pose: {0}, kept bind: {1}", applied, keptBind));
 
-            foreach (var t in ordered)
-            {
-                if (t == armature) continue;
-                Matrix4x4 parentWorld = t.parent != null && newWorld.ContainsKey(t.parent)
-                    ? newWorld[t.parent]
-                    : Matrix4x4.identity;
-                Matrix4x4 local = parentWorld.inverse * newWorld[t];
-                t.localPosition = local.GetColumn(3);
-                t.localRotation = local.rotation;
-                t.localScale = local.lossyScale;
-            }
-
-            // G1/G2 bone evidence — WORLD frame (char root at origin, upright after
-            // rootFix, so world coords == capture model coords).
+            // G1/G2 bone evidence — evaluated UPRIGHT (capture model space, char root
+            // at origin so world coords == capture model coords). Captured here, BEFORE
+            // the M5 pivot rotates the character.
             string[] probes = { "Bip001_Head", "Bip001_L_Hand", "Bip001_R_Hand", "Bip001_Pelvis" };
             bool g1 = false, g2l = false, g2r = false;
             var probeJson = new List<string>();
@@ -148,22 +166,146 @@ namespace EndfieldShaderPack.EditorTools
                 if (name == "Bip001_R_Hand") g2r = rel.y >= 0.85f && rel.y <= 1.25f && Mathf.Abs(rel.x) >= 0.05f && Mathf.Abs(rel.x) <= 0.45f;
             }
 
+            foreach (var t in ordered)
+            {
+                if (t == armature) continue;
+                Matrix4x4 parentWorld = t.parent != null && newWorld.ContainsKey(t.parent)
+                    ? newWorld[t.parent]
+                    : Matrix4x4.identity;
+                Matrix4x4 local = parentWorld.inverse * newWorld[t];
+                t.localPosition = local.GetColumn(3);
+                t.localRotation = local.rotation;
+                t.localScale = local.lossyScale;
+            }
+
+            // M5: now pivot the whole character about the origin to match the
+            // capture's instance transform (see comment at M5InstanceYawDeg).
+            // The pivot is applied by rotating armature's PARENT (chr root, which
+            // carries the -90degX upright correction). Empirical result (probe
+            // 2026-09-25 14:34): chrRoot = Euler(0,-45.5,0) yields world =
+            // yaw(+45.5 numeric) * Rx(90) * upright — measured delta +45.5deg in
+            // the capture's numeric convention, which is exactly R_y(+45.5).
+            // CRITICAL: the pivot must go on armature's PARENT — writing armature
+            // itself does nothing (its own transform write is skipped).
+            // Compose: new chr rotation = yaw * original(-90degX). REPLACING the
+            // -90X cancels it against the upright worlds (rootFix baked its
+            // inverse) and tips the character over (the Rx(90) seen in probes).
+            // Yaw sign: Unity Euler(0,+45.5,0)*Euler(-90,0,0) yields the capture's
+            // numeric R_y(+45.5) form (x' = c·x + s·z); the -45.5 variant produced
+            // the mirrored R_y(-45.5) (probe 2026-09-25 14:47: pelvis landed at
+            // (0.0142, 0.8149, -0.0608) = form2 instead of (-0.0611, ...)).
+            Quaternion pivotRot = Quaternion.Euler(0f, M5InstanceYawDeg, 0f)
+                                  * Quaternion.Euler(-90f, 0f, 0f);
+            Transform pivotParent = armature.parent != null ? armature.parent : armature;
+            pivotParent.localRotation = pivotRot;
+            // The upright pose-apply loop above already wrote bone locals that
+            // render the character upright under the ORIGINAL chr rotation.
+            // Rotating ONLY pivotParent (chr root) by R_y(-45.5 LH) swings the
+            // whole upright character to R_y(+45.5 numeric). Bone locals stay at
+            // the upright pose values written by the loop above — do NOT rewrite
+            // them here (rewriting each bone's local from a "world" TRS double-
+            // rotates, because per-bone world TRS's compose down the chain).
+            // newWorld2 kept only for the post-pivot dump bookkeeping below.
+
+            // Bone-world dump AFTER the pivot — records the actual rendered worlds.
+            var dumpSb = new System.Text.StringBuilder();
+            dumpSb.Append("{");
+            bool dumpFirst = true;
+            foreach (var t in ordered)
+            {
+                if (!dumpFirst) dumpSb.Append(",");
+                dumpFirst = false;
+                Vector3 wp = t.position;
+                dumpSb.Append(string.Format(CultureInfo.InvariantCulture,
+                    "\"{0}\":[{1:R},{2:R},{3:R}]", t.name, wp.x, wp.y, wp.z));
+            }
+            dumpSb.Append("}");
+            File.WriteAllText("Logs/bone-world-dump.json", dumpSb.ToString());
+
             var camera = Camera.main;
             if (camera == null) throw new InvalidOperationException("No main camera in scene.");
-            // The captured target is 2560x1600 (aspect 1.6). The previous 1280x720
-            // validation silently rendered at 16:9, so it could not be used for M5
-            // pixel alignment even though the pose-only bone gates passed.
+            // The captured target is 2560x1600 (aspect 1.6). Re-apply the camera
+            // reconstructed from capture constants instead of trusting the old scene
+            // approximation. This is in-memory only; the recovered scene is never saved.
             camera.aspect = Width / (float)Height;
+            camera.fieldOfView = ExpectedFov;
+            camera.transform.SetPositionAndRotation(ExpectedCameraPosition, ExpectedCameraRotation);
             float cameraPositionError = Vector3.Distance(camera.transform.position, ExpectedCameraPosition);
+            float cameraRotationError = Quaternion.Angle(camera.transform.rotation, ExpectedCameraRotation);
             float cameraFovError = Mathf.Abs(camera.fieldOfView - ExpectedFov);
             float cameraAspectError = Mathf.Abs(camera.aspect - 1.6f);
             bool g3 = cameraPositionError <= CameraGateTolerance
+                && cameraRotationError <= CameraGateTolerance
                 && cameraFovError <= CameraGateTolerance
                 && cameraAspectError <= CameraGateTolerance;
             report.Add(string.Format(CultureInfo.InvariantCulture,
-                "camera: pos=({0:F7},{1:F7},{2:F7}), fov={3:F4}, aspect={4:F4}, posErr={5:E3}, fovErr={6:E3}, aspectErr={7:E3}",
+                "camera: pos=({0:F7},{1:F7},{2:F7}), fov={3:F4}, aspect={4:F4}, posErr={5:E3}, rotErr={6:E3}, fovErr={7:E3}, aspectErr={8:E3}",
                 camera.transform.position.x, camera.transform.position.y, camera.transform.position.z,
-                camera.fieldOfView, camera.aspect, cameraPositionError, cameraFovError, cameraAspectError));
+                camera.fieldOfView, camera.aspect, cameraPositionError, cameraRotationError, cameraFovError, cameraAspectError));
+            // Real-pipeline projection probes: where does Unity's actual camera
+            // place the capture bone positions on screen? Offline comparison
+            // against capture-VP truth isolates projection-vs-mesh discrepancies.
+            var vpSb = new System.Text.StringBuilder();
+            vpSb.Append("{\"probes\":{");
+            bool vpFirst = true;
+            foreach (var name in probes)
+            {
+                Transform t;
+                if (!byName.TryGetValue(name, out t)) continue;
+                if (!vpFirst) vpSb.Append(",");
+                vpFirst = false;
+                Vector3 sp = camera.WorldToViewportPoint(t.position);
+                vpSb.Append(string.Format(CultureInfo.InvariantCulture,
+                    "\"{0}\":[{1:R},{2:R},{3:R}]", name, sp.x, sp.y, sp.z));
+            }
+            vpSb.Append("},\"smrBounds\":{");
+            bool smrFirst = true;
+            var baked = new Mesh();
+            var bakedVerts = new List<Vector3>();
+            foreach (var smr in charRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (!smrFirst) vpSb.Append(",");
+                smrFirst = false;
+                // smr.bounds can be stale import data; bake the true skinned mesh
+                // and measure world-space AABB + centroid directly.
+                smr.BakeMesh(baked);
+                baked.GetVertices(bakedVerts);
+                var l2w = smr.localToWorldMatrix;
+                Vector3 mn = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+                Vector3 mx = new Vector3(float.MinValue, float.MinValue, float.MinValue);
+                Vector3 sum = Vector3.zero;
+                foreach (var lv in bakedVerts)
+                {
+                    Vector3 wv = l2w.MultiplyPoint3x4(lv);
+                    mn = Vector3.Min(mn, wv);
+                    mx = Vector3.Max(mx, wv);
+                    sum += wv;
+                }
+                Vector3 centroid = bakedVerts.Count > 0 ? sum / bakedVerts.Count : Vector3.zero;
+                vpSb.Append(string.Format(CultureInfo.InvariantCulture,
+                    "\"{0}\":{{\"verts\":{1},\"min\":[{2:R},{3:R},{4:R}],\"max\":[{5:R},{6:R},{7:R}],\"centroid\":[{8:R},{9:R},{10:R}]",
+                    smr.name, bakedVerts.Count, mn.x, mn.y, mn.z, mx.x, mx.y, mx.z, centroid.x, centroid.y, centroid.z));
+                // Project the 8 AABB corners through the REAL Unity camera to find
+                // which SMR paints screen region below y=0.83 (the M5 bottom gap).
+                vpSb.Append(",\"screenCorners\":[");
+                bool cFirst = true;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 corner = new Vector3(
+                        (i & 1) == 0 ? mn.x : mx.x,
+                        (i & 2) == 0 ? mn.y : mx.y,
+                        (i & 4) == 0 ? mn.z : mx.z);
+                    Vector3 svp = camera.WorldToViewportPoint(corner);
+                    if (!cFirst) vpSb.Append(",");
+                    cFirst = false;
+                    vpSb.Append(string.Format(CultureInfo.InvariantCulture,
+                        "[{1:R},{2:R},{3:R}]", i, svp.x, svp.y, svp.z));
+                }
+                vpSb.Append("]}");
+            }
+            UnityEngine.Object.DestroyImmediate(baked);
+            vpSb.Append("}}");
+            File.WriteAllText("Logs/projection-probe-dump.json", vpSb.ToString());
             RenderPng(camera, Path.Combine(OutDir, "pose-applied.png"));
 
             bool pass = g1 && g2l && g2r && g3;
