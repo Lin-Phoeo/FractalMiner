@@ -61,9 +61,12 @@ namespace EndfieldShaderPack.EditorTools
         // frontal camera. Unity's own matrix pipeline then computes V x (R x m)
         // exactly, with no hand-composed quaternion to get wrong.
         static readonly float M5InstanceYawDeg = 45.5f;
-        // Screen-space evidence (`pose-screentruth-03`) proves `pose_apply` is
-        // already expressed in the recovered model orientation (variant C hits
-        // every exported vertex). Do not apply child0's 3x3 again.
+        // (2026-09-25 PM) The comment below is SUPERSEDED: variant C was a
+        // mis-attribution. The official shader chain is variant A — child0 is a
+        // COLUMN-MAJOR cbuffer dump, so the character IS rotated R_y(+45.5) about
+        // the model-space origin. The pivot is applied AFTER the upright pose
+        // apply by rotating chr root; see the M5 pivot block below and
+        // HANDOFF-2026-09-25-m5-geometry-solved.md §1.3/§1.5.
         static readonly Matrix4x4 CaptureInstanceRotation = Matrix4x4.identity;
 
         public static void RunPoseApply()
@@ -181,10 +184,10 @@ namespace EndfieldShaderPack.EditorTools
             // M5: now pivot the whole character about the origin to match the
             // capture's instance transform (see comment at M5InstanceYawDeg).
             // The pivot is applied by rotating armature's PARENT (chr root, which
-            // carries the -90degX upright correction). Empirical result (probe
-            // 2026-09-25 14:34): chrRoot = Euler(0,-45.5,0) yields world =
-            // yaw(+45.5 numeric) * Rx(90) * upright — measured delta +45.5deg in
-            // the capture's numeric convention, which is exactly R_y(+45.5).
+            // carries the -90degX upright correction). Verified final result
+            // (run 2026-09-25 14:48): bone worlds AND real-pipeline viewport
+            // probes match capture truth at L1 = 0.00000 with the composition
+            // below (yaw +45.5 composed onto -90X).
             // CRITICAL: the pivot must go on armature's PARENT — writing armature
             // itself does nothing (its own transform write is skipped).
             // Compose: new chr rotation = yaw * original(-90degX). REPLACING the
