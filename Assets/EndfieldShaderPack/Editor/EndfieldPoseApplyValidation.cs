@@ -23,6 +23,8 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace EndfieldShaderPack.EditorTools
 {
@@ -91,6 +93,36 @@ namespace EndfieldShaderPack.EditorTools
         {
             Directory.CreateDirectory(OutDir);
             var report = new List<string>();
+            // The M5 color gates need the M3 character self-shadow chain actually
+            // executing inside this render. The chain lives on the generated
+            // CapturedRenderer (renderer feature), which is only reachable while
+            // the captured pipeline is the project's active one. Activate it for
+            // the duration of this run and ALWAYS restore in the finally block —
+            // restore is idempotent (no state file -> no-op), and the "only
+            // restore what this run activated" rule is honored by remembering
+            // whether activation was already on when we entered.
+            bool pipelineWasActivated = EndfieldCapturedPipelineActivation.IsActivated;
+            if (!pipelineWasActivated)
+                EndfieldCapturedPipelineActivation.Activate();
+            try
+            {
+                RunPoseApplyCore(report);
+            }
+            finally
+            {
+                if (!pipelineWasActivated)
+                {
+                    // Leave whatever scene is open before restoring so no later
+                    // scene save can flush the activated settings (same rule as
+                    // EndfieldCapturedSceneBuilder.BuildAndValidate).
+                    EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                    EndfieldCapturedPipelineActivation.Restore();
+                }
+            }
+        }
+
+        static void RunPoseApplyCore(List<string> report)
+        {
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             var poses = LoadPose(PosePath);
             report.Add("pose file bones: " + poses.Count);
@@ -108,6 +140,22 @@ namespace EndfieldShaderPack.EditorTools
                 if (sceneRoot.name == "chr_0034_typhoea_rebuilt") { charRoot = sceneRoot.transform; break; }
             }
             if (charRoot == null) throw new InvalidOperationException("chr_0034_typhoea_rebuilt not found in " + ScenePath);
+            // Transient self-shadow caster: the M3 chain requires an active
+            // EndfieldCharacterShadowCaster in the scene. The recovered scene
+            // predates the feature, so attach one in memory for this run only —
+            // destroyed at the end and the scene is NEVER saved (same pattern as
+            // EndfieldCapturedSceneBuilder.Build, but without EditorUtility.SetDirty).
+            EndfieldCharacterShadowCaster transientShadowCaster =
+                charRoot.GetComponent<EndfieldCharacterShadowCaster>();
+            bool casterWasTransient = transientShadowCaster == null;
+            if (casterWasTransient)
+            {
+                transientShadowCaster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+                transientShadowCaster.slot = 0;
+            }
+            EndfieldCharacterShadowCaster.Refresh();
+            report.Add("shadow caster: " + (casterWasTransient ? "transient (added)" : "existing")
+                + ", active=" + EndfieldCharacterShadowCaster.Active.Count);
             Transform pelvis = FindDeep(charRoot, "Bip001_Pelvis");
             if (pelvis == null) throw new InvalidOperationException("Bip001_Pelvis not found under " + charRoot.name);
             Transform armature = pelvis;
@@ -383,6 +431,11 @@ namespace EndfieldShaderPack.EditorTools
             var postTarget = new RenderTexture(Width, Height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
             var postReadback = new Texture2D(Width, Height, TextureFormat.RGBAFloat, false, true);
             var postPng = new Texture2D(Width, Height, TextureFormat.RGBA32, false, true);
+            var bloomShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/EndfieldShaderPack/EndfieldCapturedBloom.compute");
+            if (bloomShader == null) throw new InvalidOperationException("Captured bloom compute missing.");
+            var dynamicBloom = new EndfieldCapturedBloom(bloomShader);
+            RTHandle bloomSource = null;
+            CommandBuffer bloomCommand = null;
             try
             {
                 // Set every uniform CapturedPost expects (mirrors profile.ApplyTo
@@ -399,7 +452,9 @@ namespace EndfieldShaderPack.EditorTools
                 postMaterial.SetVector("_EndfieldPostVignette1", new Vector4(0.5f, 0.5f, 0f, 0f));
                 postMaterial.SetVector("_EndfieldPostVignette2", new Vector4(0.9f, 2.05f, 1.3f, 0f));
                 postMaterial.SetVector("_EndfieldPostVignetteColor", new Vector4(0.06666667f, 0.06717458f, 0.07450981f, 1f));
-                postMaterial.SetVector("_EndfieldPostOptions", new Vector4(1f, 1f, 1f, 0f)); // sharpen+vignette+dither
+                // Keep the frozen profile's captured sharpness (.3), rather than
+                // treating this x component as a boolean enable flag.
+                postMaterial.SetVector("_EndfieldPostOptions", new Vector4(0.30000001192092896f, 1f, 1f, 0f)); // sharpen+vignette+dither
                 postMaterial.SetFloat("_EndfieldPostOutputMode", 1f);                        // live: decode to linear for sRGB write
                 postMaterial.SetVector("_EndfieldPostSourceUV", new Vector4(1f, 1f, 0f, 0f));
                 postMaterial.SetVector("_EndfieldPostBloomUV", new Vector4(1f, 1f, 0f, 0f));
@@ -412,32 +467,61 @@ namespace EndfieldShaderPack.EditorTools
                 {
                     camera.targetTexture = litTarget;
                     camera.Render();
+                    // Preserve the former black-Bloom output as an A/B artifact.
+                    // It is not used as the current M5 colour target.
                     Graphics.Blit(litTarget, postTarget, postMaterial, 1);
-                    RenderTexture.active = postTarget;
-                    postReadback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
-                    postReadback.Apply();
-                    var pixels = postReadback.GetPixels();
-                    for (int i = 0; i < pixels.Length; i++)
-                    {
-                        Color p = pixels[i];
-                        if (float.IsNaN(p.r + p.g + p.b) || float.IsInfinity(p.r + p.g + p.b))
-                            throw new InvalidOperationException("Nonfinite captured-post output.");
-                        pixels[i] = p.gamma; // linear readback -> PNG encoding, exactly once
-                    }
-                    postPng.SetPixels(pixels);
-                    postPng.Apply();
-                    File.WriteAllBytes(Path.Combine(OutDir, "pose-applied-lit-post.png"), postPng.EncodeToPNG());
+                    WriteLinearPostPng(postTarget, postReadback, postPng,
+                        Path.Combine(OutDir, "pose-applied-lit-post-nobloom.png"));
+
+                    // Reuse the capture-validated dynamic 17-dispatch graph. Do
+                    // not bind resource 58923 here: that would paste one static
+                    // captured frame over a moving pose instead of generating
+                    // Bloom from this camera's current HDR scene colour.
+                    bloomSource = RTHandles.Alloc(litTarget);
+                    if (!dynamicBloom.Setup(litTarget.descriptor))
+                        throw new InvalidOperationException("Captured dynamic Bloom unsupported: " + dynamicBloom.StorageSupportDescription);
+                    bloomCommand = new CommandBuffer { name = "Pose-apply captured dynamic Bloom" };
+                    RTHandle generatedBloom = dynamicBloom.Render(bloomCommand, bloomSource, 1f);
+                    Graphics.ExecuteCommandBuffer(bloomCommand);
+                    if (generatedBloom == null || generatedBloom.rt == null)
+                        throw new InvalidOperationException("Captured dynamic Bloom did not produce an output.");
+                    postMaterial.SetTexture("_EndfieldPostBloom", generatedBloom.rt);
+                    Graphics.Blit(litTarget, postTarget, postMaterial, 1);
+                    WriteLinearPostPng(postTarget, postReadback, postPng,
+                        Path.Combine(OutDir, "pose-applied-lit-post.png"));
                 }
                 finally
                 {
                     camera.targetTexture = previousTarget;
                     RenderTexture.active = previousActive;
                 }
-                report.Add("captured post blit applied (LUT+exposure+sharpen+vignette+dither, bloom=black)");
+                report.Add("captured post blit applied (LUT+exposure+sharpen+vignette+dither, dynamic 17-dispatch bloom)");
+
+                // ---- HARD GATE: the M3 self-shadow chain must have actually
+                // executed inside the camera.Render() above. "Module exists and
+                // passed before" is not evidence — this run must prove execution
+                // (contract: Tools/tests/test_pose_apply_post_contract.py).
+                // Validation hooks live on CharacterShadowPass (the public pass
+                // class), not on the feature.
+                string skipReason = EndfieldCharacterShadowFeature.LastSkipReason;
+                bool resolvedReady = CharacterShadowPass.LastResolved != null;
+                float gateValue = Shader.GetGlobalFloat(CharacterShadowPass.SelfShadowGateName);
+                report.Add("self-shadow evidence: skipReason=\"" + skipReason
+                    + "\", resolved=" + (resolvedReady ? CharacterShadowPass.LastResolved.width + "x" + CharacterShadowPass.LastResolved.height : "NULL")
+                    + ", gate=" + gateValue.ToString("F1"));
+                if (!string.IsNullOrEmpty(skipReason))
+                    throw new InvalidOperationException("Character self-shadow chain skipped: " + skipReason);
+                if (!resolvedReady)
+                    throw new InvalidOperationException("Character self-shadow resolve RT missing after render.");
+                if (gateValue < 0.5f)
+                    throw new InvalidOperationException("Self-shadow gate global not enabled after render.");
             }
             finally
             {
-                litTarget.Release();
+                bloomCommand?.Release();
+                dynamicBloom.Dispose();
+                if (bloomSource != null) bloomSource.Release();
+                else litTarget.Release();
                 postTarget.Release();
                 UnityEngine.Object.DestroyImmediate(litTarget);
                 UnityEngine.Object.DestroyImmediate(postTarget);
@@ -458,7 +542,14 @@ namespace EndfieldShaderPack.EditorTools
             File.WriteAllText(Path.Combine(OutDir, "pose-apply-report.json"), json);
             Debug.Log("[PoseApply] pass=" + pass + " | " + string.Join(" | ", report.ToArray()));
             if (!pass) throw new InvalidOperationException("Pose-apply gates failed, see pose-apply-report.json");
-            // Never save the scene.
+            // Transient caster teardown. The scene is never saved, so even on an
+            // exception path the empty-scene switch in RunPoseApply's finally
+            // discards it; this explicit destroy covers the normal path.
+            if (casterWasTransient)
+            {
+                UnityEngine.Object.DestroyImmediate(transientShadowCaster);
+                EndfieldCharacterShadowCaster.Refresh();
+            }
         }
 
         static Dictionary<string, Matrix4x4> LoadPose(string path)
@@ -526,6 +617,29 @@ namespace EndfieldShaderPack.EditorTools
                 RenderTexture.active = previousActive;
                 target.Release();
             }
+        }
+
+        static void WriteLinearPostPng(RenderTexture source, Texture2D readback, Texture2D png, string path)
+        {
+            RenderTexture previous = RenderTexture.active;
+            try
+            {
+                RenderTexture.active = source;
+                readback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+                readback.Apply();
+                var pixels = readback.GetPixels();
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    Color p = pixels[i];
+                    if (float.IsNaN(p.r + p.g + p.b) || float.IsInfinity(p.r + p.g + p.b))
+                        throw new InvalidOperationException("Nonfinite captured-post output.");
+                    pixels[i] = p.gamma; // Linear readback -> encoded PNG exactly once.
+                }
+                png.SetPixels(pixels);
+                png.Apply();
+                File.WriteAllBytes(path, png.EncodeToPNG());
+            }
+            finally { RenderTexture.active = previous; }
         }
     }
 }

@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Iterable
 
 from PIL import Image, ImageChops, ImageDraw
+from prepare_pose_color_references import require_compatible_stages
 
 # Fixed before the first M5 measurement run on 2026-09-25.
 THRESHOLDS = {
@@ -42,6 +43,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--current", default="Validation/pose-apply-01/pose-applied.png")
     parser.add_argument("--out", default="Validation/pose-official-compare-01")
     parser.add_argument(
+        "--reference-stage", choices=("official", "prepost", "post"), default="official",
+        help="Color domain of --official. 'post' is event1205 ResourceId 19599; "
+        "'prepost' is event1205 ResourceId 19394 and is geometry-only unless compared in linear HDR.",
+    )
+    parser.add_argument(
+        "--current-stage", choices=("prepost", "post"), default="prepost",
+        help="Color domain of --current. pose-applied-lit-post.png is 'post'.",
+    )
+    parser.add_argument(
         "--truth",
         action="store_true",
         help="Baseline is the frame-6411 post-input texture (already tonemapped "
@@ -52,6 +62,22 @@ def parse_args() -> argparse.Namespace:
         "mask-truncation behavior, never the acceptance limits.",
     )
     return parser.parse_args()
+
+
+def validate_comparison_stages(reference_stage: str, current_stage: str) -> None:
+    """Reject the false M5 gate that compared post output to HDR input preview."""
+    if reference_stage == "official":
+        return
+    if reference_stage == "prepost":
+        raise ValueError(
+            "Resource 19394 prepost preview is not a display-domain color target; "
+            "use it only for geometry, or compare shared linear-HDR buffers."
+        )
+    require_compatible_stages(reference_stage, current_stage)
+
+
+def should_clip_official_floor(reference_stage: str) -> bool:
+    return reference_stage == "official"
 
 
 def rgb_distance(a: tuple[int, int, int], b: tuple[int, int, int]) -> float:
@@ -245,6 +271,11 @@ def draw_overlay(official: Image.Image, current: Image.Image, off_mask: Image.Im
 
 def main() -> int:
     args = parse_args()
+    if args.truth:
+        if args.reference_stage != "official":
+            raise ValueError("--truth and --reference-stage cannot both choose a capture stage")
+        args.reference_stage = "prepost"
+    validate_comparison_stages(args.reference_stage, args.current_stage)
     official_path = Path(args.official)
     current_path = Path(args.current)
     out_dir = Path(args.out)
@@ -262,7 +293,7 @@ def main() -> int:
     # In --truth mode the baseline is the frame-6411 post-input texture, which
     # has no segmentation truncation (its legs band 0.84-0.94 is real geometry
     # proven by projection probes), so the exclusion band is NOT applied.
-    if not args.truth:
+    if should_clip_official_floor(args.reference_stage):
         official_mask_draw = ImageDraw.Draw(official_mask)
         official_mask_draw.rectangle(
             (0, int(WORK_SIZE[1] * OFFICIAL_CHARACTER_Y_MAX_NORM), WORK_SIZE[0], WORK_SIZE[1]),
@@ -308,6 +339,8 @@ def main() -> int:
             "current_size": list(current_source.size),
             "work_size": list(WORK_SIZE),
             "truth_mode": bool(args.truth),
+            "reference_stage": args.reference_stage,
+            "current_stage": args.current_stage,
         },
         "thresholds_fixed_before_first_run": THRESHOLDS,
         "segmentation": {
@@ -330,10 +363,10 @@ def main() -> int:
         "pass": all(gates.values()),
         "known_exclusions": [
             "The official frame contains a separate book prop absent from the 17-SMR Unity character.",
-            "The current pose render does not yet include the frozen captured post-processing chain or official background.",
+            "The current pose render may omit official background or prop passes; measure those separately.",
         ],
     }
-    if args.truth:
+    if args.reference_stage == "prepost":
         report["known_exclusions"].append(
             "Truth mode: baseline = frame-6411 post-input (Reinhard-tonemapped, "
             "vertically flipped). No official floor-band exclusion applied; the "
