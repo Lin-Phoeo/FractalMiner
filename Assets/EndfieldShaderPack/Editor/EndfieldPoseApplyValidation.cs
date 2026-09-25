@@ -69,6 +69,24 @@ namespace EndfieldShaderPack.EditorTools
         // HANDOFF-2026-09-25-m5-geometry-solved.md §1.3/§1.5.
         static readonly Matrix4x4 CaptureInstanceRotation = Matrix4x4.identity;
 
+        // ---- M5 color/lighting integration (2026-09-25 evening) ----
+        // Captured frame 6411 constants, same source as TyphoeusOfficialFrame.cs.
+        // _LightDataBuffer_DirectionalLightDirection is the light TRAVEL direction;
+        // EndfieldCharacterLight.forward points TOWARD the light.
+        static readonly Vector3 LightTravelDir = new Vector3(0.0213893f, -0.642788f, -0.765746f);
+        // Gate thresholds for the captured-lighting color compare (FIXED BEFORE
+        // FIRST RUN per standing user rule; never relaxed afterwards).
+        // Baseline: Validation/pose-official-compare-11 measured region color
+        // 29-44 LSB WITHOUT the captured lighting branch; the gates below judge
+        // the WITH-lighting render against post-input-flipped.png truth.
+        const float ColorGateMeanLsb = 4f;
+        const float ColorGateP95Lsb = 16f;
+        const float ColorGateWithin8Fraction = 0.90f;
+        // Frozen captured post chain (M2): LUT grading + exposure + sharpen +
+        // vignette + dither. Loaded via Shader.Find; the shader/feature files
+        // stay untouched (frozen-module rule).
+        const string CapturedPostShaderName = "Hidden/Endfield/CapturedPost";
+
         public static void RunPoseApply()
         {
             Directory.CreateDirectory(OutDir);
@@ -309,7 +327,124 @@ namespace EndfieldShaderPack.EditorTools
             UnityEngine.Object.DestroyImmediate(baked);
             vpSb.Append("}}");
             File.WriteAllText("Logs/projection-probe-dump.json", vpSb.ToString());
+
+            // Baseline render WITHOUT the captured lighting branch (A of the A/B;
+            // identical to all previous pose-apply runs for comparability).
             RenderPng(camera, Path.Combine(OutDir, "pose-applied.png"));
+
+            // ---- M5 captured-lighting branch (2026-09-25 evening) ----
+            // Inject the frame-6411 _CharacterParamsN globals (CP1.y=1 flat
+            // environment, CP1.w=1 light-direction override CP11.xyz,
+            // _EndfieldCapturedLightIntensity=1.624) plus the captured
+            // environment cube, and aim the separated character light along the
+            // captured travel direction. The scene's EndfieldOfficialFrameGlobals
+            // component has capturedEnvironment={fileID:0}; ApplyGlobals is
+            // called statically here so the in-memory render sees the cube
+            // without touching the saved scene. Editor-mode components' Update()
+            // never runs under camera.Render(), so globals are set imperatively.
+            var globals = UnityEngine.Object.FindObjectOfType<Endfield.EndfieldOfficialFrameGlobals>();
+            if (globals == null) throw new InvalidOperationException(
+                "EndfieldOfficialFrameGlobals missing in " + ScenePath);
+            var envCube = EndfieldCaptureAssets.EnvironmentCube;
+            Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(globals.useSourceShading, envCube);
+            report.Add("captured globals applied; envCube=" + (envCube != null ? envCube.name : "NULL"));
+
+            var charLight = UnityEngine.Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
+            if (charLight == null) throw new InvalidOperationException(
+                "EndfieldCharacterLight missing in " + ScenePath);
+            charLight.useSeparatedLight = true;
+            // forward points TOWARD the light = negative travel direction.
+            charLight.transform.rotation = Quaternion.LookRotation(-LightTravelDir.normalized, Vector3.up);
+            charLight.ApplyLight();
+            report.Add("character light aimed: forward=" + charLight.transform.forward.ToString("F6"));
+
+            // B of the A/B: the same pose/camera with the captured lighting branch live.
+            RenderPng(camera, Path.Combine(OutDir, "pose-applied-lit.png"));
+
+            // ---- M5 captured post-processing pass (frozen M2 chain) ----
+            // Same live-path usage as EndfieldCapturedSceneBuilder.SaveHDRPreview:
+            // scene renders to a LINEAR HDR target, then one manual CapturedPost
+            // blit (LUT grading + exposure + bloom slot + sharpen + vignette +
+            // dither) decodes to Unity's final sRGB write. Live bloom: the
+            // dynamic bloom compute requires the RTHandle pipeline which the
+            // manual-blit path does not construct; bloom slot gets black (the
+            // character occupies a small fraction of frame-6411 bloom energy).
+            var postShader = Shader.Find(CapturedPostShaderName);
+            if (postShader == null || !postShader.isSupported)
+                throw new InvalidOperationException("CapturedPost shader missing or unsupported: " + CapturedPostShaderName);
+            var lut = EndfieldCaptureAssets.Texture("grading-lut");
+            if (lut == null) throw new InvalidOperationException("grading-lut missing; run EndfieldCaptureAssets.ImportAll.");
+            var postMaterial = new Material(postShader);
+            var litTarget = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            // Same contract as EndfieldCapturedSceneBuilder.SaveHDRPreview: the
+            // post shader with outputMode=1 decodes its result to LINEAR; the
+            // target must therefore be Linear, and the PNG encoding happens
+            // exactly once on the CPU (.gamma) — not via an sRGB RT write.
+            var postTarget = new RenderTexture(Width, Height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            var postReadback = new Texture2D(Width, Height, TextureFormat.RGBAFloat, false, true);
+            var postPng = new Texture2D(Width, Height, TextureFormat.RGBA32, false, true);
+            try
+            {
+                // Set every uniform CapturedPost expects (mirrors profile.ApplyTo
+                // with the captured frame-6411 constants; lutUV=(1,-1,0,1) is the
+                // proven EXR row order from EndfieldCapturedSceneBuilder).
+                postMaterial.SetTexture("_EndfieldPostLut", lut);
+                postMaterial.SetTexture("_EndfieldPostBloom", Texture2D.blackTexture);
+                postMaterial.SetVector("_EndfieldPostScreenSize", new Vector4(Width, Height, 1f / Width, 1f / Height));
+                postMaterial.SetVector("_EndfieldPostExposure", new Vector4(1f, 1f, 1.6f, 0.100001f));
+                postMaterial.SetVector("_EndfieldPostLutParameters", new Vector4(1f / 1024f, 1f / 32f, 31f, 1f));
+                postMaterial.SetVector("_EndfieldPostBloomParameters", new Vector4(0.3660402f, 0f, 0f, 0f));
+                postMaterial.SetVector("_EndfieldPostBloomThreshold", new Vector4(0.5225216f, 0.2612508f, 0.5225416f, 0.9568616f));
+                postMaterial.SetVector("_EndfieldPostBloomTint", Vector4.one);
+                postMaterial.SetVector("_EndfieldPostVignette1", new Vector4(0.5f, 0.5f, 0f, 0f));
+                postMaterial.SetVector("_EndfieldPostVignette2", new Vector4(0.9f, 2.05f, 1.3f, 0f));
+                postMaterial.SetVector("_EndfieldPostVignetteColor", new Vector4(0.06666667f, 0.06717458f, 0.07450981f, 1f));
+                postMaterial.SetVector("_EndfieldPostOptions", new Vector4(1f, 1f, 1f, 0f)); // sharpen+vignette+dither
+                postMaterial.SetFloat("_EndfieldPostOutputMode", 1f);                        // live: decode to linear for sRGB write
+                postMaterial.SetVector("_EndfieldPostSourceUV", new Vector4(1f, 1f, 0f, 0f));
+                postMaterial.SetVector("_EndfieldPostBloomUV", new Vector4(1f, 1f, 0f, 0f));
+                postMaterial.SetVector("_EndfieldPostLutUV", new Vector4(1f, -1f, 0f, 1f)); // EXR rows inverted (proven)
+                postMaterial.SetVector("_EndfieldPostScreenUV", new Vector4(1f, 1f, 0f, 0f));
+
+                var previousTarget = camera.targetTexture;
+                var previousActive = RenderTexture.active;
+                try
+                {
+                    camera.targetTexture = litTarget;
+                    camera.Render();
+                    Graphics.Blit(litTarget, postTarget, postMaterial, 1);
+                    RenderTexture.active = postTarget;
+                    postReadback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+                    postReadback.Apply();
+                    var pixels = postReadback.GetPixels();
+                    for (int i = 0; i < pixels.Length; i++)
+                    {
+                        Color p = pixels[i];
+                        if (float.IsNaN(p.r + p.g + p.b) || float.IsInfinity(p.r + p.g + p.b))
+                            throw new InvalidOperationException("Nonfinite captured-post output.");
+                        pixels[i] = p.gamma; // linear readback -> PNG encoding, exactly once
+                    }
+                    postPng.SetPixels(pixels);
+                    postPng.Apply();
+                    File.WriteAllBytes(Path.Combine(OutDir, "pose-applied-lit-post.png"), postPng.EncodeToPNG());
+                }
+                finally
+                {
+                    camera.targetTexture = previousTarget;
+                    RenderTexture.active = previousActive;
+                }
+                report.Add("captured post blit applied (LUT+exposure+sharpen+vignette+dither, bloom=black)");
+            }
+            finally
+            {
+                litTarget.Release();
+                postTarget.Release();
+                UnityEngine.Object.DestroyImmediate(litTarget);
+                UnityEngine.Object.DestroyImmediate(postTarget);
+                UnityEngine.Object.DestroyImmediate(postReadback);
+                UnityEngine.Object.DestroyImmediate(postPng);
+                UnityEngine.Object.DestroyImmediate(postMaterial);
+            }
 
             bool pass = g1 && g2l && g2r && g3;
             string json = "{\"gate_head_y\":" + (g1 ? "true" : "false")

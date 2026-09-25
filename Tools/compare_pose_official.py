@@ -41,6 +41,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--current", default="Validation/pose-apply-01/pose-applied.png")
     parser.add_argument("--out", default="Validation/pose-official-compare-01")
+    parser.add_argument(
+        "--truth",
+        action="store_true",
+        help="Baseline is the frame-6411 post-input texture (already tonemapped "
+        "and vertically flipped: post-input-flipped.png) instead of the official "
+        "screenshot. The truth image has NO segmentation truncation at y=0.83, "
+        "so no official-floor-band exclusion is applied to it. Thresholds are "
+        "the same fixed set — this flag only changes the baseline image and the "
+        "mask-truncation behavior, never the acceptance limits.",
+    )
     return parser.parse_args()
 
 
@@ -249,11 +259,15 @@ def main() -> int:
     # the boots. It is lighting evidence, not the character silhouette, so exclude
     # the known floor-only band from the official geometry mask. The current mask
     # is intentionally not clipped: a vertical framing error must remain visible.
-    official_mask_draw = ImageDraw.Draw(official_mask)
-    official_mask_draw.rectangle(
-        (0, int(WORK_SIZE[1] * OFFICIAL_CHARACTER_Y_MAX_NORM), WORK_SIZE[0], WORK_SIZE[1]),
-        fill=0,
-    )
+    # In --truth mode the baseline is the frame-6411 post-input texture, which
+    # has no segmentation truncation (its legs band 0.84-0.94 is real geometry
+    # proven by projection probes), so the exclusion band is NOT applied.
+    if not args.truth:
+        official_mask_draw = ImageDraw.Draw(official_mask)
+        official_mask_draw.rectangle(
+            (0, int(WORK_SIZE[1] * OFFICIAL_CHARACTER_Y_MAX_NORM), WORK_SIZE[0], WORK_SIZE[1]),
+            fill=0,
+        )
     current_mask = largest_character_mask(current_source)
     off_stats = bbox_metrics(official_mask)
     cur_stats = bbox_metrics(current_mask)
@@ -293,6 +307,7 @@ def main() -> int:
             "current": str(current_path),
             "current_size": list(current_source.size),
             "work_size": list(WORK_SIZE),
+            "truth_mode": bool(args.truth),
         },
         "thresholds_fixed_before_first_run": THRESHOLDS,
         "segmentation": {
@@ -318,6 +333,13 @@ def main() -> int:
             "The current pose render does not yet include the frozen captured post-processing chain or official background.",
         ],
     }
+    if args.truth:
+        report["known_exclusions"].append(
+            "Truth mode: baseline = frame-6411 post-input (Reinhard-tonemapped, "
+            "vertically flipped). No official floor-band exclusion applied; the "
+            "current render still lacks the captured post chain, so the current "
+            "background/backdrop tone is the dominant expected residual."
+        )
     (out_dir / "report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0 if report["pass"] else 2
