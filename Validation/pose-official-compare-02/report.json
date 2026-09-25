@@ -1,0 +1,138 @@
+{
+  "inputs": {
+    "official": "A:\\Hypergryph Launcher\\games\\Arknights Endfield\\FractalMiner\\Validation\\Captures\\tifuluosi-front-20260917\\official-front-1280.png",
+    "official_size": [
+      1280,
+      800
+    ],
+    "current": "A:\\Hypergryph Launcher\\games\\Arknights Endfield\\FractalMiner\\Validation\\pose-apply-01\\pose-applied.png",
+    "current_size": [
+      1280,
+      800
+    ],
+    "work_size": [
+      640,
+      400
+    ]
+  },
+  "thresholds_fixed_before_first_run": {
+    "bbox_center_linf_max": 0.02,
+    "bbox_size_relative_error_max": 0.05,
+    "silhouette_iou_min": 0.85,
+    "region_mean_abs_rgb_max": 4.0,
+    "region_p95_abs_rgb_max": 16.0,
+    "region_within_8_lsb_min": 0.9
+  },
+  "segmentation": {
+    "search_box_norm": [
+      0.28,
+      0.01,
+      0.78,
+      0.94
+    ],
+    "official_character_y_max_norm": 0.83,
+    "background_delta": 22,
+    "seed_chroma_min": 10,
+    "seed_background_delta_min": 18,
+    "max_grow_distance": 12
+  },
+  "official_silhouette": {
+    "pixels": 22250,
+    "bbox_px": [
+      265,
+      21,
+      453,
+      332
+    ],
+    "bbox_norm": [
+      0.4140625,
+      0.0525,
+      0.7078125,
+      0.83
+    ],
+    "center_norm": [
+      0.5609375,
+      0.44125
+    ],
+    "size_norm": [
+      0.29375,
+      0.7775
+    ]
+  },
+  "current_silhouette": {
+    "pixels": 18191,
+    "bbox_px": [
+      238,
+      34,
+      381,
+      369
+    ],
+    "bbox_norm": [
+      0.371875,
+      0.085,
+      0.5953125,
+      0.9225
+    ],
+    "center_norm": [
+      0.48359375,
+      0.50375
+    ],
+    "size_norm": [
+      0.2234375,
+      0.8375
+    ]
+  },
+  "metrics": {
+    "bbox_center_linf": 0.07734374999999999,
+    "bbox_size_relative_error": 0.23936170212765956,
+    "silhouette_iou": 0.447682119205298,
+    "regions": {
+      "head": {
+        "pixels": 5640,
+        "mean_abs_rgb": [
+          69.70815602836879,
+          65.1636524822695,
+          71.54113475177304
+        ],
+        "mean_abs_rgb_max": 71.54113475177304,
+        "p95_abs_rgb": 152.0,
+        "within_8_lsb": 0.01099290780141844
+      },
+      "torso": {
+        "pixels": 13265,
+        "mean_abs_rgb": [
+          58.69868073878628,
+          57.142329438371654,
+          58.2343761779118
+        ],
+        "mean_abs_rgb_max": 58.69868073878628,
+        "p95_abs_rgb": 150.0,
+        "within_8_lsb": 0.024802110817941952
+      },
+      "legs": {
+        "pixels": 7465,
+        "mean_abs_rgb": [
+          69.89189551239116,
+          69.77776289350301,
+          65.76691225720027
+        ],
+        "mean_abs_rgb_max": 69.89189551239116,
+        "p95_abs_rgb": 135.0,
+        "within_8_lsb": 0.05036838580040188
+      }
+    }
+  },
+  "gates": {
+    "bbox_center": false,
+    "bbox_size": false,
+    "silhouette_iou": false,
+    "head_color": false,
+    "torso_color": false,
+    "legs_color": false
+  },
+  "pass": false,
+  "known_exclusions": [
+    "The official frame contains a separate book prop absent from the 17-SMR Unity character.",
+    "The current pose render does not yet include the frozen captured post-processing chain or official background."
+  ]
+}

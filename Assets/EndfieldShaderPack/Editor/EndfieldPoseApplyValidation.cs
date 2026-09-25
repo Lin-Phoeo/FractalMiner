@@ -13,7 +13,8 @@
 //        and |x| within [0.05, 0.45] (book held in front of chest)
 //   (world == capture model coords once pose is pre-multiplied by
 //    inverse(armature.localToWorldMatrix); char root sits at origin)
-//   render: Validation/pose-apply-01/pose-applied.png (1280x720)
+//   G3: captured camera position/FOV/aspect within fixed 0.001 tolerance
+//   render: Validation/pose-apply-01/pose-applied.png (1280x800, captured 1.6 aspect)
 //   report: Validation/pose-apply-01/pose-apply-report.json
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,10 @@ namespace EndfieldShaderPack.EditorTools
         const string PosePath = "Validation/Captures/tifuluosi-front-20260917/pose-full-01/pose_apply.txt";
         const string OutDir = "Validation/pose-apply-01";
         const int Width = 1280;
-        const int Height = 720;
+        const int Height = 800;
+        const float ExpectedFov = 35f;
+        const float CameraGateTolerance = 0.001f;
+        static readonly Vector3 ExpectedCameraPosition = new Vector3(0f, 0.8438638f, 3.1107457f);
 
         public static void RunPoseApply()
         {
@@ -146,12 +150,27 @@ namespace EndfieldShaderPack.EditorTools
 
             var camera = Camera.main;
             if (camera == null) throw new InvalidOperationException("No main camera in scene.");
+            // The captured target is 2560x1600 (aspect 1.6). The previous 1280x720
+            // validation silently rendered at 16:9, so it could not be used for M5
+            // pixel alignment even though the pose-only bone gates passed.
+            camera.aspect = Width / (float)Height;
+            float cameraPositionError = Vector3.Distance(camera.transform.position, ExpectedCameraPosition);
+            float cameraFovError = Mathf.Abs(camera.fieldOfView - ExpectedFov);
+            float cameraAspectError = Mathf.Abs(camera.aspect - 1.6f);
+            bool g3 = cameraPositionError <= CameraGateTolerance
+                && cameraFovError <= CameraGateTolerance
+                && cameraAspectError <= CameraGateTolerance;
+            report.Add(string.Format(CultureInfo.InvariantCulture,
+                "camera: pos=({0:F7},{1:F7},{2:F7}), fov={3:F4}, aspect={4:F4}, posErr={5:E3}, fovErr={6:E3}, aspectErr={7:E3}",
+                camera.transform.position.x, camera.transform.position.y, camera.transform.position.z,
+                camera.fieldOfView, camera.aspect, cameraPositionError, cameraFovError, cameraAspectError));
             RenderPng(camera, Path.Combine(OutDir, "pose-applied.png"));
 
-            bool pass = g1 && g2l && g2r;
+            bool pass = g1 && g2l && g2r && g3;
             string json = "{\"gate_head_y\":" + (g1 ? "true" : "false")
                 + ",\"gate_lhand\":" + (g2l ? "true" : "false")
                 + ",\"gate_rhand\":" + (g2r ? "true" : "false")
+                + ",\"gate_camera\":" + (g3 ? "true" : "false")
                 + ",\"pass\":" + (pass ? "true" : "false")
                 + ",\"notes\":[" + string.Join(",", report.ConvertAll(s => "\"" + s + "\"").ToArray()) + "]"
                 + ",\"preApply\":[" + string.Join(",", preJson.ToArray()) + "]"
