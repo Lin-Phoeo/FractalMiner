@@ -179,7 +179,7 @@ namespace EndfieldShaderPack.EditorTools
             public Vector3 bindDirLocal;   // 绑定时"肩→手"方向（clav.parent 局部空间）
         }
         readonly List<ClavFollow> clavs = new List<ClavFollow>();
-        bool clavFollow = true;
+        bool clavFollow = false;  // 默认关：待骨架快照验证坐标系后再开
         bool clavCaptured;
 
         void CaptureClavicles()
@@ -438,6 +438,56 @@ namespace EndfieldShaderPack.EditorTools
             return null;
         }
 
+        /// <summary>导出当前帧全部骨骼位姿（世界+局部），用于离线精确分析坐标系语义。</summary>
+        void DumpSkeleton()
+        {
+            if (charRoot == null) { status = "先 Load Scene"; Repaint(); return; }
+            var sb = new System.Text.StringBuilder();
+            sb.Append("{\"clip\":\"").Append(clipName).Append("\",\"time\":")
+              .Append(time.ToString("R", System.Globalization.CultureInfo.InvariantCulture))
+              .Append(",\"ikOn\":").Append(clavFollow ? "true" : "false")
+              .Append(",\"rmOn\":").Append(useRm ? "true" : "false")
+              .Append(",\"bones\":[");
+            bool first = true;
+            DumpRec(charRoot, charRoot.name, sb, ref first);
+            sb.Append("]}");
+            string dir = "Validation";
+            if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
+            string path = System.IO.Path.Combine(dir, "skeleton-snapshot.json");
+            System.IO.File.WriteAllText(path, sb.ToString());
+            status = "骨架快照已写入 " + path + "（" + time.ToString("F2") + "s）";
+            Repaint();
+        }
+
+        void DumpRec(Transform t, string path, System.Text.StringBuilder sb, ref bool first)
+        {
+            if (!first) sb.Append(",");
+            first = false;
+            var p = t.position; var lp = t.localPosition;
+            var r = t.rotation; var lr = t.localRotation;
+            sb.Append("{\"path\":\"").Append(path).Append("\",")
+              .Append("\"wp\":[")
+              .Append(p.x.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(p.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(p.z.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append("],")
+              .Append("\"lp\":[")
+              .Append(lp.x.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(lp.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(lp.z.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append("],")
+              .Append("\"lr\":[")
+              .Append(lr.x.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(lr.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(lr.z.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(lr.w.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append("],")
+              .Append("\"wr\":[")
+              .Append(r.x.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(r.y.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(r.z.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append(",")
+              .Append(r.w.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).Append("]}");
+            foreach (Transform c in t)
+                DumpRec(c, path + "/" + c.name, sb, ref first);
+        }
+
         static void Solve(Chain c)
         {
             if (c.target == null) { c.solved = false; c.lastError = -1f; return; }
@@ -492,6 +542,10 @@ namespace EndfieldShaderPack.EditorTools
         void OnGUI()
         {
             scroll = GUILayout.BeginScrollView(scroll);
+
+            // 诊断导出
+            if (GUILayout.Button("导出骨架快照 (当前帧全部骨骼位姿 → Validation/skeleton-snapshot.json)"))
+                DumpSkeleton();
 
             // clip 选择
             GUILayout.Label("Clip", EditorStyles.boldLabel);

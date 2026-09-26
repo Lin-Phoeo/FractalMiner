@@ -163,10 +163,40 @@ EndfieldUnpacker/
 8. MSVC 编译含中文注释的 cpp 会报 C4819 警告 + 字符串字面量换行坑
    （python heredoc 写 \n 注意转义）
 
-## 10. MMD 接入（下一阶段预告）
+## 10. MMD 接入（⚠️ 2026-09-26 更新：出现游戏内现成路线，优先级重排）
+
+### 路线 A（推荐先走）：终末地游戏内 MMD Mod —— 现成、官方渲染质量
+
+**关键情报（2026-09-26 用户发现）**：
+- B 站视频【终末地MMD Mod现已支持导入镜头】https://b23.tv/SXrIAL0
+  （2026-09-26 发布）——社区已实现游戏内 MMD 动画+镜头导入
+- GameBanana 已有舞蹈动画 mod 实例：
+  https://gamebanana.com/mods/668041 （Yvonne 极乐净土，作者 ffll1）
+  - 热键：Alt+> 播放 / Alt+< 暂停 / Alt+Ctrl+/ 面板
+  - 面板支持：播放速度调节 + 进度条拖动
+  - 已知限制：不含表情；LOD 阴影不跟随（大世界）；实验性
+- 工具链背景：XXMI Launcher + EFMI（Endfield Model Importer，3dmigoto 系）
+  - EFMI: https://github.com/SpectrumQT/EFMI-Package
+  - EFMI Tools(Blender): https://github.com/SpectrumQT/EFMI-Tools
+  - 另有 3dmigoto-arknights-endfield 独立启动器分支
+
+**为什么 mod 能"完美"而离线重建难**：动画数据注入游戏运行时后，
+游戏自己的 SkeletonConstrainData/IK/程序驱动层全部正常工作——
+这从反面证实了我们的诊断（离线缺的就是运行时求解层）。
+
+**给用户出视频的最短路径**：装 XXMI Launcher + EFMI → 用社区 MMD mod
+工具链转换 VMD → 游戏内播放 + 镜头导入 → 官方渲染直接录屏。
+Unity 离线管线（本仓库）转为研究/实验平台。
+
+### 路线 B：Unity 离线管线（本仓库，研究向）
 
 - 解码 .anim 已就绪：VMD→anim 用 MMD4Mecanim/VroidMMDTools，姿态源替换
   SampleAnimation 即可，解析 IK rig 不变
 - MMD 动作是"全骨骼关键帧"（无运行时驱动概念）→ 不存在主骨缺失问题，
   接入难度低于官方 battle 动画
-- 建议：先把 §4 躯干链收尾（官方动画正确性），MMD 通路随后
+- **诊断工具已备**：Anim Studio"导出骨架快照"按钮（当前帧全骨骼
+  世界/局部位姿 → Validation/skeleton-snapshot.json）——离线分析的
+  权威数据源，凡是坐标语义疑问都从它取真值，不要手写四元数 FK 猜
+- battle 官方动画的躯干跟随收尾（§4）继续作为研究课题：
+  已确认 IK_Hand 轨=官方求解结果回写（gacha 0 误差），缺肩跟随；
+  Clavicle 跟随（v9，默认关）+ 躯干链 IK 是方向；bone2/3 语义未定
