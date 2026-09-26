@@ -171,6 +171,58 @@ namespace EndfieldShaderPack.EditorTools
             Repaint();
         }
 
+        // ---- Clavicle 跟随（v9）：锁骨朝 IK 目标限幅偏转，扩大手臂可达域 ----
+        class ClavFollow
+        {
+            public Transform clav, upperArm, hand, ikTarget;
+            public Quaternion bindLocalRot;
+            public Vector3 bindDirLocal;   // 绑定时"肩→手"方向（clav.parent 局部空间）
+        }
+        readonly List<ClavFollow> clavs = new List<ClavFollow>();
+        bool clavFollow = true;
+        bool clavCaptured;
+
+        void CaptureClavicles()
+        {
+            clavs.Clear();
+            foreach (var side in new[] { "R", "L" })
+            {
+                var c = Find(charRoot, "Bip001_" + side + "_Clavicle");
+                var ua = Find(charRoot, "Bip001_" + side + "_UpperArm");
+                var hd = Find(charRoot, "Bip001_" + side + "_Hand");
+                var tg = Find(charRoot, "IK_Hand_" + side + "_001");
+                if (c == null || ua == null || hd == null || tg == null) continue;
+                clavs.Add(new ClavFollow
+                {
+                    clav = c, upperArm = ua, hand = hd, ikTarget = tg,
+                    bindLocalRot = c.localRotation,
+                    bindDirLocal = c.parent.InverseTransformDirection(
+                        (hd.position - ua.position).normalized)
+                });
+            }
+            clavCaptured = clavs.Count > 0;
+        }
+
+        void ApplyClavicleFollow()
+        {
+            if (!clavCaptured) return;
+            foreach (var cf in clavs)
+            {
+                Vector3 shoulder = cf.upperArm.position;
+                Vector3 d = cf.ikTarget.position - shoulder;
+                if (d.sqrMagnitude < 1e-6f) continue;
+                Vector3 curDirLocal = cf.clav.parent.InverseTransformDirection(d.normalized);
+                Quaternion delta = Quaternion.FromToRotation(cf.bindDirLocal, curDirLocal);
+                // 限幅 ±55°
+                float ang; Vector3 axis;
+                delta.ToAngleAxis(out ang, out axis);
+                if (float.IsInfinity(axis.x) || float.IsNaN(axis.x)) continue;
+                ang = Mathf.Clamp(ang * Mathf.Rad2Deg, -55f, 55f) * Mathf.Deg2Rad;
+                delta = Quaternion.AngleAxis(ang, axis);
+                cf.clav.localRotation = cf.bindLocalRot * delta;
+            }
+        }
+
         // RM 可视化球（bone1/2/3 的世界位）
         GameObject rmVis;
         readonly Transform[] rmVisNodes = new Transform[4];
@@ -253,6 +305,8 @@ namespace EndfieldShaderPack.EditorTools
             if (clip == null || charRoot == null) return;
             clip.SampleAnimation(charRoot.gameObject, Mathf.Min(time, clip.length));
             if (useRm && rm != null) { ApplyRootMotion(); UpdateRmVisualizers(); }
+            if (!clavCaptured && rm != null) CaptureClavicles();
+            if (clavFollow) ApplyClavicleFollow();
             foreach (var c in chains) Solve(c);
             SceneView.RepaintAll();
         }
@@ -473,6 +527,8 @@ namespace EndfieldShaderPack.EditorTools
                 showBones = EditorGUILayout.Toggle("Draw IK helpers (Scene 视图)", showBones);
                 bool nu = EditorGUILayout.Toggle("Apply RootMotion (驱动 Root 节点)", useRm);
                 if (nu != useRm) { useRm = nu; SampleAndSolve(); }
+                bool ncf = EditorGUILayout.Toggle("Clavicle 跟随 (扩大臂可达域)", clavFollow);
+                if (ncf != clavFollow) { clavFollow = ncf; CaptureClavicles(); SampleAndSolve(); }
                 GUILayout.Label(rmInfo, EditorStyles.wordWrappedMiniLabel);
                 if (rm != null && rm.FrameCount > 0)
                 {
