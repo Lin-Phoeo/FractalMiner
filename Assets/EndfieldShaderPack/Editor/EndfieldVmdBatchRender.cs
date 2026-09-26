@@ -40,7 +40,7 @@ namespace EndfieldShaderPack
         bool driveCamera = true;
         float camYaw;              // 角色背对镜头时 ±180
         bool muxAudio = true;
-        bool flipY = true;         // ReadPixels 是自下而上，出视频必须翻
+        bool flipY = false;        // 当前 D3D11 ReadPixels->PNG 路径已是正确朝向；再翻会倒立
         string status = "";
         Vector2 scroll;
 
@@ -79,7 +79,7 @@ namespace EndfieldShaderPack
             using (new EditorGUI.DisabledScope(!driveCamera))
                 camYaw = EditorGUILayout.Slider("机位偏航（±180）", camYaw, -180f, 360f);
             muxAudio = EditorGUILayout.Toggle("合成音频", muxAudio);
-            flipY = EditorGUILayout.Toggle("垂直翻转（出视频必须开）", flipY);
+            flipY = EditorGUILayout.Toggle("垂直翻转（仅兼容特殊图形后端）", flipY);
 
             GUILayout.Space(8);
             using (new EditorGUI.DisabledScope(!File.Exists(motionPath)))
@@ -122,12 +122,22 @@ namespace EndfieldShaderPack
             return null;
         }
 
-        static Transform EnsureScene(out Camera cam, out bool openedNow)
+        static Transform EnsureScene(out Camera cam, out bool openedNow,
+            out EndfieldCharacterShadowCaster addedCaster)
         {
             openedNow = false;
+            addedCaster = null;
             var root = GameObject.Find(CharRootName)?.transform;
             if (root == null)
             {
+                if (EditorSceneManager.GetActiveScene().isDirty &&
+                    !EditorUtility.DisplayDialog("VMD Batch Render 需要打开基线场景",
+                        "当前场景有未保存修改。继续会放弃这些修改。",
+                        "放弃修改并继续", "取消"))
+                {
+                    cam = null;
+                    return null;
+                }
                 var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                 foreach (var go in scene.GetRootGameObjects())
                     if (go.name == CharRootName) { root = go.transform; break; }
@@ -165,7 +175,12 @@ namespace EndfieldShaderPack
             if (!EndfieldCapturedPipelineActivation.IsActivated)
                 EndfieldCapturedPipelineActivation.Activate();
             var caster = root.GetComponent<EndfieldCharacterShadowCaster>();
-            if (caster == null) caster = root.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+            if (caster == null)
+            {
+                caster = root.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+                caster.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInInspector;
+                addedCaster = caster;
+            }
             caster.slot = 0;
             EndfieldCharacterShadowCaster.Refresh();
 
@@ -178,12 +193,194 @@ namespace EndfieldShaderPack
         }
 
         // ---------- render ----------
+        public static void RunSmokeValidation()
+        {
+            const string validationDir = "Validation/mmd-smoke-01";
+            Directory.CreateDirectory(validationDir);
+            bool pipelineWasActivated = EndfieldCapturedPipelineActivation.IsActivated;
+            EndfieldCharacterShadowCaster addedCaster = null;
+            var samples = new List<string>();
+            try
+            {
+                if (!pipelineWasActivated) EndfieldCapturedPipelineActivation.Activate();
+                var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                Transform root = null;
+                foreach (var go in scene.GetRootGameObjects())
+                {
+                    root = Find(go.transform, CharRootName);
+                    if (root != null) break;
+                }
+                if (root == null) throw new InvalidOperationException("Smoke: character root missing.");
+
+                var caster = root.GetComponent<EndfieldCharacterShadowCaster>();
+                if (caster == null)
+                {
+                    caster = root.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+                    caster.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInInspector;
+                    addedCaster = caster;
+                }
+                caster.slot = 0;
+                EndfieldCharacterShadowCaster.Refresh();
+
+                var globals = FindObjectOfType<Endfield.EndfieldOfficialFrameGlobals>();
+                if (globals != null)
+                    Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(globals.useSourceShading,
+                        EndfieldCaptureAssets.EnvironmentCube);
+                var light = FindObjectOfType<Endfield.EndfieldCharacterLight>();
+                if (light != null)
+                {
+                    light.useSeparatedLight = true;
+                    light.transform.rotation = Quaternion.LookRotation(
+                        -new Vector3(0.0213893f, -0.642788f, -0.765746f).normalized, Vector3.up);
+                    light.ApplyLight();
+                }
+
+                var camera = Camera.main;
+                if (camera == null) throw new InvalidOperationException("Smoke: Main Camera missing.");
+                if (!File.Exists(DefaultMotion)) throw new FileNotFoundException("Smoke motion missing", DefaultMotion);
+                if (!File.Exists(DefaultCamera)) throw new FileNotFoundException("Smoke camera missing", DefaultCamera);
+
+                var motion = Vmd.ReadFile(DefaultMotion);
+                var player = MmdPlayer.Load(motion, root);
+                if (!player.calibrationOk)
+                    throw new InvalidOperationException("Smoke T-pose calibration failed: " + player.profile.calibrationError);
+                int rootId = root.GetInstanceID();
+                var cameraDriver = new MmdCameraDriver { target = camera };
+                cameraDriver.LoadFile(DefaultCamera);
+                if (player.charRoot == null || player.charRoot.GetInstanceID() != rootId)
+                    throw new InvalidOperationException("Smoke camera load invalidated the MMD player root.");
+
+                double duration = motion.Duration;
+                double[] times = { 0.0, duration * 0.25, duration * 0.5, duration * 0.75, duration };
+                string[] motionProbeNames =
+                    { "Bip001_L_UpperArm", "Bip001_R_UpperArm", "Bip001_L_Thigh", "Bip001_R_Thigh" };
+                var motionProbeBase = new Dictionary<string, Quaternion>();
+                float maxProbeAngle = 0f;
+                for (int i = 0; i < times.Length; ++i)
+                {
+                    float timeSec = (float)times[i];
+                    player.Reset();
+                    player.ApplyFrame(timeSec, player.suggestedScale, true, 0f);
+                    cameraDriver.Apply(timeSec, player.suggestedScale, root, player.bindRootWorld);
+                    var head = Find(root, "Bip001_Head");
+                    var pelvis = Find(root, "Bip001_Pelvis");
+                    if (head == null || pelvis == null)
+                        throw new InvalidOperationException("Smoke orientation probes missing.");
+                    Vector3 headViewport = camera.WorldToViewportPoint(head.position);
+                    Vector3 pelvisViewport = camera.WorldToViewportPoint(pelvis.position);
+                    if (headViewport.z <= 0f || pelvisViewport.z <= 0f ||
+                        headViewport.y <= pelvisViewport.y)
+                        throw new InvalidOperationException(string.Format(
+                            "Smoke orientation gate failed at {0:F3}s: headY={1:F4}, pelvisY={2:F4}",
+                            timeSec, headViewport.y, pelvisViewport.y));
+                    foreach (string probeName in motionProbeNames)
+                    {
+                        Transform probe = Find(root, probeName);
+                        if (probe == null)
+                            throw new InvalidOperationException("Smoke motion probe missing: " + probeName);
+                        if (i == 0) motionProbeBase[probeName] = probe.localRotation;
+                        else maxProbeAngle = Mathf.Max(maxProbeAngle,
+                            Quaternion.Angle(motionProbeBase[probeName], probe.localRotation));
+                    }
+                    Vector4 bounds = SkinnedViewportBounds(root, camera);
+                    float width = bounds.z - bounds.x;
+                    if (!IsFinite(bounds) || width < 0.25f || bounds.w <= 0f || bounds.y >= 1f)
+                        throw new InvalidOperationException(string.Format(
+                            "Smoke composition gate failed at {0:F3}s: [{1:F4},{2:F4},{3:F4},{4:F4}] width={5:F4}",
+                            timeSec, bounds.x, bounds.y, bounds.z, bounds.w, width));
+                    string frame = Path.Combine(validationDir, "frame_" + i.ToString("D2") + ".png");
+                    SaveFrame(camera, frame, 1280, 720, false);
+                    samples.Add("{\"time\":" + timeSec.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"bbox\":[" + bounds.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + bounds.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + bounds.z.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + bounds.w.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "],\"width\":" + width.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "}");
+                }
+                if (maxProbeAngle < 5f)
+                    throw new InvalidOperationException("Smoke motion gate failed: max limb rotation=" +
+                        maxProbeAngle.ToString("F3") + "deg");
+
+                string skip = EndfieldCharacterShadowFeature.LastSkipReason;
+                if (!string.IsNullOrEmpty(skip))
+                    throw new InvalidOperationException("Smoke self-shadow skipped: " + skip);
+                File.WriteAllText(Path.Combine(validationDir, "report.json"),
+                    "{\"pass\":true,\"calibration\":true,\"duration\":" +
+                    duration.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"frames30\":" + (Mathf.FloorToInt((float)duration * 30f + 1e-4f) + 1) +
+                    ",\"frames60\":" + (Mathf.FloorToInt((float)duration * 60f + 1e-4f) + 1) +
+                    ",\"maxProbeAngle\":" + maxProbeAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"loadInfo\":\"" + EscapeJson(player.loadInfo) + "\"" +
+                    ",\"rootInstanceId\":" + rootId + ",\"samples\":[" + string.Join(",", samples) + "]}");
+                Debug.Log("[MmdSmoke] PASS calibration=true duration=" + duration.ToString("F3") +
+                          " samples=" + samples.Count);
+            }
+            catch (Exception e)
+            {
+                File.WriteAllText(Path.Combine(validationDir, "report.json"),
+                    "{\"pass\":false,\"error\":\"" + EscapeJson(e.Message) + "\"}");
+                Debug.LogException(e);
+                throw;
+            }
+            finally
+            {
+                if (addedCaster != null) DestroyImmediate(addedCaster);
+                EndfieldCharacterShadowCaster.Refresh();
+                if (!pipelineWasActivated && EndfieldCapturedPipelineActivation.IsActivated)
+                {
+                    EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                    EndfieldCapturedPipelineActivation.Restore();
+                }
+            }
+        }
+
+        static Vector4 SkinnedViewportBounds(Transform root, Camera camera)
+        {
+            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
+            Vector2 max = new Vector2(float.MinValue, float.MinValue);
+            int visible = 0;
+            var mesh = new Mesh();
+            var vertices = new List<Vector3>();
+            try
+            {
+                foreach (var smr in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    if (!smr.enabled || !smr.gameObject.activeInHierarchy) continue;
+                    smr.BakeMesh(mesh);
+                    mesh.GetVertices(vertices);
+                    Matrix4x4 localToWorld = smr.localToWorldMatrix;
+                    foreach (var vertex in vertices)
+                    {
+                        Vector3 viewport = camera.WorldToViewportPoint(localToWorld.MultiplyPoint3x4(vertex));
+                        if (viewport.z <= 0f) continue;
+                        min = Vector2.Min(min, viewport);
+                        max = Vector2.Max(max, viewport);
+                        visible++;
+                    }
+                }
+            }
+            finally { DestroyImmediate(mesh); }
+            if (visible == 0) throw new InvalidOperationException("Smoke: no skinned vertices in front of camera.");
+            return new Vector4(min.x, min.y, max.x, max.y);
+        }
+
+        static bool IsFinite(Vector4 value) =>
+            !(float.IsNaN(value.x + value.y + value.z + value.w) ||
+              float.IsInfinity(value.x + value.y + value.z + value.w));
+
+        static string EscapeJson(string value) => (value ?? "")
+            .Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\r", "\\r").Replace("\n", "\\n");
+
         void RunRender()
         {
             status = "";
-            var root = EnsureScene(out var cam, out bool openedNow);
-            if (root == null) { status = "场景里找不到 " + CharRootName; return; }
-            if (cam == null) { status = "场景里没有 Main Camera"; return; }
+            bool pipelineWasActivated = EndfieldCapturedPipelineActivation.IsActivated;
+            EndfieldCharacterShadowCaster transientShadowCaster = null;
+            try
+            {
+                var root = EnsureScene(out var cam, out bool openedNow, out transientShadowCaster);
+                if (root == null) { status = "场景里找不到 " + CharRootName; return; }
+                if (cam == null) { status = "场景里没有 Main Camera"; return; }
 
             MmdPlayer player;
             var camDriver = new MmdCameraDriver();
@@ -204,13 +401,13 @@ namespace EndfieldShaderPack
 
             int last = frameEnd > 0 ? frameEnd : (int)player.clip.lastFrame;
             if (frameStart > last) { status = "起始帧超过结束帧"; return; }
-            // 帧域约定（统一到 VMD 30fps）：VMD 帧号 f_vmd ∈ [frameStart, last]。
-            // 渲染 fps 只决定输出时长：第 k 张 PNG 对应 vmd 帧号 k + frameStart，
-            // 时间 t=(k+frameStart)/30 —— 与 MMD 原速一致，改 fps 只改输出密度。
-            int total = last - frameStart + 1;
+            // frameStart/frameEnd 是 VMD 的 30fps 帧域；输出 fps 只改变采样密度，
+            // 不改变动作时长。输出帧 k 对应 VMD 帧 frameStart+k*30/fps。
+            double segmentSeconds = (last - frameStart) / 30.0;
+            int total = Mathf.FloorToInt((float)(segmentSeconds * fps) + 1e-4f) + 1;
 
-            string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir));
-            Directory.CreateDirectory(dir);
+            string parentDir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir));
+            string dir = CreateRunDirectory(parentDir);
 
             int w = width - width % 2, h = height - height % 2;
             cam.aspect = (float)w / h;
@@ -234,27 +431,27 @@ namespace EndfieldShaderPack
 
             var sw = Stopwatch.StartNew();
             bool canceled = false;
-            double vmdFps = 30.0;
-            int index = 0;
-            for (int vf = frameStart; vf <= last; vf++, index++)
+            for (int outputFrame = 0; outputFrame < total; outputFrame++)
             {
-                float t = vf / (float)vmdFps;   // VMD 帧号 → 时间（30fps 域）
+                double vmdFrame = Math.Min(last, frameStart + outputFrame * 30.0 / fps);
+                float t = (float)(vmdFrame / 30.0);
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, heightOffset);
                 if (driveCamera && camDriver.HasKeys)
                     camDriver.Apply(t, scale, root, player.bindRootWorld);
-                SaveFrame(cam, Path.Combine(dir, "frame_" + index.ToString("D4") + ".png"), w, h, flipY);
+                SaveFrame(cam, Path.Combine(dir, "frame_" + outputFrame.ToString("D4") + ".png"), w, h, flipY);
                 if (EditorUtility.DisplayCancelableProgressBar("VMD Batch Render",
-                        string.Format("帧 {0}/{1}  ({2:F1}s)", vf, last, t), (float)index / total))
+                        string.Format("输出帧 {0}/{1}  ({2:F1}s)", outputFrame + 1, total, t),
+                        (float)(outputFrame + 1) / total))
                 { canceled = true; break; }
             }
             EditorUtility.ClearProgressBar();
             sw.Stop();
 
-            string mp4 = "";
+            string mp4 = null;
             if (!canceled && muxAudio && File.Exists(audioPath) && FindFfmpeg() != null)
             {
-                mp4 = Mux(dir, audioPath, fps, w, h, out string muxLog);
+                mp4 = Mux(dir, audioPath, fps, w, h, out string muxLog, total);
                 if (mp4 == null) status += "\nffmpeg 失败: " + muxLog;
             }
             status = string.Format(
@@ -264,43 +461,73 @@ namespace EndfieldShaderPack
             if (mp4 != null) EditorUtility.RevealInFinder(mp4);
             Repaint();
             Debug.Log("[VmdBatchRender] " + status);
+            }
+            finally
+            {
+                if (transientShadowCaster != null)
+                    DestroyImmediate(transientShadowCaster);
+                EndfieldCharacterShadowCaster.Refresh();
+                if (!pipelineWasActivated && EndfieldCapturedPipelineActivation.IsActivated)
+                    EndfieldCapturedPipelineActivation.Restore();
+            }
+        }
+
+        static string CreateRunDirectory(string parent)
+        {
+            string run = Path.Combine(parent, "run-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
+            Directory.CreateDirectory(run);
+            return run;
         }
 
         public static void SaveFrame(Camera cam, string path, int w, int h, bool flip)
         {
             var rt = new RenderTexture(w, h, 24);
-            var prevActive = RenderTexture.active;
-            cam.targetTexture = rt;
-            cam.Render();
-            RenderTexture.active = rt;
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
-            if (flip)
+            var previousActive = RenderTexture.active;
+            var previousTarget = cam.targetTexture;
+            Texture2D tex = null;
+            try
             {
-                var px = tex.GetPixels32();
-                for (int y = 0; y < h / 2; y++)
+                cam.targetTexture = rt;
+                cam.Render();
+                RenderTexture.active = rt;
+                tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                tex.ReadPixels(new Rect(0, 0, w, h), 0, 0);
+                if (flip)
                 {
-                    int a = y * w, b = (h - 1 - y) * w;
-                    for (int x = 0; x < w; x++)
+                    var px = tex.GetPixels32();
+                    for (int y = 0; y < h / 2; y++)
                     {
-                        var tmp = px[a + x];
-                        px[a + x] = px[b + x];
-                        px[b + x] = tmp;
+                        int a = y * w, b = (h - 1 - y) * w;
+                        for (int x = 0; x < w; x++)
+                        {
+                            var tmp = px[a + x];
+                            px[a + x] = px[b + x];
+                            px[b + x] = tmp;
+                        }
                     }
+                    tex.SetPixels32(px);
                 }
-                tex.SetPixels32(px);
+                tex.Apply();
+                File.WriteAllBytes(path, tex.EncodeToPNG());
             }
-            tex.Apply();
-            File.WriteAllBytes(path, tex.EncodeToPNG());
-            cam.targetTexture = null;
-            RenderTexture.active = prevActive;
-            UnityEngine.Object.DestroyImmediate(tex);
-            UnityEngine.Object.DestroyImmediate(rt);
+            finally
+            {
+                cam.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                if (tex != null) UnityEngine.Object.DestroyImmediate(tex);
+                rt.Release();
+                UnityEngine.Object.DestroyImmediate(rt);
+            }
         }
 
-        public static string Mux(string dir, string audio, int fps, int w, int h, out string log)
+        public static string Mux(string dir, string audio, int fps, int w, int h,
+            out string log, int frameCount = 0)
         {
             string outMp4 = Path.Combine(dir, "unforgiven.mp4");
+            string audioInput = !string.IsNullOrEmpty(audio) && File.Exists(audio)
+                ? " -i \"" + audio + "\"" : "";
+            string shortest = string.IsNullOrEmpty(audioInput) ? "" : " -shortest";
+            string frameLimit = frameCount > 0 ? " -frames:v " + frameCount : "";
             var psi = new ProcessStartInfo
             {
                 FileName = FindFfmpeg(),
@@ -309,9 +536,9 @@ namespace EndfieldShaderPack
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 Arguments = string.Format(
-                    "-y -framerate {0} -i \"frame_%04d.png\" -i \"{1}\" " +
-                    "-c:v libx264 -pix_fmt yuv420p -crf 18 -r {0} -shortest \"{2}\"",
-                    fps, audio, outMp4),
+                    "-y -framerate {0} -i \"frame_%04d.png\"{1} " +
+                    "-c:v libx264 -pix_fmt yuv420p -crf 18 -r {0}{2}{3} \"{4}\"",
+                    fps, audioInput, frameLimit, shortest, outMp4),
             };
             try
             {

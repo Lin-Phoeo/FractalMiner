@@ -29,6 +29,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public List<MmdTargetBone> bones = new List<MmdTargetBone>();
         public int[] roles = Repeat(-1, 55);
         public string calibrationError = "";   // MakeTPose 失败原因（面板显示）
+        // All profile positions/rotations are relative to charRoot. The M5 root
+        // contains a -90° X pivot, so world up is not profile-local +Y.
+        public Vector3 calibrationUp = Vector3.up;
 
         static int[] Repeat(int v, int n) { var a = new int[n]; for (int i = 0; i < n; i++) a[i] = v; return a; }
 
@@ -103,7 +106,10 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         /// <summary>Build the target profile from the rebuilt Unity hierarchy.</summary>
         public static MmdRetargetProfile FromUnity(Transform charRoot)
         {
-            var prof = new MmdRetargetProfile();
+            var prof = new MmdRetargetProfile
+            {
+                calibrationUp = charRoot.InverseTransformDirection(Vector3.up).normalized
+            };
             var index = new Dictionary<Transform, int>();
 
             // Bones that carry VMD roles: only the mapped subset is needed.
@@ -137,6 +143,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                     localPos = t.localPosition,
                     localRot = t.localRotation,
                     localScale = t.localScale,
+                    // Unity's recovered baseline scene is the bind source for this
+                    // profile, equivalent to the upstream skin-bind calibration.
+                    calibrated = true,
                 };
                 foreach (var (role, boneName) in RoleBindings)
                     if (t.name == boneName) { b.role = role; break; }
@@ -170,9 +179,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         /// Never assumes local axes: a Biped pelvis may be rotated 90° at rest.
         /// </summary>
         static readonly string[] RoleNames = {
-            "hip/pelvis", "R thigh", "L thigh", "R shin", "L shin", "R foot", "L foot",
+            "hip/pelvis", "L thigh", "R thigh", "L shin", "R shin", "L foot", "R foot",
             "spine", "chest", "neck", "head",
-            "R clav", "L clav", "R upperarm", "L upperarm", "R forearm", "L forearm", "R hand", "L hand",
+            "L clav", "R clav", "L upperarm", "R upperarm", "L forearm", "R forearm", "L hand", "R hand",
             "R thumb1", "R thumb2", "R index1", "R index2", "R middle1", "R middle2",
             "L thumb1", "L thumb2", "L index1", "L index2", "L middle1", "L middle2",
             "R ring1", "R ring2", "R ring3", "L ring1", "L ring2", "L ring3",
@@ -187,7 +196,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         {
             var reason = "";
             bool ok = MakeTPose(profile, ref reason);
-            if (!ok) profile.calibrationError = reason;
+            profile.calibrationError = ok ? "" : reason;
             return ok;
         }
 
@@ -196,7 +205,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         {
             var p = ShallowClone(profile); // reject degenerate rigs without partial edit
             p.Globals();
-            var up = Vector3.up;
+            var up = MmdV.Norm(p.calibrationUp);
+            if (up.magnitude < 0.9f)
+            { reason = "角色根坐标系的世界上方向无效"; return false; }
             if (p.roles[0] < 0) { reason = "骨盆 Bip001_Pelvis 未映射到 role"; return false; }
             if (p.roles[7] < 0) { reason = "脊柱 Bip001_Spine 未映射到 role"; return false; }
             foreach (int role in MmdRetargetProfile.RequiredRoles)
@@ -330,14 +341,45 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             }
 
             if (!p.Valid()) { reason = "校准后 profile 校验失败（层级/role 异常）"; return false; }
+            if (!CalibrationTPoseValid(p, up))
+            { reason = "校准姿态方向门禁失败（躯干/四肢未达到 T-pose）"; return false; }
             profile.bones = p.bones;
             profile.roles = p.roles;
+            profile.calibrationUp = p.calibrationUp;
+            return true;
+        }
+
+        static bool CalibrationTPoseValid(MmdRetargetProfile p, Vector3 up)
+        {
+            if (!p.Valid()) return false;
+            Vector3 Direction(int a, int b) => MmdV.Norm(
+                p.bones[p.roles[b]].restPos - p.bones[p.roles[a]].restPos);
+            up = MmdV.Norm(up);
+            Vector3 left = Direction(14, 13);
+            if (Vector3.Dot(Direction(0, 10), up) < 0.94f ||
+                Mathf.Abs(Vector3.Dot(left, up)) > 0.2f)
+                return false;
+            for (int side = 0; side < 2; ++side)
+            {
+                Vector3 arm = left * (side != 0 ? -1f : 1f);
+                if (Vector3.Dot(Direction(13 + side, 15 + side), arm) < 0.94f ||
+                    Vector3.Dot(Direction(15 + side, 17 + side), arm) < 0.94f ||
+                    Vector3.Dot(Direction(1 + side, 3 + side), -up) < 0.94f ||
+                    Vector3.Dot(Direction(3 + side, 5 + side), -up) < 0.94f)
+                    return false;
+            }
             return true;
         }
 
         static MmdRetargetProfile ShallowClone(MmdRetargetProfile src)
         {
-            var dst = new MmdRetargetProfile { bones = new List<MmdTargetBone>(src.bones.Count), roles = (int[])src.roles.Clone() };
+            var dst = new MmdRetargetProfile
+            {
+                bones = new List<MmdTargetBone>(src.bones.Count),
+                roles = (int[])src.roles.Clone(),
+                calibrationUp = src.calibrationUp,
+                calibrationError = src.calibrationError
+            };
             foreach (var b in src.bones) dst.bones.Add(new MmdTargetBone
             {
                 name = b.name, transform = b.transform, parent = b.parent, role = b.role,
@@ -388,7 +430,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         float AmpFor(int role) =>
             role >= 1 && role <= 6 ? ampLegs :
             role == 9 || role == 10 ? ampHead :
-            role >= 11 ? ampArms : ampBody;
+            role >= 11 ? ampArms : 1f;
 
         // role 人名（诊断用）
         static string RoleName(int r) =>
@@ -405,7 +447,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 if (b.parent < 0)
                 {
                     output.worldRot[i] = output.localRot[i];
-                    output.worldPos[i] = output.localRot[i] * b.localPos;
+                    output.worldPos[i] = b.localPos;
                 }
                 else
                 {
@@ -549,20 +591,24 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 {
                     Quaternion desired = MmdQ.Normalize(_basis * _eval.pose.rotations[_sourceRole[r]]
                         * Quaternion.Inverse(_basis) * _alignedRest[r]);
-                    // 分部位幅度（Poser 语义）：角色 r 的绑定局部姿态为基准，
-                    // amplitude=0 回基准，1 原样；整体 ampBody 与部位系数相乘。
+                    // 分部位幅度（Poser 语义）：以当前父骨下的中性世界姿态为基准。
+                    // desired 是世界旋转，不能与 b.localRot（局部旋转）直接插值。
+                    // SlerpUnclamped 保留 1..2 的夸张区间；Slerp/Clamp01 会让
+                    // UI 中所有 >100% 的值悄悄退化成 100%。
                     float amp = ampBody * AmpFor(r);
-                    if (amp < 0.999f || amp > 1.001f)
-                        desired = Quaternion.Slerp(b.localRot, desired, Mathf.Clamp01(amp));
                     Quaternion parent = b.parent >= 0 ? output.worldRot[b.parent] : Quaternion.identity;
+                    Quaternion neutralWorld = MmdQ.Normalize(parent * _neutralLocal[i]);
+                    if (amp < 0.999f || amp > 1.001f)
+                        desired = Quaternion.SlerpUnclamped(neutralWorld, desired, Mathf.Clamp(amp, 0f, 2f));
                     output.localRot[i] = MmdQ.Normalize(Quaternion.Inverse(parent) * desired);
                     output.write[i] = true;
                 }
                 output.worldRot[i] = b.parent >= 0
                     ? MmdQ.Normalize(output.worldRot[b.parent] * output.localRot[i])
                     : output.localRot[i];
-                output.worldPos[i] = output.worldRot[i] * b.localPos
-                    + (b.parent >= 0 ? output.worldPos[b.parent] : Vector3.zero);
+                output.worldPos[i] = b.parent >= 0
+                    ? output.worldPos[b.parent] + output.worldRot[b.parent] * b.localPos
+                    : b.localPos;
             }
             if (hip < 0) return;
 

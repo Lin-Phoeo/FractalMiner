@@ -26,6 +26,9 @@ namespace EndfieldShaderPack
         Camera cam;
         MmdPlayer player;
         readonly MmdCameraDriver camDriver = new MmdCameraDriver();
+        bool ownsPipelineActivation;
+        bool ownsSceneSession;
+        EndfieldCharacterShadowCaster transientShadowCaster;
 
         // 最近一次载入的文件组合（会话内存）
         string lastMotionPath = "";
@@ -68,6 +71,8 @@ namespace EndfieldShaderPack
         {
             playing = false;
             if (camDrive) { camDrive = false; camDriver.Restore(); }
+            ReleaseTransientShadowCaster();
+            ReleasePipelineActivation();
             EditorApplication.update -= Tick;
             EditorApplication.update -= StepRoutine;
         }
@@ -106,11 +111,9 @@ namespace EndfieldShaderPack
         {
             try
             {
+                PrepareForFreshScene();
                 EnsureScene(true);            // 强制重开基线场景 = 干净绑定姿态（校准标准前提）
-                player = null;               // 旧播放器绑的 Transform 已随旧场景销毁
                 lastMotionPath = "";         // 动作也需重载（重新校准）
-                playing = false; time = 0;
-                if (camDrive) { camDrive = false; camDriver.Restore(); }
                 info = "人物已初始化: chr_0034_typhoea_rebuilt + M5 枢轴 + 捕获光照 + 官方后期 + 自阴影\n" +
                        "下一步: 打开动作 VMD（校准自动完成，成功与否看信息行）";
                 ApplyAt(0);
@@ -131,8 +134,8 @@ namespace EndfieldShaderPack
             {
                 // 强制重开基线场景：FromUnity 按当前骨态建 rest，
                 // 脏姿态（上次播放/Studio 遗留）会让 T-pose 校准失败——干净绑定是校准前提
+                PrepareForFreshScene();
                 EnsureScene(true);
-                player = null;   // 旧播放器引用的 Transform 已随旧场景销毁
                 camDriver.target = cam;   // 旧相机句柄随场景更替刷新
                 var clip = Vmd.ReadFile(path);
                 player = MmdPlayer.Load(clip, charRoot);
@@ -159,10 +162,11 @@ namespace EndfieldShaderPack
         {
             try
             {
-                EnsureScene(true);   // 镜头驱动也贴干净场景（相机句柄随场景更替刷新）
-                camDriver.target = cam;
-                if (camDriver.target == null) camDriver.target = cam;
+                // 镜头文件只替换镜头轨，绝不能重开场景：重开会销毁刚由
+                // LoadMotion 创建并绑定的所有 Transform，让 player 当场失效。
+                EnsureScene();
                 if (camDrive) camDriver.Restore();
+                camDriver.target = cam;
                 camDriver.LoadFile(path);
                 lastCameraPath = path;
                 camDrive = camDriver.HasKeys;
@@ -200,8 +204,14 @@ namespace EndfieldShaderPack
             charRoot = null;
             if (forceFreshScene)
             {
+                if (!ownsSceneSession && EditorSceneManager.GetActiveScene().isDirty &&
+                    !EditorUtility.DisplayDialog("MMD Studio 需要重载基线场景",
+                        "当前场景有未保存修改。继续会放弃这些修改并打开提弗洛斯基线场景。",
+                        "放弃修改并继续", "取消"))
+                    throw new OperationCanceledException("用户取消了基线场景重载");
                 // 找当前场景里的角色（可能有脏姿态）；强制重开基线场景获得干净绑定
                 EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                ownsSceneSession = true;
                 foreach (var go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
                 {
                     var hit = Find(go.transform, CharRootName);
@@ -218,7 +228,13 @@ namespace EndfieldShaderPack
             }
             if (charRoot == null)
             {
+                if (EditorSceneManager.GetActiveScene().isDirty &&
+                    !EditorUtility.DisplayDialog("MMD Studio 需要打开基线场景",
+                        "当前场景有未保存修改。继续会放弃这些修改。",
+                        "放弃修改并继续", "取消"))
+                    throw new OperationCanceledException("用户取消了基线场景重载");
                 var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                ownsSceneSession = true;
                 foreach (var go in scene.GetRootGameObjects())
                 {
                     var hit = Find(go.transform, CharRootName);
@@ -252,14 +268,63 @@ namespace EndfieldShaderPack
                 light.ApplyLight();
             }
             if (!EndfieldCapturedPipelineActivation.IsActivated)
+            {
                 EndfieldCapturedPipelineActivation.Activate();
+                ownsPipelineActivation = true;
+            }
             var caster = charRoot.GetComponent<EndfieldCharacterShadowCaster>();
-            if (caster == null) caster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+            if (caster == null)
+            {
+                caster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+                caster.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInInspector;
+                transientShadowCaster = caster;
+            }
             caster.slot = 0;
             EndfieldCharacterShadowCaster.Refresh();
 
             cam = Camera.main;
             if (cam == null) throw new InvalidOperationException("场景没有 Main Camera");
+        }
+
+        void PrepareForFreshScene()
+        {
+            playing = false;
+            time = 0f;
+            if (camDrive)
+            {
+                camDriver.Restore();
+                camDrive = false;
+            }
+            player = null;
+            ReleaseTransientShadowCaster();
+        }
+
+        void ReleaseTransientShadowCaster()
+        {
+            if (transientShadowCaster != null)
+                DestroyImmediate(transientShadowCaster);
+            transientShadowCaster = null;
+            EndfieldCharacterShadowCaster.Refresh();
+        }
+
+        void ReleasePipelineActivation()
+        {
+            if (!ownsPipelineActivation) return;
+            EndfieldCapturedPipelineActivation.Restore();
+            ownsPipelineActivation = false;
+        }
+
+        static int DurationFrameCount(VmdMotionClip clip, int outputFps)
+        {
+            if (clip == null || outputFps <= 0) return 0;
+            return Mathf.FloorToInt((float)clip.Duration * outputFps + 1e-4f) + 1;
+        }
+
+        static string CreateRunDirectory(string parent)
+        {
+            string run = Path.Combine(parent, "run-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff"));
+            Directory.CreateDirectory(run);
+            return run;
         }
 
         static Transform Find(Transform root, string name)
@@ -430,16 +495,16 @@ namespace EndfieldShaderPack
             EnsureScene();
             playing = false;
 
-            string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..",
+            string parentDir = Path.GetFullPath(Path.Combine(Application.dataPath, "..",
                 "Validation", "mmd-" + Path.GetFileNameWithoutExtension(
                     string.IsNullOrEmpty(lastMotionPath) ? "clip" : lastMotionPath)));
-            Directory.CreateDirectory(dir);
+            string dir = CreateRunDirectory(parentDir);
 
             int count;
             float t0;
             if (frameCount == 1 && atTime >= 0f) { count = 1; t0 = atTime; }
             else if (frameCount > 0) { count = frameCount; t0 = 0f; }
-            else { count = (int)player.clip.lastFrame + 1; t0 = 0f; }
+            else { count = DurationFrameCount(player.clip, outFps); t0 = 0f; }
 
             status = string.Format("渲染 {0} 帧 → {1}", count, dir);
             Repaint();
@@ -449,13 +514,13 @@ namespace EndfieldShaderPack
             const int w = 1920, h = 1080;
             for (int k = 0; k < count; k++)
             {
-                float t = t0 + k / 30f;   // VMD 30fps 帧域
+                float t = t0 + k / (float)outFps;
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
                 if (camDrive && camDriver.HasKeys)
                     camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
                 EndfieldVmdBatchRender.SaveFrame(cam, Path.Combine(dir,
-                    "frame_" + k.ToString("D4") + ".png"), w, h, true);
+                    "frame_" + k.ToString("D4") + ".png"), w, h, false);
 
                 if (k % 10 == 0)
                 {
@@ -467,15 +532,17 @@ namespace EndfieldShaderPack
             sw.Stop();
 
             string mp4 = null;
-            if (!string.IsNullOrEmpty(lastAudioPath) && File.Exists(lastAudioPath) &&
-                EndfieldVmdBatchRender.FindFfmpeg() != null)
+            if (EndfieldVmdBatchRender.FindFfmpeg() != null)
             {
                 status += "\n合成 MP4（ffmpeg）...";
                 Repaint();
                 yield return null;
-                mp4 = EndfieldVmdBatchRender.Mux(dir, lastAudioPath, outFps, w, h, out string muxLog);
+                string audio = !string.IsNullOrEmpty(lastAudioPath) && File.Exists(lastAudioPath)
+                    ? lastAudioPath : null;
+                mp4 = EndfieldVmdBatchRender.Mux(dir, audio, outFps, w, h, out string muxLog, count);
+                if (mp4 == null) status += "\nffmpeg 失败: " + muxLog;
             }
-            status = (mp4 != null ? "完成: " + mp4 : status + "\n（未合成 MP4：无音频或 ffmpeg）")
+            status = (mp4 != null ? "完成: " + mp4 : status + "\n（未合成 MP4：ffmpeg 不可用或执行失败）")
                      + string.Format("\n渲染 {0} 帧 耗时 {1:F1}s", count, sw.Elapsed.TotalSeconds);
             if (mp4 != null) EditorUtility.RevealInFinder(mp4);
             Repaint();

@@ -1,5 +1,7 @@
 # HANDOFF-2026-09-26-mmd-studio-split.md — MMD 独立化 + 交接文档
 
+> **已被后续审计取代。** 本文中的“全部闭环”、校准根因、幅度和帧率结论含多项错误；继续工作必须先读 `HANDOFF-2026-09-26-codex-mmd-audit-fixes.md`，不得把本文的旧视频或编译成功当成功能验收。
+
 > 生成：2026-09-26 13:30（WorkBuddy 会话）
 > 分支：`fix/typhoeus-render-explosion-20260917`（已 push 到 endfield-records）
 > 给下一个 Agent 的完整状态。读这份之前先读 `.workbuddy/memory/MEMORY.md`（项目长期记忆）。
@@ -112,4 +114,3 @@ MMD 舞蹈视频（提弗洛斯跳 UNFORGIVEN）→ AI 视频素材。所以出�
 | 0131352 | 交接文档 v1 入库 |
 | e4279d4 | Poser 适配参数落地（幅度分部位/IK 三模式/镜头观察工具） |
 | 7562afa | 初始化人物模型标准流程 + 校准失败根因诊断 + Anim Studio 空引用修复 |
-

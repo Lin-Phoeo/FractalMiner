@@ -372,19 +372,24 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                         if (va.sqrMagnitude < 1e-12f || vb.sqrMagnitude < 1e-12f) continue;
                         Quaternion d = Quaternion.FromToRotation(va, vb);
                         float angle = Quaternion.Angle(Quaternion.identity, d);
-                        if (angle > controller.angleLimit && angle > 1e-6f)
-                            d = Quaternion.Slerp(Quaternion.identity, d, controller.angleLimit / angle);
+                        float angleLimitDeg = controller.angleLimit * Mathf.Rad2Deg;
+                        if (angle > angleLimitDeg && angle > 1e-6f)
+                            d = Quaternion.Slerp(Quaternion.identity, d, angleLimitDeg / angle);
                         int parent = _rig.bones[i].parent;
                         Quaternion pr = parent >= 0 ? pose.rotations[parent] : Quaternion.identity;
                         Quaternion local = MmdQ.Normalize(Quaternion.Inverse(pr) * d * pose.rotations[i]);
                         if (link.limited)
                         {
                             var eul = local.eulerAngles;
-                            eul = new Vector3(
-                                Mathf.Clamp(eul.x, link.minimum.x, link.maximum.x),
-                                Mathf.Clamp(eul.y, link.minimum.y, link.maximum.y),
-                                Mathf.Clamp(eul.z, link.minimum.z, link.maximum.z));
-                            local = Quaternion.Euler(eul);
+                            var radians = new Vector3(
+                                Mathf.DeltaAngle(0f, eul.x) * Mathf.Deg2Rad,
+                                Mathf.DeltaAngle(0f, eul.y) * Mathf.Deg2Rad,
+                                Mathf.DeltaAngle(0f, eul.z) * Mathf.Deg2Rad);
+                            radians = new Vector3(
+                                Mathf.Clamp(radians.x, link.minimum.x, link.maximum.x),
+                                Mathf.Clamp(radians.y, link.minimum.y, link.maximum.y),
+                                Mathf.Clamp(radians.z, link.minimum.z, link.maximum.z));
+                            local = Quaternion.Euler(radians * Mathf.Rad2Deg);
                         }
                         Quaternion basis = MmdQ.Normalize(Quaternion.Inverse(_ik[i]) * _poseLocal[i]);
                         _ik[i] = MmdQ.Normalize(local * Quaternion.Inverse(basis));

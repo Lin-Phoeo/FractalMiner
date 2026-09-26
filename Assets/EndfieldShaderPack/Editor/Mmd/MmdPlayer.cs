@@ -51,9 +51,12 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
         public bool Recalibrate()
         {
-            if (profile == null || retargeter == null) return false;
+            if (charRoot == null || clip == null || retargeter == null) return false;
+            Reset();
+            profile = MmdRetargetProfile.FromUnity(charRoot);
             calibrationOk = MmdCalibration.MakeTPose(profile);
             retargeter.Bind(sourceRig, clip, profile);
+            CaptureBind();
             return calibrationOk;
         }
 

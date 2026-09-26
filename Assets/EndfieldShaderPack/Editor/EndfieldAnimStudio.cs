@@ -54,6 +54,7 @@ namespace EndfieldShaderPack.EditorTools
         string status = "";
         bool pipelineActivated;
         EndfieldCharacterShadowCaster shadowCaster;
+        bool ownsShadowCaster;
 
         // ---- RootMotion 驱动 ----
         class RmData
@@ -76,12 +77,14 @@ namespace EndfieldShaderPack.EditorTools
         void OnEnable()
         {
             EditorApplication.update += Tick;
+            SceneView.duringSceneGui += OnSceneGUI;
             RefreshClipList();
         }
 
         void OnDisable()
         {
             EditorApplication.update -= Tick;
+            SceneView.duringSceneGui -= OnSceneGUI;
             Teardown();
         }
 
@@ -103,6 +106,14 @@ namespace EndfieldShaderPack.EditorTools
         void Setup()
         {
             Teardown();
+            if (EditorSceneManager.GetActiveScene().isDirty &&
+                !EditorUtility.DisplayDialog("Anim Studio 需要打开基线场景",
+                    "当前场景有未保存修改。继续会放弃这些修改。",
+                    "放弃修改并继续", "取消"))
+            {
+                status = "已取消：未重载基线场景";
+                return;
+            }
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             foreach (var root in scene.GetRootGameObjects())
                 if (root.name == "chr_0034_typhoea_rebuilt") { charRoot = root.transform; break; }
@@ -162,7 +173,13 @@ namespace EndfieldShaderPack.EditorTools
 
             pipelineActivated = EndfieldCapturedPipelineActivation.IsActivated;
             if (!pipelineActivated) EndfieldCapturedPipelineActivation.Activate();
-            shadowCaster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+            shadowCaster = charRoot.GetComponent<EndfieldCharacterShadowCaster>();
+            ownsShadowCaster = shadowCaster == null;
+            if (ownsShadowCaster)
+            {
+                shadowCaster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+                shadowCaster.hideFlags = HideFlags.DontSaveInEditor | HideFlags.HideInInspector;
+            }
             shadowCaster.slot = 0;
             EndfieldCharacterShadowCaster.Refresh();
             EnsureRmVisualizers();
@@ -220,7 +237,9 @@ namespace EndfieldShaderPack.EditorTools
                 float ang; Vector3 axis;
                 delta.ToAngleAxis(out ang, out axis);
                 if (float.IsInfinity(axis.x) || float.IsNaN(axis.x)) continue;
-                ang = Mathf.Clamp(ang * Mathf.Rad2Deg, -55f, 55f) * Mathf.Deg2Rad;
+                // ToAngleAxis already returns degrees. The previous degree/radian
+                // round-trip compressed every large correction to about 0.96°.
+                ang = Mathf.Min(ang, 55f);
                 delta = Quaternion.AngleAxis(ang, axis);
                 cf.clav.localRotation = cf.bindLocalRot * delta;
             }
@@ -257,12 +276,13 @@ namespace EndfieldShaderPack.EditorTools
 
         void Teardown()
         {
-            if (shadowCaster != null)
+            if (ownsShadowCaster && shadowCaster != null)
             {
                 DestroyImmediate(shadowCaster);
-                shadowCaster = null;
                 EndfieldCharacterShadowCaster.Refresh();
             }
+            shadowCaster = null;
+            ownsShadowCaster = false;
             if (!pipelineActivated && EndfieldCapturedPipelineActivation.IsActivated)
             {
                 EndfieldCapturedPipelineActivation.Restore();
@@ -623,7 +643,7 @@ namespace EndfieldShaderPack.EditorTools
             GUILayout.EndScrollView();
         }
 
-        void OnSceneGUI()
+        void OnSceneGUI(SceneView sceneView)
         {
             if (!showBones || charRoot == null) return;
             foreach (var c in chains)
