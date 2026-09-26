@@ -28,6 +28,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
     {
         public List<MmdTargetBone> bones = new List<MmdTargetBone>();
         public int[] roles = Repeat(-1, 55);
+        public string calibrationError = "";   // MakeTPose 失败原因（面板显示）
 
         static int[] Repeat(int v, int n) { var a = new int[n]; for (int i = 0; i < n; i++) a[i] = v; return a; }
 
@@ -168,26 +169,51 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         /// orientation from anatomical landmarks so VMD rotations map cleanly.
         /// Never assumes local axes: a Biped pelvis may be rotated 90° at rest.
         /// </summary>
+        static readonly string[] RoleNames = {
+            "hip/pelvis", "R thigh", "L thigh", "R shin", "L shin", "R foot", "L foot",
+            "spine", "chest", "neck", "head",
+            "R clav", "L clav", "R upperarm", "L upperarm", "R forearm", "L forearm", "R hand", "L hand",
+            "R thumb1", "R thumb2", "R index1", "R index2", "R middle1", "R middle2",
+            "L thumb1", "L thumb2", "L index1", "L index2", "L middle1", "L middle2",
+            "R ring1", "R ring2", "R ring3", "L ring1", "L ring2", "L ring3",
+            "R pinky1", "R pinky2", "R pinky3", "L pinky1", "L pinky2", "L pinky3",
+            "R ring2", "R ring3", "L ring2", "L ring3", "R pinky1", "R pinky2", "R pinky3",
+            "L pinky1", "L pinky2", "L pinky3", "root"
+        };
+        static string RoleName(int role) =>
+            role >= 0 && role < RoleNames.Length ? RoleNames[role] : "role " + role;
+
         public static bool MakeTPose(MmdRetargetProfile profile)
+        {
+            var reason = "";
+            bool ok = MakeTPose(profile, ref reason);
+            if (!ok) profile.calibrationError = reason;
+            return ok;
+        }
+
+        /// <summary>带失败原因诊断版本的 T-pose 校准（载入面板显示）。</summary>
+        public static bool MakeTPose(MmdRetargetProfile profile, ref string reason)
         {
             var p = ShallowClone(profile); // reject degenerate rigs without partial edit
             p.Globals();
             var up = Vector3.up;
-            if (p.roles[0] < 0 || p.roles[7] < 0) return false;
+            if (p.roles[0] < 0) { reason = "骨盆 Bip001_Pelvis 未映射到 role"; return false; }
+            if (p.roles[7] < 0) { reason = "脊柱 Bip001_Spine 未映射到 role"; return false; }
             foreach (int role in MmdRetargetProfile.RequiredRoles)
-                if (p.roles[role] < 0) return false;
+                if (p.roles[role] < 0) { reason = "必需角色 role " + role + "（" + RoleName(role) + "）缺目标骨"; return false; }
 
             Vector3 Pos(int role) => p.bones[p.roles[role]].restPos;
 
             // 尺度自动归一（厘米阈值 0.9 是 MMD 单位坑：米制角色肩宽 ~0.3m 永远失败）。
             // 用胸高（骨盆→颈）的 1/4 做尺度参照。
             float refLen = (Pos(9) - Pos(0)).magnitude;
-            if (refLen < 1e-4f) return false;
+            if (refLen < 1e-4f) { reason = "骨盆→颈长度为 0（骨架畸形）"; return false; }
             float minSpan = refLen * 0.25f;
 
             Vector3 leftV = Pos(13) - Pos(14);
             leftV = MmdV.Norm(leftV - up * Vector3.Dot(leftV, up));
-            if (leftV.magnitude < 0.01f || (Pos(13) - Pos(14)).magnitude < minSpan) return false;
+            if (leftV.magnitude < 0.01f || (Pos(13) - Pos(14)).magnitude < minSpan)
+            { reason = "肩宽 < 胸高1/4（两上臂距离 " + (Pos(13) - Pos(14)).magnitude.ToString("F3") + "m，需 ≥" + minSpan.ToString("F3") + "m）——角色当前不是标准绑定姿态，先『初始化人物模型』"; return false; }
             Vector3 forward = MmdV.Norm(Vector3.Cross(up, leftV));
 
             // Accurate basis extraction (Poser Basis()) via Unity Matrix4x4.
@@ -221,7 +247,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
             // Pelvis from anatomical landmarks (not its local Y).
             Vector3 across = Pos(1) - Pos(2), spine = Pos(7) - Pos(0);
-            if (Vector3.Cross(across, spine).magnitude < 1e-6f) return false;
+            if (Vector3.Cross(across, spine).magnitude < 1e-6f)
+            { reason = "骨盆基准面退化（两髋/脊柱共线）——骨架姿态异常，先『初始化人物模型』"; return false; }
             int hip = p.roles[0];
             {
                 var pelvisBasis = BasisQ(
@@ -302,7 +329,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 }
             }
 
-            if (!p.Valid()) return false;
+            if (!p.Valid()) { reason = "校准后 profile 校验失败（层级/role 异常）"; return false; }
             profile.bones = p.bones;
             profile.roles = p.roles;
             return true;
@@ -362,6 +389,13 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             role >= 1 && role <= 6 ? ampLegs :
             role == 9 || role == 10 ? ampHead :
             role >= 11 ? ampArms : ampBody;
+
+        // role 人名（诊断用）
+        static string RoleName(int r) =>
+            r == 0 ? "骨盆" : r == 7 ? "脊柱" : r == 9 ? "颈" : r == 10 ? "头" :
+            r >= 11 && r <= 12 ? "锁骨" : r >= 13 && r <= 14 ? "上臂" :
+            r >= 15 && r <= 16 ? "前臂" : r >= 17 && r <= 18 ? "手" :
+            r >= 1 && r <= 6 ? "腿" : "role" + r;
 
         void World()
         {

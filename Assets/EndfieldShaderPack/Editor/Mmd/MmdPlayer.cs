@@ -43,7 +43,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 "MMD 载入: {0} 骨骼轨, {1} 关键帧, {2} 镜头帧, 时长 {3:F1}s | " +
                 "T-pose 校准{4} | 未映射轨道 {5} | scale={6:F3} | 表情 {7}",
                 clip.bones.Count, clip.boneKeys, clip.cameras.Count, clip.Duration,
-                p.calibrationOk ? "成功" : "失败(用未校准 profile)",
+                p.calibrationOk ? "成功" : "失败: " + p.profile.calibrationError,
                 p.retargeter.unmapped.Count, p.retargeter.suggestedScale,
                 clip.morphs.Count);
             return p;

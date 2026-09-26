@@ -99,11 +99,41 @@ namespace EndfieldShaderPack
         }
 
         // ================= 载入 =================
+        // 初始化人物模型（MMD 载入标准第一步）：确认重建角色在场景——不在就开官方基线场景，
+        // 然后复位 M5 枢轴/捕获光照/官方后期/自阴影，并把残留骨骼姿态清回绑定。
+        // 返回 false = 初始化失败（角色缺失），info 已带原因。
+        bool InitCharacter()
+        {
+            try
+            {
+                EnsureScene(true);            // 强制重开基线场景 = 干净绑定姿态（校准标准前提）
+                player = null;               // 旧播放器绑的 Transform 已随旧场景销毁
+                lastMotionPath = "";         // 动作也需重载（重新校准）
+                playing = false; time = 0;
+                if (camDrive) { camDrive = false; camDriver.Restore(); }
+                info = "人物已初始化: chr_0034_typhoea_rebuilt + M5 枢轴 + 捕获光照 + 官方后期 + 自阴影\n" +
+                       "下一步: 打开动作 VMD（校准自动完成，成功与否看信息行）";
+                ApplyAt(0);
+                Repaint();
+                return true;
+            }
+            catch (Exception e)
+            {
+                info = "初始化失败: " + e.Message;
+                Repaint();
+                return false;
+            }
+        }
+
         void LoadMotion(string path)
         {
             try
             {
-                EnsureScene();
+                // 强制重开基线场景：FromUnity 按当前骨态建 rest，
+                // 脏姿态（上次播放/Studio 遗留）会让 T-pose 校准失败——干净绑定是校准前提
+                EnsureScene(true);
+                player = null;   // 旧播放器引用的 Transform 已随旧场景销毁
+                camDriver.target = cam;   // 旧相机句柄随场景更替刷新
                 var clip = Vmd.ReadFile(path);
                 player = MmdPlayer.Load(clip, charRoot);
                 scale = player.suggestedScale;
@@ -129,7 +159,8 @@ namespace EndfieldShaderPack
         {
             try
             {
-                EnsureScene();
+                EnsureScene(true);   // 镜头驱动也贴干净场景（相机句柄随场景更替刷新）
+                camDriver.target = cam;
                 if (camDriver.target == null) camDriver.target = cam;
                 if (camDrive) camDriver.Restore();
                 camDriver.LoadFile(path);
@@ -162,14 +193,28 @@ namespace EndfieldShaderPack
         }
 
         // ================= 场景引导（与批渲染器同参数） =================
-        void EnsureScene()
+        // forceFreshScene: 放弃当前场景（丢弃脏骨态/枢轴改动），重开官方基线场景。
+        void EnsureScene(bool forceFreshScene = false)
         {
-            if (charRoot != null && cam != null) return;
+            if (!forceFreshScene && charRoot != null && cam != null) return;
             charRoot = null;
-            foreach (var go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+            if (forceFreshScene)
             {
-                var hit = Find(go.transform, CharRootName);
-                if (hit != null) { charRoot = hit; break; }
+                // 找当前场景里的角色（可能有脏姿态）；强制重开基线场景获得干净绑定
+                EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+                foreach (var go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    var hit = Find(go.transform, CharRootName);
+                    if (hit != null) { charRoot = hit; break; }
+                }
+            }
+            else
+            {
+                foreach (var go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
+                {
+                    var hit = Find(go.transform, CharRootName);
+                    if (hit != null) { charRoot = hit; break; }
+                }
             }
             if (charRoot == null)
             {
@@ -239,17 +284,17 @@ namespace EndfieldShaderPack
             // ---- 文件 ----
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("打开动作 VMD...", GUILayout.Height(26)))
+                if (GUILayout.Button("① 初始化人物模型", GUILayout.Height(26)))
+                    InitCharacter();
+                if (GUILayout.Button("② 打开动作 VMD...", GUILayout.Height(26)))
                 {
                     string p = EditorUtility.OpenFilePanel("动作 VMD", "", "vmd");
                     if (!string.IsNullOrEmpty(p)) LoadMotion(p);
                 }
-                using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(lastMotionPath)))
-                {
-                    if (GUILayout.Button("重载", GUILayout.Width(50)) && File.Exists(lastMotionPath))
-                        LoadMotion(lastMotionPath);
-                }
             }
+            if (GUILayout.Button("重载动作（保持镜头/参数）", GUILayout.Height(20)) &&
+                !string.IsNullOrEmpty(lastMotionPath) && File.Exists(lastMotionPath))
+                LoadMotion(lastMotionPath);
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button("镜头 VMD...", GUILayout.Width(110)))

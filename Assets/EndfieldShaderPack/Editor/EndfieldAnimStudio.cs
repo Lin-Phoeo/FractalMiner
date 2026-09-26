@@ -106,10 +106,10 @@ namespace EndfieldShaderPack.EditorTools
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             foreach (var root in scene.GetRootGameObjects())
                 if (root.name == "chr_0034_typhoea_rebuilt") { charRoot = root.transform; break; }
-            if (charRoot == null) { status = "chr root missing"; return; }
+            if (charRoot == null) { status = "chr root missing — 确认场景 " + ScenePath + " 内有 chr_0034_typhoea_rebuilt"; Repaint(); return; }
 
             clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(DecodedDir + "/" + clipName + ".anim");
-            if (clip == null) { status = "clip not found"; return; }
+            if (clip == null) { status = "clip not found — ACL 动画缺这个 clip（MMD 玩法请用 Endfield/MMD Studio）"; Repaint(); return; }
 
             LoadRootMotion(clipName);
 
@@ -125,9 +125,12 @@ namespace EndfieldShaderPack.EditorTools
                     "IK_Foot_" + side + "_001", "IK_Knee_" + side + "_001");
                 if (leg != null) chains.Add(leg);
             }
+            if (chains.Count == 0)
+            { status = "IK 骨链缺失（Bip001_*/IK_* 骨不在 chr_0034_typhoea_rebuilt 下）"; Repaint(); return; }
 
             // M5 pivot（与 v2 相同）
             var pelvis = Find(charRoot, "Bip001_Pelvis");
+            if (pelvis == null) { status = "Bip001_Pelvis missing — 骨架结构异常"; Repaint(); return; }
             var armature = pelvis;
             while (armature.parent != null && (armature.parent.name == "Bip001" || armature.parent.name == "Root"))
                 armature = armature.parent;
