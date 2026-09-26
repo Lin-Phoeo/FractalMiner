@@ -24,7 +24,7 @@
 | 本机源轨迹 A/B 证据（不提交骨位值） | `Validation/mmd-source-rig-ab/{standard,pmx354,pmx1182}.json` |
 | 本机官方网投影 A/B 截图、报告 | `Validation/mmd-smoke-{01,pmx354,pmx1182}/` |
 
-两份本机 JSON 是从第三方 PMX 生成的衍生数据，仅供个人核验。茶叶味香皂 PMX 的 ReadMe 禁止二次配布与拆件改造；**不要把 PMX、贴图、导出的 JSON 或逐骨架轨迹提交到公开 GitHub**。项目最终渲染网格仍是 `Assets/Typhoeus/chr_0034_typhoea_uimodel.fbx` 及捕获重建资源。源动作作者在 VMD 头部标注的是截断的 `1.トレモデル1.04(バ…`，用户提供的两个 PMX 都不是这个源模型。
+两份本机 JSON 是从第三方 PMX 生成的衍生数据，仅供个人核验。茶叶味香皂 PMX 的 ReadMe 禁止二次配布与拆件改造；**1,182 骨那份只用于本机只读对照，不作为交付方案或其他模型的可发布动作源，除非取得授权**。不要把 PMX、贴图、导出的 JSON 或逐骨架轨迹提交到公开 GitHub。项目最终渲染网格仍是 `Assets/Typhoeus/chr_0034_typhoea_uimodel.fbx` 及捕获重建资源。源动作作者在 VMD 头部标注的是截断的 `1.トレモデル1.04(バ…`，用户提供的两个 PMX 都不是这个源模型。
 
 ## 最短复现
 
