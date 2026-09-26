@@ -179,9 +179,15 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
             Vector3 Pos(int role) => p.bones[p.roles[role]].restPos;
 
+            // 尺度自动归一（厘米阈值 0.9 是 MMD 单位坑：米制角色肩宽 ~0.3m 永远失败）。
+            // 用胸高（骨盆→颈）的 1/4 做尺度参照。
+            float refLen = (Pos(9) - Pos(0)).magnitude;
+            if (refLen < 1e-4f) return false;
+            float minSpan = refLen * 0.25f;
+
             Vector3 leftV = Pos(13) - Pos(14);
             leftV = MmdV.Norm(leftV - up * Vector3.Dot(leftV, up));
-            if (leftV.magnitude < 0.9f) return false;
+            if (leftV.magnitude < 0.01f || (Pos(13) - Pos(14)).magnitude < minSpan) return false;
             Vector3 forward = MmdV.Norm(Vector3.Cross(up, leftV));
 
             // Accurate basis extraction (Poser Basis()) via Unity Matrix4x4.
@@ -248,7 +254,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 {
                     Vector3 width = Pos(index) - Pos(little);
                     width = MmdV.Norm(width - arm * Vector3.Dot(width, arm));
-                    if (width.magnitude > 0.9f)
+                    if (width.magnitude > 1e-4f && (Pos(index) - Pos(little)).magnitude >= refLen * 0.05f)
                     {
                         float angle = Mathf.Atan2(Vector3.Dot(arm, Vector3.Cross(width, forward)),
                             Vector3.Dot(width, forward));

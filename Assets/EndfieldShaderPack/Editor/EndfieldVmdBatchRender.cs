@@ -204,6 +204,9 @@ namespace EndfieldShaderPack
 
             int last = frameEnd > 0 ? frameEnd : (int)player.clip.lastFrame;
             if (frameStart > last) { status = "起始帧超过结束帧"; return; }
+            // 帧域约定（统一到 VMD 30fps）：VMD 帧号 f_vmd ∈ [frameStart, last]。
+            // 渲染 fps 只决定输出时长：第 k 张 PNG 对应 vmd 帧号 k + frameStart，
+            // 时间 t=(k+frameStart)/30 —— 与 MMD 原速一致，改 fps 只改输出密度。
             int total = last - frameStart + 1;
 
             string dir = Path.GetFullPath(Path.Combine(Application.dataPath, "..", outDir));
@@ -220,6 +223,7 @@ namespace EndfieldShaderPack
                 "motion=" + motionPath,
                 "camera=" + (camDriver.HasKeys ? cameraPath : "(none)"),
                 "fps=" + fps, "size=" + w + "x" + h,
+                "vmdFps=30",   // 采样来源：VMD 帧域固定 30fps；渲染 fps 只决定输出时长
                 "frameStart=" + frameStart, "frameEnd=" + last,
                 "scale=" + scale, "inPlace=" + inPlace, "heightOffset=" + heightOffset,
                 "driveCamera=" + driveCamera, "camYaw=" + camYaw,
@@ -230,16 +234,18 @@ namespace EndfieldShaderPack
 
             var sw = Stopwatch.StartNew();
             bool canceled = false;
-            for (int f = frameStart; f <= last; f++)
+            double vmdFps = 30.0;
+            int index = 0;
+            for (int vf = frameStart; vf <= last; vf++, index++)
             {
-                float t = f / (float)fps;
+                float t = vf / (float)vmdFps;   // VMD 帧号 → 时间（30fps 域）
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, heightOffset);
                 if (driveCamera && camDriver.HasKeys)
                     camDriver.Apply(t, scale, root, player.bindRootWorld);
-                SaveFrame(cam, Path.Combine(dir, "frame_" + f.ToString("D4") + ".png"), w, h, flipY);
+                SaveFrame(cam, Path.Combine(dir, "frame_" + index.ToString("D4") + ".png"), w, h, flipY);
                 if (EditorUtility.DisplayCancelableProgressBar("VMD Batch Render",
-                        string.Format("帧 {0}/{1}  ({2:F1}s)", f, last, t), (f - frameStart) / (float)total))
+                        string.Format("帧 {0}/{1}  ({2:F1}s)", vf, last, t), (float)index / total))
                 { canceled = true; break; }
             }
             EditorUtility.ClearProgressBar();

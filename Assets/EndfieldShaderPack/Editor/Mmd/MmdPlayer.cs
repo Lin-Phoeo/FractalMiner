@@ -117,6 +117,21 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public float fovOffset;
         public Vector3 offset;
 
+        // MMD 世界系 → Unity 世界系的纯方向 basis。
+        // 不能用 followRoot.rotation：chr 根带着 M5 枢轴（Euler(0,45.5,0)*Euler(-90,0,0)），
+        // 其 -90°X 会当作相机俯仰角混进取景。retarget 的 _basis 约定是
+        // MMD +Y(上) → Unity +Y、MMD +Z(前) → Unity +Z，与骨骼映射同系。
+        public static Quaternion WorldBasis(Transform followRoot, float yaw)
+        {
+            if (followRoot == null) return Quaternion.Euler(0f, yaw, 0f);
+            // 世界到根的旋转，取其"绕世界 Y 的偏航"分量，剔除其他欧拉分量。
+            var q = followRoot.rotation;
+            Vector3 fwd = q * Vector3.forward;
+            fwd.y = 0f;
+            if (fwd.sqrMagnitude < 1e-6f) fwd = Vector3.forward;
+            return Quaternion.LookRotation(fwd.normalized, Vector3.up) * Quaternion.Euler(0f, yaw, 0f);
+        }
+
         bool _restoreValid;
         Vector3 _pos; Quaternion _rot; float _fov, _ortho; bool _orthoFlag;
 
@@ -165,13 +180,14 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public void Apply(float timeSec, float scale, Transform followRoot, Vector3 bindRoot)
         {
             if (target == null || !HasKeys || followRoot == null) return;
+            // 镜头帧域 = VMD 30fps 帧（与 ApplyFrame 的 retarget 采样同域）
             var key = VmdCameraTrack.SampleKey(keys, timeSec * 30.0);
             Vector3 origin = follow ? followRoot.position : bindRoot;
             if (follow && !followVertical) origin = new Vector3(origin.x, bindRoot.y, origin.z);
             var settings = new VmdCameraSettings
             {
                 origin = origin,
-                basis = followRoot.rotation * Quaternion.Euler(0f, yaw, 0f),
+                basis = WorldBasis(followRoot, yaw),
                 offset = offset,
                 scale = scale,
                 distanceScale = distanceScale,
