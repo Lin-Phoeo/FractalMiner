@@ -295,6 +295,29 @@ namespace EndfieldShaderPack
                 var player = MmdPlayer.Load(motion, root);
                 if (!player.calibrationOk)
                     throw new InvalidOperationException("Smoke T-pose calibration failed: " + player.profile.calibrationError);
+                for (int fingerRole = 24; fingerRole <= 53; ++fingerRole)
+                    if (player.profile.ByRole(fingerRole) == null)
+                        throw new InvalidOperationException("Smoke finger role missing from target rig: " + fingerRole);
+                var sourceEvaluator = new MmdRigEvaluator();
+                sourceEvaluator.Bind(player.sourceRig, motion);
+                Vector3 targetLeft = player.profile.ByRole(13).restPos;
+                Vector3 targetRight = player.profile.ByRole(14).restPos;
+                Vector3 targetHip = player.profile.ByRole(0).restPos;
+                Vector3 targetHead = player.profile.ByRole(10).restPos;
+                Vector3 sourceLeft = player.sourceRig.bones[player.sourceRig.Find(MmdRigDefinition.RoleNames[13])].rest;
+                Vector3 sourceRight = player.sourceRig.bones[player.sourceRig.Find(MmdRigDefinition.RoleNames[14])].rest;
+                Vector3 sourceHip = player.sourceRig.bones[player.sourceRig.Find(MmdRigDefinition.RoleNames[0])].rest;
+                Vector3 sourceHead = player.sourceRig.bones[player.sourceRig.Find(MmdRigDefinition.RoleNames[10])].rest;
+                Quaternion BodyBasis(Vector3 left, Vector3 right, Vector3 hip, Vector3 head)
+                {
+                    Vector3 x = (left - right).normalized;
+                    Vector3 y = (head - hip).normalized;
+                    Vector3 z = Vector3.Cross(x, y).normalized;
+                    y = Vector3.Cross(z, x).normalized;
+                    return Quaternion.LookRotation(z, y);
+                }
+                Quaternion sourceToTarget = BodyBasis(targetLeft, targetRight, targetHip, targetHead) *
+                    Quaternion.Inverse(BodyBasis(sourceLeft, sourceRight, sourceHip, sourceHead));
                 int rootId = root.GetInstanceID();
                 var cameraDriver = new MmdCameraDriver { target = camera, yaw = -90f };
                 cameraDriver.LoadFile(DefaultCamera);
@@ -306,16 +329,50 @@ namespace EndfieldShaderPack
                 string[] motionProbeNames =
                     { "Bip001_L_UpperArm", "Bip001_R_UpperArm", "Bip001_L_Thigh", "Bip001_R_Thigh" };
                 var motionProbeBase = new Dictionary<string, Quaternion>();
+                var fingerProbeBase = new Dictionary<int, Quaternion>();
+                var bindVertices = new Dictionary<SkinnedMeshRenderer, Vector3[]>();
+                float maxDeformP95 = 0f;
                 var skinnedBones = new HashSet<Transform>();
+                var weightedBoneCounts = new Dictionary<Transform, int>();
+                var weightedNameCounts = new Dictionary<string, int>();
                 foreach (var smr in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
                     foreach (var bone in smr.bones)
                         if (bone != null) skinnedBones.Add(bone);
+                    if (smr.sharedMesh == null) continue;
+                    var weights = smr.sharedMesh.GetAllBoneWeights();
+                    var bones = smr.bones;
+                    Debug.Log("[MmdWeightAudit] mesh=" + smr.name + " vertices=" + smr.sharedMesh.vertexCount +
+                        " bones=" + bones.Length + " bindposes=" + smr.sharedMesh.bindposes.Length +
+                        " weights=" + weights.Length);
+                    for (int wi = 0; wi < weights.Length; ++wi)
+                    {
+                        var weight = weights[wi];
+                        if (weight.weight < 0.05f || weight.boneIndex >= bones.Length) continue;
+                        var bone = bones[weight.boneIndex];
+                        if (bone == null) continue;
+                        weightedBoneCounts.TryGetValue(bone, out int count);
+                        weightedBoneCounts[bone] = count + 1;
+                        weightedNameCounts.TryGetValue(bone.name, out int nameCount);
+                        weightedNameCounts[bone.name] = nameCount + 1;
+                    }
+                }
+                foreach (string probeName in motionProbeNames)
+                {
+                    var probe = Find(root, probeName);
+                    weightedBoneCounts.TryGetValue(probe, out int identityCount);
+                    weightedNameCounts.TryGetValue(probeName, out int nameCount);
+                    Debug.Log("[MmdWeightAudit] bone=" + probeName + " identity=" + identityCount +
+                        " allSameName=" + nameCount + " instanceId=" + probe.GetInstanceID());
+                }
                 float maxProbeAngle = 0f;
+                float maxFingerAngle = 0f;
                 for (int i = 0; i < times.Length; ++i)
                 {
                     float timeSec = (float)times[i];
                     player.Reset();
                     player.ApplyFrame(timeSec, player.suggestedScale, true, 0f);
+                    sourceEvaluator.Sample(timeSec * 30.0);
                     float groundCorrection = player.KeepFeetAboveBindFloor(0.05f);
                     cameraDriver.Apply(timeSec, player.suggestedScale, root, player.bindRootWorld);
                     float leftFootY = Find(root, "Bip001_L_Foot").position.y;
@@ -341,12 +398,29 @@ namespace EndfieldShaderPack
                             throw new InvalidOperationException("Smoke motion probe missing: " + probeName);
                         if (!skinnedBones.Contains(probe))
                             throw new InvalidOperationException("Smoke retarget bone not bound to any visible mesh: " + probeName);
+                        weightedBoneCounts.TryGetValue(probe, out int directWeightedCount);
+                        int effectiveWeightedCount = 0;
+                        foreach (var pair in weightedBoneCounts)
+                            if (pair.Key == probe || pair.Key.IsChildOf(probe))
+                                effectiveWeightedCount += pair.Value;
+                        if (effectiveWeightedCount < 100)
+                            throw new InvalidOperationException("Smoke retarget bone subtree has too little visible skin influence: " +
+                                probeName + " direct=" + directWeightedCount + " subtree=" + effectiveWeightedCount);
                         if (i == 0) motionProbeBase[probeName] = probe.localRotation;
                         else maxProbeAngle = Mathf.Max(maxProbeAngle,
                             Quaternion.Angle(motionProbeBase[probeName], probe.localRotation));
                     }
-                    Vector4 bounds = SkinnedViewportBounds(root, camera,
-                        out float minWorldY, out float minNearFeetY);
+                    for (int fingerRole = 24; fingerRole <= 53; ++fingerRole)
+                    {
+                        Transform finger = player.profile.ByRole(fingerRole).transform;
+                        if (i == 0) fingerProbeBase[fingerRole] = finger.localRotation;
+                        else maxFingerAngle = Mathf.Max(maxFingerAngle,
+                            Quaternion.Angle(fingerProbeBase[fingerRole], finger.localRotation));
+                    }
+                    Vector4 bounds = SkinnedViewportBounds(root, camera, bindVertices,
+                        out float minWorldY, out float minNearFeetY,
+                        out float deformMean, out float deformP95);
+                    maxDeformP95 = Mathf.Max(maxDeformP95, deformP95);
                     float width = bounds.z - bounds.x;
                     if (!IsFinite(bounds) || width < 0.18f || bounds.w - bounds.y < 0.45f ||
                         bounds.w <= 0f || bounds.y >= 1f)
@@ -359,6 +433,19 @@ namespace EndfieldShaderPack
                     float leftArmAngle = Quaternion.Angle(motionProbeBase["Bip001_L_UpperArm"], arm.localRotation);
                     Vector3 leftHandView = camera.WorldToViewportPoint(Find(root, "Bip001_L_Hand").position);
                     Vector3 rightHandView = camera.WorldToViewportPoint(Find(root, "Bip001_R_Hand").position);
+                    float[] limbCos = new float[4];
+                    int[] limbStarts = { 13, 14, 1, 2 }, limbEnds = { 15, 16, 3, 4 };
+                    string[] limbStartNames = { "Bip001_L_UpperArm", "Bip001_R_UpperArm", "Bip001_L_Thigh", "Bip001_R_Thigh" };
+                    string[] limbEndNames = { "Bip001_L_Forearm", "Bip001_R_Forearm", "Bip001_L_Calf", "Bip001_R_Calf" };
+                    for (int li = 0; li < 4; ++li)
+                    {
+                        int si = player.sourceRig.Find(MmdRigDefinition.RoleNames[limbStarts[li]]);
+                        int se = player.sourceRig.Find(MmdRigDefinition.RoleNames[limbEnds[li]]);
+                        Vector3 expected = root.rotation * sourceToTarget *
+                            (sourceEvaluator.pose.positions[se] - sourceEvaluator.pose.positions[si]);
+                        Vector3 actual = Find(root, limbEndNames[li]).position - Find(root, limbStartNames[li]).position;
+                        limbCos[li] = Vector3.Dot(expected.normalized, actual.normalized);
+                    }
                     samples.Add("{\"time\":" + timeSec.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         ",\"bbox\":[" + bounds.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         "," + bounds.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
@@ -367,7 +454,11 @@ namespace EndfieldShaderPack
                         "],\"width\":" + width.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         ",\"rootY\":" + root.position.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         ",\"groundCorrection\":" + groundCorrection.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"deformMean\":" + deformMean.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"deformP95\":" + deformP95.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         ",\"leftArmAngleFromStart\":" + leftArmAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"limbDirectionCos\":[" + string.Join(",", Array.ConvertAll(limbCos,
+                            value => value.ToString("F6", System.Globalization.CultureInfo.InvariantCulture))) + "]" +
                         ",\"leftHandViewport\":[" + leftHandView.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         "," + leftHandView.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "]," +
                         "\"rightHandViewport\":[" + rightHandView.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
@@ -383,6 +474,12 @@ namespace EndfieldShaderPack
                 if (maxProbeAngle < 5f)
                     throw new InvalidOperationException("Smoke motion gate failed: max limb rotation=" +
                         maxProbeAngle.ToString("F3") + "deg");
+                if (maxFingerAngle < 10f)
+                    throw new InvalidOperationException("Smoke finger motion gate failed: max finger rotation=" +
+                        maxFingerAngle.ToString("F3") + "deg");
+                if (maxDeformP95 < 0.08f)
+                    throw new InvalidOperationException("Smoke mesh deformation gate failed: maximum root-local P95 displacement=" +
+                        maxDeformP95.ToString("F4") + "m");
 
                 string skip = EndfieldCharacterShadowFeature.LastSkipReason;
                 if (!string.IsNullOrEmpty(skip))
@@ -396,6 +493,8 @@ namespace EndfieldShaderPack
                     ",\"frames30\":" + (Mathf.FloorToInt((float)duration * 30f + 1e-4f) + 1) +
                     ",\"frames60\":" + (Mathf.FloorToInt((float)duration * 60f + 1e-4f) + 1) +
                     ",\"maxProbeAngle\":" + maxProbeAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"maxFingerAngle\":" + maxFingerAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"maxDeformP95\":" + maxDeformP95.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                     ",\"postFrames\":" + postProfile.executedFrames +
                     ",\"dynamicBloom\":" + (postProfile.lastFrameUsedDynamicBloom ? "true" : "false") +
                     ",\"loadInfo\":\"" + EscapeJson(player.loadInfo) + "\"" +
@@ -423,15 +522,20 @@ namespace EndfieldShaderPack
         }
 
         static Vector4 SkinnedViewportBounds(Transform root, Camera camera,
-            out float minWorldY, out float minNearFeetY)
+            Dictionary<SkinnedMeshRenderer, Vector3[]> bindVertices,
+            out float minWorldY, out float minNearFeetY,
+            out float deformMean, out float deformP95)
         {
             Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
             Vector2 max = new Vector2(float.MinValue, float.MinValue);
             minWorldY = float.MaxValue;
             minNearFeetY = float.MaxValue;
+            deformMean = 0f;
+            deformP95 = 0f;
             var leftFoot = Find(root, "Bip001_L_Foot");
             var rightFoot = Find(root, "Bip001_R_Foot");
             int visible = 0;
+            var displacements = new List<float>();
             var mesh = new Mesh();
             var vertices = new List<Vector3>();
             try
@@ -442,9 +546,16 @@ namespace EndfieldShaderPack
                     smr.BakeMesh(mesh);
                     mesh.GetVertices(vertices);
                     Matrix4x4 localToWorld = smr.localToWorldMatrix;
-                    foreach (var vertex in vertices)
+                    bool hasBind = bindVertices.TryGetValue(smr, out var bind);
+                    if (hasBind && bind.Length != vertices.Count)
+                        throw new InvalidOperationException("Smoke mesh topology changed: " + smr.name);
+                    if (!hasBind) bind = new Vector3[vertices.Count];
+                    for (int vi = 0; vi < vertices.Count; ++vi)
                     {
-                        Vector3 world = localToWorld.MultiplyPoint3x4(vertex);
+                        Vector3 world = localToWorld.MultiplyPoint3x4(vertices[vi]);
+                        Vector3 local = root.InverseTransformPoint(world);
+                        if (hasBind) displacements.Add(Vector3.Distance(local, bind[vi]));
+                        else bind[vi] = local;
                         minWorldY = Mathf.Min(minWorldY, world.y);
                         if (leftFoot != null && rightFoot != null &&
                             (new Vector2(world.x - leftFoot.position.x, world.z - leftFoot.position.z).sqrMagnitude < 0.0324f ||
@@ -457,10 +568,19 @@ namespace EndfieldShaderPack
                         max = Vector2.Max(max, viewport);
                         visible++;
                     }
+                    if (!hasBind) bindVertices.Add(smr, bind);
                 }
             }
             finally { DestroyImmediate(mesh); }
             if (visible == 0) throw new InvalidOperationException("Smoke: no skinned vertices in front of camera.");
+            if (displacements.Count > 0)
+            {
+                displacements.Sort();
+                double sum = 0.0;
+                foreach (float displacement in displacements) sum += displacement;
+                deformMean = (float)(sum / displacements.Count);
+                deformP95 = displacements[Mathf.CeilToInt(displacements.Count * 0.95f) - 1];
+            }
             return new Vector4(min.x, min.y, max.x, max.y);
         }
 
