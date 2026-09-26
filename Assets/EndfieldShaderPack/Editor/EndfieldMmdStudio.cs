@@ -18,14 +18,14 @@ namespace EndfieldShaderPack
 {
     public class EndfieldMmdStudio : EditorWindow
     {
-        const string ScenePath = "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity";
+        const string ScenePath = EndfieldMmdStageBuilder.DanceScenePath;
         const string CharRootName = "chr_0034_typhoea_rebuilt";
 
         // ---- 状态 ----
         Transform charRoot;
         Camera cam;
         MmdPlayer player;
-        readonly MmdCameraDriver camDriver = new MmdCameraDriver();
+        readonly MmdCameraDriver camDriver = new MmdCameraDriver { yaw = -90f };
         bool ownsPipelineActivation;
         bool ownsSceneSession;
         EndfieldCharacterShadowCaster transientShadowCaster;
@@ -42,6 +42,8 @@ namespace EndfieldShaderPack
         float duration => player != null && player.clip != null ? (float)player.clip.Duration : 0f;
         float scale = 0.08f;
         bool inPlace = true;
+        bool keepFeetAboveFloor = true;
+        float soleBelowFootBone = 0.05f;
         float height;
         bool camDrive;                  // 镜头驱动开关
         bool loop = true;
@@ -98,6 +100,7 @@ namespace EndfieldShaderPack
             if (player == null || charRoot == null) return;
             player.Reset();
             player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
+            if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
             if (camDrive && camDriver.HasKeys)
                 camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
             SceneView.RepaintAll();
@@ -114,7 +117,7 @@ namespace EndfieldShaderPack
                 PrepareForFreshScene();
                 EnsureScene(true);            // 强制重开基线场景 = 干净绑定姿态（校准标准前提）
                 lastMotionPath = "";         // 动作也需重载（重新校准）
-                info = "人物已初始化: chr_0034_typhoea_rebuilt + M5 枢轴 + 捕获光照 + 官方后期 + 自阴影\n" +
+                info = "人物已初始化: 舞台 + chr_0034_typhoea_rebuilt + M5 枢轴 + 捕获光照 + 捕获后期 + 自阴影\n" +
                        "下一步: 打开动作 VMD（校准自动完成，成功与否看信息行）";
                 ApplyAt(0);
                 Repaint();
@@ -415,6 +418,21 @@ namespace EndfieldShaderPack
                 GUILayout.Space(4);
                 // ---- 适配区（Poser 语义：调这些救"腿僵/夸张/不像MMD"） ----
                 ikMode = (VmdIkMode)EditorGUILayout.EnumPopup("动作 IK", ikMode);
+                bool keepFeet = EditorGUILayout.Toggle("脚底防穿地", keepFeetAboveFloor);
+                if (keepFeet != keepFeetAboveFloor)
+                {
+                    keepFeetAboveFloor = keepFeet;
+                    ApplyAt(time);
+                }
+                if (keepFeetAboveFloor)
+                {
+                    float soleOffset = EditorGUILayout.Slider("鞋底低于脚骨 (m)", soleBelowFootBone, 0f, 0.15f);
+                    if (!Mathf.Approximately(soleOffset, soleBelowFootBone))
+                    {
+                        soleBelowFootBone = soleOffset;
+                        ApplyAt(time);
+                    }
+                }
                 if (ikMode != VmdIkMode.FollowMotion && Event.current.type == EventType.Layout)
                     ApplyAt(time);
                 showAmp = EditorGUILayout.Foldout(showAmp, "动作幅度（分部位）");
@@ -517,6 +535,7 @@ namespace EndfieldShaderPack
                 float t = t0 + k / (float)outFps;
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
+                if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
                 if (camDrive && camDriver.HasKeys)
                     camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
                 EndfieldVmdBatchRender.SaveFrame(cam, Path.Combine(dir,

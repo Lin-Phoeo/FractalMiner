@@ -25,8 +25,11 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         readonly List<Quaternion> _bindRot = new List<Quaternion>();
         readonly List<Vector3> _bindPos = new List<Vector3>();
         Vector3 _bindRoot;
+        Transform _leftFoot, _rightFoot;
+        float _bindMinFootY;
         public bool captured { get; private set; }
         public Vector3 bindRootWorld => _bindRoot;
+        public float bindMinFootY => _bindMinFootY;
 
         public static MmdPlayer Load(VmdMotionClip clip, Transform charRoot)
         {
@@ -72,7 +75,26 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 _bindPos.Add(b.transform.localPosition);
             }
             _bindRoot = charRoot.position;
+            _leftFoot = profile.roles[5] >= 0 ? profile.bones[profile.roles[5]].transform : null;
+            _rightFoot = profile.roles[6] >= 0 ? profile.bones[profile.roles[6]].transform : null;
+            if (_leftFoot != null && _rightFoot != null)
+                _bindMinFootY = Mathf.Min(_leftFoot.position.y, _rightFoot.position.y);
             captured = true;
+        }
+
+        /// <summary>
+        /// Prevent the lowest foot bone from crossing its bind-pose floor.
+        /// Apply after the retargeted pose and before a following VMD camera.
+        /// A raised foot stays raised, so authored jumps remain intact.
+        /// </summary>
+        public float KeepFeetAboveBindFloor(float soleBelowFootBone = 0f)
+        {
+            if (!captured || charRoot == null || _leftFoot == null || _rightFoot == null) return 0f;
+            float correction = Mathf.Max(0f,
+                _bindMinFootY - Mathf.Max(0f, soleBelowFootBone) -
+                Mathf.Min(_leftFoot.position.y, _rightFoot.position.y));
+            if (correction > 0f) charRoot.position += Vector3.up * correction;
+            return correction;
         }
 
         public void Reset()

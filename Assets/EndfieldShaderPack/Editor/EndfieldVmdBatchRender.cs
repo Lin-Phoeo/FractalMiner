@@ -17,7 +17,7 @@ namespace EndfieldShaderPack
 {
     public class EndfieldVmdBatchRender : EditorWindow
     {
-        const string ScenePath = "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity";
+        const string ScenePath = EndfieldMmdStageBuilder.DanceScenePath;
         const string CharRootName = "chr_0034_typhoea_rebuilt";
         const string DefaultMotion =
             "D:/动作/UNFORGIVEN (CHALLENGE (Free Motion DL) update/UNFORGIVEN (CHALLENGE (Free Motion DL) update/230506 LE SSERAFIM - UNFORGIVEN (CHALLENGE (flle Motion DL)/Motion.vmd";
@@ -36,9 +36,11 @@ namespace EndfieldShaderPack
         int frameEnd;              // 0 = 自动（clip.lastFrame）
         float scale = 0.08f;       // 与 Studio 的 suggestedScale 一致
         bool inPlace = true;
+        bool keepFeetAboveFloor = true;
+        float soleBelowFootBone = 0.05f;
         float heightOffset;
         bool driveCamera = true;
-        float camYaw;              // 角色背对镜头时 ±180
+        float camYaw = -90f;       // This Typhoeus rig faces world +X after the M5 pivot.
         bool muxAudio = true;
         bool flipY = false;        // 当前 D3D11 ReadPixels->PNG 路径已是正确朝向；再翻会倒立
         string status = "";
@@ -74,6 +76,9 @@ namespace EndfieldShaderPack
             GUILayout.Space(4);
             scale = EditorGUILayout.Slider("位移比例", scale, 0f, 0.3f);
             inPlace = EditorGUILayout.Toggle("原地播放（锁水平位移）", inPlace);
+            keepFeetAboveFloor = EditorGUILayout.Toggle("脚底防穿地", keepFeetAboveFloor);
+            if (keepFeetAboveFloor)
+                soleBelowFootBone = EditorGUILayout.Slider("鞋底低于脚骨 (m)", soleBelowFootBone, 0f, 0.15f);
             heightOffset = EditorGUILayout.Slider("高度修正", heightOffset, -1f, 1f);
             driveCamera = EditorGUILayout.Toggle("镜头驱动", driveCamera);
             using (new EditorGUI.DisabledScope(!driveCamera))
@@ -127,22 +132,21 @@ namespace EndfieldShaderPack
         {
             openedNow = false;
             addedCaster = null;
-            var root = GameObject.Find(CharRootName)?.transform;
-            if (root == null)
+            // Always reopen the saved dance scene: calibration from an earlier
+            // animated pose is invalid even when the character root still exists.
+            if (!Application.isBatchMode && EditorSceneManager.GetActiveScene().isDirty &&
+                !EditorUtility.DisplayDialog("VMD Batch Render 需要重开舞台场景",
+                    "当前场景有未保存修改。继续会放弃这些修改并从干净绑定姿态渲染。",
+                    "放弃修改并继续", "取消"))
             {
-                if (EditorSceneManager.GetActiveScene().isDirty &&
-                    !EditorUtility.DisplayDialog("VMD Batch Render 需要打开基线场景",
-                        "当前场景有未保存修改。继续会放弃这些修改。",
-                        "放弃修改并继续", "取消"))
-                {
-                    cam = null;
-                    return null;
-                }
-                var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-                foreach (var go in scene.GetRootGameObjects())
-                    if (go.name == CharRootName) { root = go.transform; break; }
-                openedNow = true;
+                cam = null;
+                return null;
             }
+            var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            Transform root = null;
+            foreach (var go in scene.GetRootGameObjects())
+                if (go.name == CharRootName) { root = go.transform; break; }
+            openedNow = true;
             if (root == null) { cam = null; return null; }
 
             // M5 pivot（角色 R_y(+45.5°) 枢轴）
@@ -185,14 +189,48 @@ namespace EndfieldShaderPack
             EndfieldCharacterShadowCaster.Refresh();
 
             cam = Camera.main;
-            if (cam != null && openedNow)
-                cam.transform.SetPositionAndRotation(
-                    new Vector3(0f, 0.7799988f, 2.9599915f),
-                    new Quaternion(-1.7726111e-10f, 0.9999918f, 0.0040552616f, -4.371103e-8f));
             return root;
         }
 
         // ---------- render ----------
+        [MenuItem("Endfield/MMD/Validate 3 Second Video")]
+        public static void RunPreviewValidation()
+        {
+            const string previewRoot = "Validation/mmd-stage-preview";
+            string parent = Path.GetFullPath(previewRoot);
+            var previousRuns = new HashSet<string>(Directory.Exists(parent)
+                ? Directory.GetDirectories(parent, "run-*") : Array.Empty<string>());
+            var window = CreateInstance<EndfieldVmdBatchRender>();
+            try
+            {
+                window.outDir = previewRoot;
+                window.width = 1280;
+                window.height = 720;
+                window.fps = 30;
+                window.frameStart = 270;  // 9-12 seconds: exercises the actual dance, not just its intro.
+                window.frameEnd = 359;
+                window.muxAudio = true;
+                window.RunRender();
+
+                var runs = Directory.Exists(parent) ? Array.FindAll(
+                    Directory.GetDirectories(parent, "run-*"), run => !previousRuns.Contains(run)) : Array.Empty<string>();
+                Array.Sort(runs, StringComparer.Ordinal);
+                if (runs.Length != 1) throw new InvalidOperationException("Video preview expected one new run directory: " + window.status);
+                string latest = runs[runs.Length - 1];
+                int frames = Directory.GetFiles(latest, "frame_*.png").Length;
+                string video = Path.Combine(latest, "unforgiven.mp4");
+                if (frames != 90 || !File.Exists(video) || new FileInfo(video).Length < 1024)
+                    throw new InvalidOperationException("Video preview failed: " + frames +
+                        " frames, mp4=" + File.Exists(video) + ", status=" + window.status);
+                File.WriteAllText(Path.Combine(parent, "report.json"),
+                    "{\"pass\":true,\"frames\":" + frames +
+                    ",\"vmdFrameStart\":270,\"vmdFrameEnd\":359" +
+                    ",\"size\":\"1280x720\",\"fps\":30,\"video\":\"" + EscapeJson(video) + "\"}");
+                Debug.Log("[MmdPreview] PASS " + frames + " frames -> " + video);
+            }
+            finally { DestroyImmediate(window); }
+        }
+
         public static void RunSmokeValidation()
         {
             const string validationDir = "Validation/mmd-smoke-01";
@@ -211,6 +249,16 @@ namespace EndfieldShaderPack
                     if (root != null) break;
                 }
                 if (root == null) throw new InvalidOperationException("Smoke: character root missing.");
+
+                // Match MMD Studio/Batch initialization, including the M5 instance pivot.
+                var pivotPelvis = Find(root, "Bip001_Pelvis");
+                if (pivotPelvis == null) throw new InvalidOperationException("Smoke: pelvis missing.");
+                var armature = pivotPelvis;
+                while (armature.parent != null &&
+                       (armature.parent.name == "Bip001" || armature.parent.name == "Root"))
+                    armature = armature.parent;
+                (armature.parent != null ? armature.parent : armature).localRotation =
+                    Quaternion.Euler(0f, 45.5f, 0f) * Quaternion.Euler(-90f, 0f, 0f);
 
                 var caster = root.GetComponent<EndfieldCharacterShadowCaster>();
                 if (caster == null)
@@ -237,6 +285,9 @@ namespace EndfieldShaderPack
 
                 var camera = Camera.main;
                 if (camera == null) throw new InvalidOperationException("Smoke: Main Camera missing.");
+                var postProfile = camera.GetComponent<EndfieldCapturedPostProfile>();
+                if (postProfile == null || !postProfile.IsConfigured)
+                    throw new InvalidOperationException("Smoke: captured post profile is not configured on the dance camera.");
                 if (!File.Exists(DefaultMotion)) throw new FileNotFoundException("Smoke motion missing", DefaultMotion);
                 if (!File.Exists(DefaultCamera)) throw new FileNotFoundException("Smoke camera missing", DefaultCamera);
 
@@ -245,7 +296,7 @@ namespace EndfieldShaderPack
                 if (!player.calibrationOk)
                     throw new InvalidOperationException("Smoke T-pose calibration failed: " + player.profile.calibrationError);
                 int rootId = root.GetInstanceID();
-                var cameraDriver = new MmdCameraDriver { target = camera };
+                var cameraDriver = new MmdCameraDriver { target = camera, yaw = -90f };
                 cameraDriver.LoadFile(DefaultCamera);
                 if (player.charRoot == null || player.charRoot.GetInstanceID() != rootId)
                     throw new InvalidOperationException("Smoke camera load invalidated the MMD player root.");
@@ -255,13 +306,23 @@ namespace EndfieldShaderPack
                 string[] motionProbeNames =
                     { "Bip001_L_UpperArm", "Bip001_R_UpperArm", "Bip001_L_Thigh", "Bip001_R_Thigh" };
                 var motionProbeBase = new Dictionary<string, Quaternion>();
+                var skinnedBones = new HashSet<Transform>();
+                foreach (var smr in root.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                    foreach (var bone in smr.bones)
+                        if (bone != null) skinnedBones.Add(bone);
                 float maxProbeAngle = 0f;
                 for (int i = 0; i < times.Length; ++i)
                 {
                     float timeSec = (float)times[i];
                     player.Reset();
                     player.ApplyFrame(timeSec, player.suggestedScale, true, 0f);
+                    float groundCorrection = player.KeepFeetAboveBindFloor(0.05f);
                     cameraDriver.Apply(timeSec, player.suggestedScale, root, player.bindRootWorld);
+                    float leftFootY = Find(root, "Bip001_L_Foot").position.y;
+                    float rightFootY = Find(root, "Bip001_R_Foot").position.y;
+                    if (Mathf.Min(leftFootY, rightFootY) < player.bindMinFootY - 0.055f)
+                        throw new InvalidOperationException("Smoke foot-ground gate failed at " +
+                            timeSec.ToString("F3") + "s");
                     var head = Find(root, "Bip001_Head");
                     var pelvis = Find(root, "Bip001_Pelvis");
                     if (head == null || pelvis == null)
@@ -278,24 +339,46 @@ namespace EndfieldShaderPack
                         Transform probe = Find(root, probeName);
                         if (probe == null)
                             throw new InvalidOperationException("Smoke motion probe missing: " + probeName);
+                        if (!skinnedBones.Contains(probe))
+                            throw new InvalidOperationException("Smoke retarget bone not bound to any visible mesh: " + probeName);
                         if (i == 0) motionProbeBase[probeName] = probe.localRotation;
                         else maxProbeAngle = Mathf.Max(maxProbeAngle,
                             Quaternion.Angle(motionProbeBase[probeName], probe.localRotation));
                     }
-                    Vector4 bounds = SkinnedViewportBounds(root, camera);
+                    Vector4 bounds = SkinnedViewportBounds(root, camera,
+                        out float minWorldY, out float minNearFeetY);
                     float width = bounds.z - bounds.x;
-                    if (!IsFinite(bounds) || width < 0.25f || bounds.w <= 0f || bounds.y >= 1f)
+                    if (!IsFinite(bounds) || width < 0.18f || bounds.w - bounds.y < 0.45f ||
+                        bounds.w <= 0f || bounds.y >= 1f)
                         throw new InvalidOperationException(string.Format(
                             "Smoke composition gate failed at {0:F3}s: [{1:F4},{2:F4},{3:F4},{4:F4}] width={5:F4}",
                             timeSec, bounds.x, bounds.y, bounds.z, bounds.w, width));
                     string frame = Path.Combine(validationDir, "frame_" + i.ToString("D2") + ".png");
                     SaveFrame(camera, frame, 1280, 720, false);
+                    var arm = Find(root, "Bip001_L_UpperArm");
+                    float leftArmAngle = Quaternion.Angle(motionProbeBase["Bip001_L_UpperArm"], arm.localRotation);
+                    Vector3 leftHandView = camera.WorldToViewportPoint(Find(root, "Bip001_L_Hand").position);
+                    Vector3 rightHandView = camera.WorldToViewportPoint(Find(root, "Bip001_R_Hand").position);
                     samples.Add("{\"time\":" + timeSec.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         ",\"bbox\":[" + bounds.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         "," + bounds.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         "," + bounds.z.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                         "," + bounds.w.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
-                        "],\"width\":" + width.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "}");
+                        "],\"width\":" + width.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"rootY\":" + root.position.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"groundCorrection\":" + groundCorrection.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"leftArmAngleFromStart\":" + leftArmAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"leftHandViewport\":[" + leftHandView.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + leftHandView.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "]," +
+                        "\"rightHandViewport\":[" + rightHandView.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + rightHandView.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "]" +
+                        ",\"minWorldY\":" + minWorldY.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"minNearFeetY\":" + minNearFeetY.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"leftFootY\":" + leftFootY.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"rightFootY\":" + rightFootY.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        ",\"cameraForward\":[" + camera.transform.forward.x.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + camera.transform.forward.y.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                        "," + camera.transform.forward.z.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) + "]}");
                 }
                 if (maxProbeAngle < 5f)
                     throw new InvalidOperationException("Smoke motion gate failed: max limb rotation=" +
@@ -304,12 +387,17 @@ namespace EndfieldShaderPack
                 string skip = EndfieldCharacterShadowFeature.LastSkipReason;
                 if (!string.IsNullOrEmpty(skip))
                     throw new InvalidOperationException("Smoke self-shadow skipped: " + skip);
+                if (postProfile.executedFrames < times.Length || !postProfile.lastFrameUsedDynamicBloom)
+                    throw new InvalidOperationException("Smoke captured post did not execute with dynamic bloom: frames=" +
+                        postProfile.executedFrames + ", bloom=" + postProfile.lastFrameUsedDynamicBloom);
                 File.WriteAllText(Path.Combine(validationDir, "report.json"),
                     "{\"pass\":true,\"calibration\":true,\"duration\":" +
                     duration.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
                     ",\"frames30\":" + (Mathf.FloorToInt((float)duration * 30f + 1e-4f) + 1) +
                     ",\"frames60\":" + (Mathf.FloorToInt((float)duration * 60f + 1e-4f) + 1) +
                     ",\"maxProbeAngle\":" + maxProbeAngle.ToString("F6", System.Globalization.CultureInfo.InvariantCulture) +
+                    ",\"postFrames\":" + postProfile.executedFrames +
+                    ",\"dynamicBloom\":" + (postProfile.lastFrameUsedDynamicBloom ? "true" : "false") +
                     ",\"loadInfo\":\"" + EscapeJson(player.loadInfo) + "\"" +
                     ",\"rootInstanceId\":" + rootId + ",\"samples\":[" + string.Join(",", samples) + "]}");
                 Debug.Log("[MmdSmoke] PASS calibration=true duration=" + duration.ToString("F3") +
@@ -334,10 +422,15 @@ namespace EndfieldShaderPack
             }
         }
 
-        static Vector4 SkinnedViewportBounds(Transform root, Camera camera)
+        static Vector4 SkinnedViewportBounds(Transform root, Camera camera,
+            out float minWorldY, out float minNearFeetY)
         {
             Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
             Vector2 max = new Vector2(float.MinValue, float.MinValue);
+            minWorldY = float.MaxValue;
+            minNearFeetY = float.MaxValue;
+            var leftFoot = Find(root, "Bip001_L_Foot");
+            var rightFoot = Find(root, "Bip001_R_Foot");
             int visible = 0;
             var mesh = new Mesh();
             var vertices = new List<Vector3>();
@@ -351,7 +444,14 @@ namespace EndfieldShaderPack
                     Matrix4x4 localToWorld = smr.localToWorldMatrix;
                     foreach (var vertex in vertices)
                     {
-                        Vector3 viewport = camera.WorldToViewportPoint(localToWorld.MultiplyPoint3x4(vertex));
+                        Vector3 world = localToWorld.MultiplyPoint3x4(vertex);
+                        minWorldY = Mathf.Min(minWorldY, world.y);
+                        if (leftFoot != null && rightFoot != null &&
+                            (new Vector2(world.x - leftFoot.position.x, world.z - leftFoot.position.z).sqrMagnitude < 0.0324f ||
+                             new Vector2(world.x - rightFoot.position.x, world.z - rightFoot.position.z).sqrMagnitude < 0.0324f) &&
+                            world.y < Mathf.Min(leftFoot.position.y, rightFoot.position.y) + 0.2f)
+                            minNearFeetY = Mathf.Min(minNearFeetY, world.y);
+                        Vector3 viewport = camera.WorldToViewportPoint(world);
                         if (viewport.z <= 0f) continue;
                         min = Vector2.Min(min, viewport);
                         max = Vector2.Max(max, viewport);
@@ -388,6 +488,11 @@ namespace EndfieldShaderPack
             {
                 var motion = Vmd.ReadFile(motionPath);
                 player = MmdPlayer.Load(motion, root);
+                if (!player.calibrationOk)
+                {
+                    status = "T-pose 校准失败: " + player.profile.calibrationError;
+                    return;
+                }
                 camDriver.target = cam;
                 camDriver.yaw = camYaw;
                 if (File.Exists(cameraPath)) camDriver.LoadFile(cameraPath);
@@ -396,6 +501,13 @@ namespace EndfieldShaderPack
             catch (Exception e)
             {
                 status = "载入失败: " + e.Message;
+                return;
+            }
+
+            var postProfile = cam.GetComponent<EndfieldCapturedPostProfile>();
+            if (postProfile == null || !postProfile.IsConfigured)
+            {
+                status = "舞台相机缺少捕获后处理配置；请重建 MMD 舞台场景";
                 return;
             }
 
@@ -423,6 +535,8 @@ namespace EndfieldShaderPack
                 "vmdFps=30",   // 采样来源：VMD 帧域固定 30fps；渲染 fps 只决定输出时长
                 "frameStart=" + frameStart, "frameEnd=" + last,
                 "scale=" + scale, "inPlace=" + inPlace, "heightOffset=" + heightOffset,
+                "keepFeetAboveFloor=" + keepFeetAboveFloor,
+                "soleBelowFootBone=" + soleBelowFootBone,
                 "driveCamera=" + driveCamera, "camYaw=" + camYaw,
                 "loadInfo=" + player.loadInfo,
                 "face=" + MmdFace.Describe(root),
@@ -437,6 +551,7 @@ namespace EndfieldShaderPack
                 float t = (float)(vmdFrame / 30.0);
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, heightOffset);
+                if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
                 if (driveCamera && camDriver.HasKeys)
                     camDriver.Apply(t, scale, root, player.bindRootWorld);
                 SaveFrame(cam, Path.Combine(dir, "frame_" + outputFrame.ToString("D4") + ".png"), w, h, flipY);
@@ -458,7 +573,7 @@ namespace EndfieldShaderPack
                 "{0}{1} 帧 → {2}\n耗时 {3:F1}s{4}",
                 canceled ? "已取消，" : "", total, dir, sw.Elapsed.TotalSeconds,
                 mp4 != null ? "\nMP4: " + mp4 : "");
-            if (mp4 != null) EditorUtility.RevealInFinder(mp4);
+            if (mp4 != null && !Application.isBatchMode) EditorUtility.RevealInFinder(mp4);
             Repaint();
             Debug.Log("[VmdBatchRender] " + status);
             }
