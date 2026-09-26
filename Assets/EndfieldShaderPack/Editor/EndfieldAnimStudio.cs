@@ -5,7 +5,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
-using EndfieldShaderPack.EditorTools.Mmd;
 
 namespace EndfieldShaderPack.EditorTools
 {
@@ -304,21 +303,11 @@ namespace EndfieldShaderPack.EditorTools
         void SampleAndSolve()
         {
             if (clip == null || charRoot == null) return;
-            if (mmdMode && mmdPlayer != null && mmdPlayer.captured)
-            {
-                // VMD 驱动：重置绑定 → 采样 retarget → 写骨骼（不走 SampleAnimation）
-                mmdPlayer.Reset();
-                mmdPlayer.ApplyFrame(time, mmdScale, mmdInPlace, mmdHeight);
-                ApplyMmdCamera();
-                SceneView.RepaintAll();
-                return;
-            }
             clip.SampleAnimation(charRoot.gameObject, Mathf.Min(time, clip.length));
             if (useRm && rm != null) { ApplyRootMotion(); UpdateRmVisualizers(); }
             if (!clavCaptured && rm != null) CaptureClavicles();
             if (clavFollow) ApplyClavicleFollow();
             foreach (var c in chains) Solve(c);
-            ApplyMmdCamera(); // 镜头轨独立于骨骼驱动方式
             SceneView.RepaintAll();
         }
 
@@ -550,60 +539,6 @@ namespace EndfieldShaderPack.EditorTools
             c.solved = true;
         }
 
-        // ---- MMD 播放（共享核心 MmdPlayer + MmdCameraDriver）----
-        MmdPlayer mmdPlayer;
-        MmdCameraDriver mmdCamDriver = new MmdCameraDriver();
-        string mmdInfo = "MMD: 未载入";
-        bool mmdMode;                 // true = VMD 驱动；false = ACL clip 驱动
-        float mmdScale = 0.08f;
-        bool mmdInPlace = true;
-        float mmdHeight = 0f;
-        bool mmdCamDrive;
-
-        void MmdLoadVmd(string path)
-        {
-            try
-            {
-                var clip = Vmd.ReadFile(path);
-                mmdPlayer = MmdPlayer.Load(clip, charRoot);
-                mmdInfo = mmdPlayer.loadInfo;
-                mmdScale = mmdPlayer.suggestedScale;
-                if (mmdCamDriver.target == null) mmdCamDriver.target = Camera.main;
-                mmdCamDriver.UseMotionClip(clip);
-                mmdMode = true;
-                time = 0;
-                SampleAndSolve();
-            }
-            catch (Exception e)
-            {
-                mmdInfo = "MMD 载入失败: " + e.Message;
-            }
-            Repaint();
-        }
-
-        void MmdLoadCameraVmd(string path)
-        {
-            try
-            {
-                mmdCamDriver.LoadFile(path);
-                if (mmdCamDriver.target == null) mmdCamDriver.target = Camera.main;
-                mmdCamDrive = mmdCamDriver.HasKeys;
-                if (mmdCamDrive) mmdCamDriver.CaptureRestore();
-                SampleAndSolve();
-            }
-            catch (Exception e)
-            {
-                mmdCamDriver.info = "镜头载入失败: " + e.Message;
-            }
-            Repaint();
-        }
-
-        void ApplyMmdCamera()
-        {
-            if (!mmdCamDrive || mmdPlayer == null) return;
-            mmdCamDriver.Apply(time, mmdScale, charRoot, mmdPlayer.bindRootWorld);
-        }
-
         void OnGUI()
         {
             scroll = GUILayout.BeginScrollView(scroll);
@@ -661,87 +596,6 @@ namespace EndfieldShaderPack.EditorTools
                     }
                     GUILayout.Label(sb.ToString(), EditorStyles.miniLabel);
                 }
-            }
-
-            GUILayout.Space(8);
-
-            // ---- MMD 播放（定制化载入）----
-            GUILayout.Label("MMD 播放器（VMD 定制载入）", EditorStyles.boldLabel);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button("打开 VMD...") && charRoot != null)
-                {
-                    string p = EditorUtility.OpenFilePanel("选择 VMD 动作文件", "", "vmd");
-                    if (!string.IsNullOrEmpty(p)) MmdLoadVmd(p);
-                }
-                using (new EditorGUI.DisabledScope(mmdPlayer == null))
-                {
-                    bool nm = GUILayout.Toggle(mmdMode, "VMD 驱动", GUILayout.Width(90));
-                    if (nm != mmdMode)
-                    {
-                        mmdMode = nm;
-                        if (!mmdMode && mmdPlayer != null) mmdPlayer.Reset();
-                        SampleAndSolve();
-                    }
-                }
-            }
-            GUILayout.Label(mmdInfo, EditorStyles.wordWrappedMiniLabel);
-            if (mmdPlayer != null)
-            {
-                mmdScale = EditorGUILayout.Slider("位移比例", mmdScale, 0f, 0.3f);
-                mmdInPlace = EditorGUILayout.Toggle("原地播放（锁水平位移）", mmdInPlace);
-                mmdHeight = EditorGUILayout.Slider("高度修正", mmdHeight, -1f, 1f);
-                if (GUILayout.Button("重新校准 T-pose"))
-                {
-                    bool calib = mmdPlayer.Recalibrate();
-                    mmdInfo += " | 重校准" + (calib ? "成功" : "失败");
-                    SampleAndSolve();
-                }
-            }
-
-            // ---- 镜头轨（MmdCameraDriver）----
-            GUILayout.Label("镜头轨（VMD 相机）", EditorStyles.boldLabel);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button("打开镜头 VMD...", GUILayout.Width(130)))
-                {
-                    string p = EditorUtility.OpenFilePanel("选择镜头 VMD（如 Camera.vmd）", "", "vmd");
-                    if (!string.IsNullOrEmpty(p)) MmdLoadCameraVmd(p);
-                }
-                using (new EditorGUI.DisabledScope(!mmdCamDriver.HasKeys))
-                {
-                    bool nc = GUILayout.Toggle(mmdCamDrive, "镜头驱动", GUILayout.Width(90));
-                    if (nc != mmdCamDrive)
-                    {
-                        if (nc) mmdCamDriver.CaptureRestore(); else mmdCamDriver.Restore();
-                        mmdCamDrive = nc;
-                        SampleAndSolve();
-                    }
-                    if (GUILayout.Button("复位相机", GUILayout.Width(80)))
-                    {
-                        mmdCamDriver.Restore();
-                        mmdCamDrive = false;
-                        SampleAndSolve();
-                    }
-                }
-            }
-            var newCam = (Camera)EditorGUILayout.ObjectField("目标相机", mmdCamDriver.target, typeof(Camera), true);
-            if (newCam != mmdCamDriver.target)
-            {
-                if (mmdCamDrive) mmdCamDriver.Restore();
-                mmdCamDriver.target = newCam;
-                if (mmdCamDrive) mmdCamDriver.CaptureRestore();
-                Repaint();
-            }
-            GUILayout.Label(mmdCamDriver.info, EditorStyles.wordWrappedMiniLabel);
-            if (mmdCamDriver.HasKeys)
-            {
-                mmdCamDriver.yaw = EditorGUILayout.Slider("机位偏航（角色背对镜头时 ±180）", mmdCamDriver.yaw, -180f, 360f);
-                mmdCamDriver.distanceScale = EditorGUILayout.Slider("距离缩放", mmdCamDriver.distanceScale, 0.1f, 3f);
-                mmdCamDriver.fovOffset = EditorGUILayout.Slider("FOV 偏移", mmdCamDriver.fovOffset, -20f, 20f);
-                mmdCamDriver.offset = EditorGUILayout.Vector3Field("目标偏移", mmdCamDriver.offset);
-                mmdCamDriver.follow = EditorGUILayout.Toggle("机位跟随角色位移", mmdCamDriver.follow);
-                mmdCamDriver.followVertical = EditorGUILayout.Toggle("跟随高度", mmdCamDriver.followVertical);
             }
 
             GUILayout.Space(8);

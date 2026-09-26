@@ -266,7 +266,7 @@ namespace EndfieldShaderPack
             Debug.Log("[VmdBatchRender] " + status);
         }
 
-        static void SaveFrame(Camera cam, string path, int w, int h, bool flip)
+        public static void SaveFrame(Camera cam, string path, int w, int h, bool flip)
         {
             var rt = new RenderTexture(w, h, 24);
             var prevActive = RenderTexture.active;
@@ -298,7 +298,7 @@ namespace EndfieldShaderPack
             UnityEngine.Object.DestroyImmediate(rt);
         }
 
-        static string Mux(string dir, string audio, int fps, int w, int h, out string log)
+        public static string Mux(string dir, string audio, int fps, int w, int h, out string log)
         {
             string outMp4 = Path.Combine(dir, "unforgiven.mp4");
             var psi = new ProcessStartInfo
@@ -327,7 +327,7 @@ namespace EndfieldShaderPack
             }
         }
 
-        static string FindFfmpeg()
+        public static string FindFfmpeg()
         {
             var path = Environment.GetEnvironmentVariable("PATH");
             if (!string.IsNullOrEmpty(path))
