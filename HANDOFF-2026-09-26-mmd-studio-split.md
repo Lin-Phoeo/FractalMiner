@@ -89,3 +89,27 @@ MMD 舞蹈视频（提弗洛斯跳 UNFORGIVEN）→ AI 视频素材。所以出�
 4. **眼神轨定论**：重建骨架没有眼球骨骼，両目/瞳轨无法消费（要做得挂眼球骨，长线）；Poser 能播眼神是因为它挂在游戏原生骨架上（游戏有眼球骨）
 
 **尚未经用户实操验收**：幅度滑块/IK 三档的实际效果需要用户在 Mmd Studio 里边播边调；已留好参数入口，下一个 Agent 根据用户反馈微调 AmpFor 归组或幅度方向即可。
+
+## 9. 追加（13:56，7562afa）：校准失败根因修复 + 初始化人物模型标准流程
+
+用户报：**校准初始 pose 全失败** + Anim Studio `Setup()` NullReference（line 163）+ "GUILayout: Invalid layout state" 连锁崩坏；并要求加"初始化人物模型"作为 MMD 载入标准。三个根因全部修复：
+
+1. **校准失败（根因=脏姿态）**：`MmdPlayer.Load` 的 `FromUnity` 用**场景当前骨态**构建 profile（restPos/restRot）。角色若带着上次播放/Anim Studio 遗留的姿势（非绑定姿态），肩宽/胸高等 anatomical landmark 全错 → MakeTPose 必然失败。修法：`LoadMotion`/`InitCharacter` 统一 `EnsureScene(true)` **强制重开基线场景**（干净绑定姿态），旧 `player`/`camDriver.target` 句柄随场景销毁、显式置空（防 Unity 伪存活引用）。
+2. **MakeTPose 静默失败无上下文**：原先 14 个 `return false` 全部不带原因，用户只看到"校准失败"。新 `MakeTPose(profile, ref string reason)` 逐前置条件输出口径化原因（如"肩宽 0.312m < 需 0.125m——先初始化人物模型"），`calibrationError` 随 loadInfo 显示在面板。RoleName 常量表给出 55 个 role 的可读名。
+3. **Anim Studio Setup() 三处裸引用**（用户 GUI Error 现场）：clip==null 时裸 return 不置 status；chains==null 时 `pelvis.parent` 链直接崩（=line 163 NullRef + GUILayout 状态污染）；M5 枢轴代码假设骨架总存在。全区间加防御 + 中文 status 提示根源（"IK 骨链缺失/骨架不在 chr_0034_typhoea_rebuilt 下"等）。
+
+**产品化落地（用户要求）**：Mmd Studio 面板流程标准化为 **①初始化人物模型 → ②载入动作 → ③调镜头/播放/出片**。①= `InitCharacter()`：一次到位（场景/重建角色/M5 枢轴/官方光照/自阴影链）；②③内部强制走①的干净基线，用户不按①直接载入 VMD 也自动对（设计上不强制顺序，但状态栏 hint 引导）。**接手后验校准**：载入 VMD 后 loadInfo 应显示"T-pose 校准成功"；若仍失败，reason 里的具体数字（肩宽/胸高）就是下一步线索——不用再猜。
+
+**顺带**：EndfieldMmdStudio EnsureScene 增强了相机句柄随场景更替刷新（旧相机销毁后 camDriver.target 自动换新）。
+
+## 10. 提交一览（截至 7562afa，全部已 push endfield-records）
+
+| 提交 | 内容 |
+|---|---|
+| 891c6ac | Safe Mode 26 个编译错误全修（上轮遗留 Mmd 目录） |
+| b71e712 | 视频"只有个头在上方"三根因（校准单位坑/相机-90°俯仰混入/帧域错速）——**重渲验收仍欠** |
+| 2fc5660 | MMD 独立化：Mmd Studio 一个面板（编辑器内播放+出片）+ Anim Studio 回归纯 ACL |
+| 0131352 | 交接文档 v1 入库 |
+| e4279d4 | Poser 适配参数落地（幅度分部位/IK 三模式/镜头观察工具） |
+| 7562afa | 初始化人物模型标准流程 + 校准失败根因诊断 + Anim Studio 空引用修复 |
+
