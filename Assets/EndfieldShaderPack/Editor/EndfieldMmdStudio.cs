@@ -34,6 +34,7 @@ namespace EndfieldShaderPack
         string lastMotionPath = "";
         string lastCameraPath = "";
         string lastAudioPath = "";
+        string sourceRigJsonPath = "";   // optional local PMX-derived motion skeleton
 
         // ---- 播放参数 ----
         bool playing;
@@ -65,6 +66,7 @@ namespace EndfieldShaderPack
 
         void OnEnable()
         {
+            sourceRigJsonPath = EditorPrefs.GetString("Endfield.MmdSourceRigJson", "");
             EditorApplication.update += Tick;
             EditorApplication.update += StepRoutine;
         }
@@ -141,7 +143,9 @@ namespace EndfieldShaderPack
                 EnsureScene(true);
                 camDriver.target = cam;   // 旧相机句柄随场景更替刷新
                 var clip = Vmd.ReadFile(path);
-                player = MmdPlayer.Load(clip, charRoot);
+                MmdRigDefinition sourceRig = string.IsNullOrEmpty(sourceRigJsonPath) ? null :
+                    MmdRigDefinition.FromFile(sourceRigJsonPath);
+                player = MmdPlayer.Load(clip, charRoot, sourceRig);
                 scale = player.suggestedScale;
                 camDriver.UseMotionClip(clip);
                 if (camDriver.target == null) camDriver.target = cam;
@@ -363,6 +367,27 @@ namespace EndfieldShaderPack
             if (GUILayout.Button("重载动作（保持镜头/参数）", GUILayout.Height(20)) &&
                 !string.IsNullOrEmpty(lastMotionPath) && File.Exists(lastMotionPath))
                 LoadMotion(lastMotionPath);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.Label("动作源骨架: " + (string.IsNullOrEmpty(sourceRigJsonPath) ? "标准(手写)" :
+                    Path.GetFileName(sourceRigJsonPath)), EditorStyles.miniLabel);
+                if (GUILayout.Button("选择 JSON...", GUILayout.Width(100)))
+                {
+                    string selected = EditorUtility.OpenFilePanel("选择本机 PMX 动作源骨架 JSON", "", "json");
+                    if (!string.IsNullOrEmpty(selected))
+                    {
+                        sourceRigJsonPath = selected;
+                        EditorPrefs.SetString("Endfield.MmdSourceRigJson", selected);
+                        if (!string.IsNullOrEmpty(lastMotionPath)) LoadMotion(lastMotionPath);
+                    }
+                }
+                if (GUILayout.Button("标准骨架", GUILayout.Width(76)))
+                {
+                    sourceRigJsonPath = "";
+                    EditorPrefs.SetString("Endfield.MmdSourceRigJson", "");
+                    if (!string.IsNullOrEmpty(lastMotionPath)) LoadMotion(lastMotionPath);
+                }
+            }
             using (new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button("镜头 VMD...", GUILayout.Width(110)))

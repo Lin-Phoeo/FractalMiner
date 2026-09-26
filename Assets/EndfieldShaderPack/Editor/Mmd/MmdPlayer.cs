@@ -31,24 +31,25 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public Vector3 bindRootWorld => _bindRoot;
         public float bindMinFootY => _bindMinFootY;
 
-        public static MmdPlayer Load(VmdMotionClip clip, Transform charRoot)
+        public static MmdPlayer Load(VmdMotionClip clip, Transform charRoot,
+            MmdRigDefinition sourceRig = null)
         {
             var p = new MmdPlayer();
             p.clip = clip;
             p.charRoot = charRoot;
-            p.sourceRig = MmdRigDefinition.StandardMmd();
+            p.sourceRig = sourceRig ?? MmdRigDefinition.StandardMmd();
             p.profile = MmdRetargetProfile.FromUnity(charRoot);
             p.calibrationOk = MmdCalibration.MakeTPose(p.profile);
             p.retargeter = new MmdRetargeter();
             p.retargeter.Bind(p.sourceRig, clip, p.profile);
             p.CaptureBind();
             p.loadInfo = string.Format(
-                "MMD 载入: {0} 骨骼轨, {1} 关键帧, {2} 镜头帧, 时长 {3:F1}s | " +
+                "MMD 载入: {0} 骨骼轨, {1} 关键帧, {2} 镜头帧, 时长 {3:F1}s | 源骨架 {8} | " +
                 "T-pose 校准{4} | 未映射轨道 {5} | scale={6:F3} | 表情 {7}",
                 clip.bones.Count, clip.boneKeys, clip.cameras.Count, clip.Duration,
                 p.calibrationOk ? "成功" : "失败: " + p.profile.calibrationError,
                 p.retargeter.unmapped.Count, p.retargeter.suggestedScale,
-                clip.morphs.Count);
+                clip.morphs.Count, p.sourceRig.name);
             return p;
         }
 

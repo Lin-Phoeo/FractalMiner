@@ -29,6 +29,7 @@ namespace EndfieldShaderPack
         string motionPath = DefaultMotion;
         string cameraPath = DefaultCamera;
         string audioPath = DefaultAudio;
+        string sourceRigJsonPath = "";
         string outDir = "Validation/vmd-unforgiven";
         int width = 1920, height = 1080;
         int fps = 30;
@@ -62,6 +63,12 @@ namespace EndfieldShaderPack
                 "无需录屏：固定帧率不掉帧、分辨率自定、可直接接音轨。", MessageType.Info);
 
             motionPath = FileField("动作 VMD", motionPath);
+            sourceRigJsonPath = EditorGUILayout.TextField("动作源骨架 JSON（可空）", sourceRigJsonPath);
+            if (GUILayout.Button("选择本机骨架 JSON...", GUILayout.Width(170)))
+            {
+                string selected = EditorUtility.OpenFilePanel("选择 PMX 动作源骨架 JSON", "", "json");
+                if (!string.IsNullOrEmpty(selected)) sourceRigJsonPath = selected;
+            }
             cameraPath = FileField("镜头 VMD（可空）", cameraPath);
             audioPath = FileField("音频 WAV（可空）", audioPath);
             outDir = EditorGUILayout.TextField("输出目录（项目相对）", outDir);
@@ -233,7 +240,15 @@ namespace EndfieldShaderPack
 
         public static void RunSmokeValidation()
         {
-            const string validationDir = "Validation/mmd-smoke-01";
+            string[] commandArgs = Environment.GetCommandLineArgs();
+            string Arg(string key)
+            {
+                for (int ai = 0; ai + 1 < commandArgs.Length; ++ai)
+                    if (commandArgs[ai] == key) return commandArgs[ai + 1];
+                return null;
+            }
+            string validationDir = Arg("-mmdOutputDir") ?? "Validation/mmd-smoke-01";
+            string sourceRigPath = Arg("-mmdRigPath");
             Directory.CreateDirectory(validationDir);
             bool pipelineWasActivated = EndfieldCapturedPipelineActivation.IsActivated;
             EndfieldCharacterShadowCaster addedCaster = null;
@@ -292,7 +307,9 @@ namespace EndfieldShaderPack
                 if (!File.Exists(DefaultCamera)) throw new FileNotFoundException("Smoke camera missing", DefaultCamera);
 
                 var motion = Vmd.ReadFile(DefaultMotion);
-                var player = MmdPlayer.Load(motion, root);
+                MmdRigDefinition sourceRig = string.IsNullOrEmpty(sourceRigPath) ? null :
+                    MmdRigDefinition.FromFile(sourceRigPath);
+                var player = MmdPlayer.Load(motion, root, sourceRig);
                 if (!player.calibrationOk)
                     throw new InvalidOperationException("Smoke T-pose calibration failed: " + player.profile.calibrationError);
                 for (int fingerRole = 24; fingerRole <= 53; ++fingerRole)
@@ -607,7 +624,9 @@ namespace EndfieldShaderPack
             try
             {
                 var motion = Vmd.ReadFile(motionPath);
-                player = MmdPlayer.Load(motion, root);
+                MmdRigDefinition sourceRig = string.IsNullOrEmpty(sourceRigJsonPath) ? null :
+                    MmdRigDefinition.FromFile(sourceRigJsonPath);
+                player = MmdPlayer.Load(motion, root, sourceRig);
                 if (!player.calibrationOk)
                 {
                     status = "T-pose 校准失败: " + player.profile.calibrationError;

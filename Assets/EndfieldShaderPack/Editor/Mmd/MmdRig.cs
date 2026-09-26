@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using UnityEngine;
 
 namespace EndfieldShaderPack.EditorTools.Mmd
@@ -32,6 +33,35 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public List<MmdIkLink> links = new List<MmdIkLink>();
     }
 
+    [Serializable]
+    public class MmdRigJson
+    {
+        public string name;
+        public MmdRigBoneJson[] bones;
+    }
+
+    [Serializable]
+    public class MmdRigBoneJson
+    {
+        public string name;
+        public float[] rest;
+        public int parent = -1, layer, grant = -1;
+        public float grantWeight;
+        public bool grantRotation, grantPosition, grantLocal, fixedAxis;
+        public float[] axis;
+        public int effector = -1, iterations;
+        public float angleLimit;
+        public MmdIkLinkJson[] links;
+    }
+
+    [Serializable]
+    public class MmdIkLinkJson
+    {
+        public int bone = -1;
+        public bool limited;
+        public float[] minimum, maximum;
+    }
+
     public class MmdRigDefinition
     {
         public string name;
@@ -44,6 +74,95 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public int Find(string n)
         {
             return names.TryGetValue(MmdName.Normalize(n), out var i) ? i : -1;
+        }
+
+        /// <summary>Read a local PMX-derived skeleton only; never imports a PMX mesh.</summary>
+        public static MmdRigDefinition FromFile(string path)
+        {
+            var file = new FileInfo(path);
+            if (!file.Exists || file.Length > 16 * 1024 * 1024)
+                throw new InvalidDataException("PMX source-rig JSON is missing or exceeds 16 MiB.");
+            return FromJson(File.ReadAllText(path));
+        }
+
+        public static MmdRigDefinition FromJson(string json)
+        {
+            if (string.IsNullOrEmpty(json) || json.Length > 16 * 1024 * 1024)
+                throw new InvalidDataException("PMX source-rig JSON is empty or exceeds 16 MiB.");
+            MmdRigJson source;
+            try { source = JsonUtility.FromJson<MmdRigJson>(json); }
+            catch (Exception e) { throw new InvalidDataException("Invalid PMX source-rig JSON.", e); }
+            if (source == null || source.bones == null || source.bones.Length < 1 ||
+                source.bones.Length > 10000)
+                throw new InvalidDataException("PMX source-rig bone count is invalid.");
+            var rig = new MmdRigDefinition { name = source.name ?? "PMX source rig", builtin = false };
+            int count = source.bones.Length;
+            Vector3 V(float[] values, string field)
+            {
+                if (values == null || values.Length != 3 ||
+                    float.IsNaN(values[0] + values[1] + values[2]) ||
+                    float.IsInfinity(values[0] + values[1] + values[2]))
+                    throw new InvalidDataException("Invalid PMX source-rig vector: " + field);
+                return new Vector3(values[0], values[1], values[2]);
+            }
+            int Index(int index, string field)
+            {
+                if (index < -1 || index >= count)
+                    throw new InvalidDataException("Invalid PMX source-rig " + field + " index " + index);
+                return index;
+            }
+            for (int i = 0; i < count; ++i)
+            {
+                var item = source.bones[i];
+                if (item == null || string.IsNullOrEmpty(item.name) || item.name.Length > 256)
+                    throw new InvalidDataException("PMX source-rig bone name missing at " + i);
+                string normalized = MmdName.Normalize(item.name);
+                if (rig.names.ContainsKey(normalized))
+                    throw new InvalidDataException("Duplicate PMX source-rig bone name: " + normalized);
+                var bone = new MmdRigBone
+                {
+                    name = normalized,
+                    rest = V(item.rest, item.name + ".rest"),
+                    parent = Index(item.parent, item.name + ".parent"),
+                    layer = item.layer,
+                    grant = Index(item.grant, item.name + ".grant"),
+                    grantWeight = item.grantWeight,
+                    grantRotation = item.grantRotation,
+                    grantPosition = item.grantPosition,
+                    grantLocal = item.grantLocal,
+                    fixedAxis = item.fixedAxis,
+                    axis = item.axis != null ? V(item.axis, item.name + ".axis") : Vector3.zero,
+                    effector = Index(item.effector, item.name + ".effector"),
+                    iterations = item.iterations,
+                    angleLimit = item.angleLimit
+                };
+                if (bone.parent == i || bone.grant == i)
+                    throw new InvalidDataException("PMX source-rig bone has self dependency: " + bone.name);
+                if (bone.iterations < 0 || bone.iterations > 256 ||
+                    float.IsNaN(bone.angleLimit) || float.IsInfinity(bone.angleLimit) ||
+                    bone.angleLimit < 0f || bone.angleLimit > Mathf.PI ||
+                    float.IsNaN(bone.grantWeight) || float.IsInfinity(bone.grantWeight) ||
+                    Mathf.Abs(bone.grantWeight) > 10f || (item.links != null && item.links.Length > 64))
+                    throw new InvalidDataException("PMX source-rig transform or IK limits invalid: " + bone.name);
+                if (item.links != null)
+                    foreach (var link in item.links)
+                    {
+                        if (link == null || Index(link.bone, item.name + ".IK") < 0)
+                            throw new InvalidDataException("Invalid PMX source-rig IK link on " + item.name);
+                        bone.links.Add(new MmdIkLink
+                        {
+                            bone = link.bone,
+                            limited = link.limited,
+                            minimum = link.limited ? V(link.minimum, item.name + ".minimum") : Vector3.zero,
+                            maximum = link.limited ? V(link.maximum, item.name + ".maximum") : Vector3.zero
+                        });
+                    }
+                rig.names[bone.name] = i;
+                rig.bones.Add(bone);
+            }
+            try { rig.Finish(); }
+            catch (Exception e) { throw new InvalidDataException("Invalid PMX source-rig dependencies.", e); }
+            return rig;
         }
 
         int Add(string name, string parent, Vector3 p)
@@ -74,6 +193,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 if (depth > 256) throw new InvalidOperationException("PMX dependency chain exceeds 256 bones");
                 mark[i] = 1;
                 Visit(bones[i].parent, depth + 1);
+                Visit(bones[i].grant, depth + 1);
                 depths[i] = 1 + Math.Max(bones[i].parent >= 0 ? depths[bones[i].parent] : 0,
                                          bones[i].grant >= 0 ? depths[bones[i].grant] : 0);
                 if (depths[i] > 256) throw new InvalidOperationException("PMX dependency chain exceeds 256 bones");
