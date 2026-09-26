@@ -345,6 +345,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         Quaternion _basis = Quaternion.identity;
         public MmdSampledPose output = new MmdSampledPose();
         public float suggestedScale = .08f;
+        // 分部位动作幅度（Poser 语义：0=回基准姿势,1=原样,>1=夸张;最终=整体×部位）
+        public float ampBody = 1f, ampArms = 1f, ampLegs = 1f, ampHead = 1f;
         public List<string> unmapped => _eval.unmapped;
 
         static readonly int[] Child = { 7, 3, 4, 5, 6, 19, 20, 8, 54, 10, -1,
@@ -354,6 +356,12 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             -1, 46, 47, -1, 49, 50, -1, 52, 53, -1, 9 };
 
         static Vector3 MPos(Matrix4x4 m) => m.GetColumn(3);
+
+        // 部位→幅度系数（roles: 0=hip 1-6=腿 7/8/54=脊柱 9=颈 10=头 11-23=臂手 24-53=手指）
+        float AmpFor(int role) =>
+            role >= 1 && role <= 6 ? ampLegs :
+            role == 9 || role == 10 ? ampHead :
+            role >= 11 ? ampArms : ampBody;
 
         void World()
         {
@@ -507,6 +515,11 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 {
                     Quaternion desired = MmdQ.Normalize(_basis * _eval.pose.rotations[_sourceRole[r]]
                         * Quaternion.Inverse(_basis) * _alignedRest[r]);
+                    // 分部位幅度（Poser 语义）：角色 r 的绑定局部姿态为基准，
+                    // amplitude=0 回基准，1 原样；整体 ampBody 与部位系数相乘。
+                    float amp = ampBody * AmpFor(r);
+                    if (amp < 0.999f || amp > 1.001f)
+                        desired = Quaternion.Slerp(b.localRot, desired, Mathf.Clamp01(amp));
                     Quaternion parent = b.parent >= 0 ? output.worldRot[b.parent] : Quaternion.identity;
                     output.localRot[i] = MmdQ.Normalize(Quaternion.Inverse(parent) * desired);
                     output.write[i] = true;

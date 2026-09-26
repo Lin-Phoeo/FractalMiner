@@ -43,6 +43,10 @@ namespace EndfieldShaderPack
         bool camDrive;                  // 镜头驱动开关
         bool loop = true;
         int outFps = 30;
+        VmdIkMode ikMode = VmdIkMode.FollowMotion;
+        // 分部位幅度（Poser 语义：0=回基准,1=原样,2=夸张;最终=整体×部位）
+        float amp = 1f, ampArms = 1f, ampLegs = 1f, ampHead = 1f;
+        bool showAmp;
         string info = "打开动作 VMD 开始。播放/镜头/出片都在这一个面板。";
         string status = "";
         Vector2 scroll;
@@ -88,7 +92,7 @@ namespace EndfieldShaderPack
         {
             if (player == null || charRoot == null) return;
             player.Reset();
-            player.ApplyFrame(t, scale, inPlace, height);
+            player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
             if (camDrive && camDriver.HasKeys)
                 camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
             SceneView.RepaintAll();
@@ -143,6 +147,18 @@ namespace EndfieldShaderPack
         {
             string p = EditorUtility.OpenFilePanel("选择音频（wav/mp3）", "", "wav,mp3");
             if (!string.IsNullOrEmpty(p)) lastAudioPath = p;
+        }
+
+        // ================= 观察工具 =================
+        void AlignSceneViewToCamera()
+        {
+            var c = camDriver.target != null ? camDriver.target : cam;
+            if (c == null) return;
+            var sv = SceneView.lastActiveSceneView;
+            if (sv == null) return;
+            sv.Frame(new Bounds(c.transform.position + c.transform.forward * 2f, Vector3.one * 1.5f), false);
+            sv.LookAt(c.transform.position + c.transform.forward * Mathf.Max(1f, 5f * camDriver.distanceScale), c.transform.rotation, 0f);
+            sv.Repaint();
         }
 
         // ================= 场景引导（与批渲染器同参数） =================
@@ -285,6 +301,25 @@ namespace EndfieldShaderPack
                     info += "\n重校准 " + (ok ? "成功" : "失败");
                     ApplyAt(time);
                 }
+
+                GUILayout.Space(4);
+                // ---- 适配区（Poser 语义：调这些救"腿僵/夸张/不像MMD"） ----
+                ikMode = (VmdIkMode)EditorGUILayout.EnumPopup("动作 IK", ikMode);
+                if (ikMode != VmdIkMode.FollowMotion && Event.current.type == EventType.Layout)
+                    ApplyAt(time);
+                showAmp = EditorGUILayout.Foldout(showAmp, "动作幅度（分部位）");
+                if (showAmp)
+                {
+                    amp = EditorGUILayout.Slider("整体", amp, 0f, 2f);
+                    ampArms = EditorGUILayout.Slider("手臂/手", ampArms, 0f, 2f);
+                    ampLegs = EditorGUILayout.Slider("腿/脚", ampLegs, 0f, 2f);
+                    ampHead = EditorGUILayout.Slider("头颈", ampHead, 0f, 2f);
+                    if (GUILayout.Button("复位幅度", GUILayout.Width(70)))
+                    { amp = ampArms = ampLegs = ampHead = 1f; ApplyAt(time); }
+                }
+                if (showAmp && Event.current.type == EventType.Layout) ApplyAt(time);
+
+                // 镜头
                 using (new EditorGUI.DisabledScope(!camDriver.HasKeys))
                 {
                     bool nc = EditorGUILayout.Toggle("镜头驱动", camDrive);
@@ -303,6 +338,19 @@ namespace EndfieldShaderPack
                     camDriver.follow = EditorGUILayout.Toggle("机位跟随", camDriver.follow);
                     if (Event.current.type == EventType.Layout) ApplyAt(time);
                 }
+
+                // ---- 观察工具：进入镜头视角 ----
+                GUILayout.Space(4);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("Scene 视图 = 镜头视角", GUILayout.Width(150)))
+                        AlignSceneViewToCamera();
+                    if (GUILayout.Button("选中相机", GUILayout.Width(80)))
+                        Selection.activeObject = camDriver.target != null ? camDriver.target.gameObject : null;
+                }
+                EditorGUILayout.HelpBox(
+                    "进入镜头视角后 Scene 视图就是成片构图。Inspector 相机上勾 Camera Preview 也有小窗预览；" +
+                    "Game 视图（顶部标签）默认就是主相机画面。", MessageType.None);
             }
 
             GUILayout.Space(8);
@@ -358,7 +406,7 @@ namespace EndfieldShaderPack
             {
                 float t = t0 + k / 30f;   // VMD 30fps 帧域
                 player.Reset();
-                player.ApplyFrame(t, scale, inPlace, height);
+                player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
                 if (camDrive && camDriver.HasKeys)
                     camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
                 EndfieldVmdBatchRender.SaveFrame(cam, Path.Combine(dir,

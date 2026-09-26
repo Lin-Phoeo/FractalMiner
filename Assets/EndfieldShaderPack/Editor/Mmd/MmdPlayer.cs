@@ -86,10 +86,15 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
         /// <summary>Reset to bind, sample VMD at timeSec, write bones + root + morphs.</summary>
         public void ApplyFrame(float timeSec, float scale, bool inPlace, float height,
-            VmdIkMode mode = VmdIkMode.FollowMotion)
+            VmdIkMode mode = VmdIkMode.FollowMotion, float ampBody = 1f, float ampArms = 1f,
+            float ampLegs = 1f, float ampHead = 1f)
         {
             if (clip == null || profile == null || retargeter == null) return;
             if (!captured) CaptureBind();
+            retargeter.ampBody = ampBody;
+            retargeter.ampArms = ampArms;
+            retargeter.ampLegs = ampLegs;
+            retargeter.ampHead = ampHead;
             retargeter.Sample(timeSec * 30.0, scale, inPlace, height, mode);
             var outPose = retargeter.output;
             for (int i = 0; i < profile.bones.Count; i++)
