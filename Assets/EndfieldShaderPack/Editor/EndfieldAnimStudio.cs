@@ -308,6 +308,7 @@ namespace EndfieldShaderPack.EditorTools
                 // VMD 驱动：重置绑定 → 采样 retarget → 写骨骼（不走 SampleAnimation）
                 ResetToMmdBind();
                 ApplyMmdFrame();
+                ApplyMmdCamera();
                 SceneView.RepaintAll();
                 return;
             }
@@ -316,6 +317,7 @@ namespace EndfieldShaderPack.EditorTools
             if (!clavCaptured && rm != null) CaptureClavicles();
             if (clavFollow) ApplyClavicleFollow();
             foreach (var c in chains) Solve(c);
+            ApplyMmdCamera(); // 镜头轨独立于骨骼驱动方式
             SceneView.RepaintAll();
         }
 
@@ -563,6 +565,24 @@ namespace EndfieldShaderPack.EditorTools
         Vector3 mmdBindRootWorld;
         bool mmdBindCaptured;
 
+        // ---- MMD 镜头（Phase 4，Poser mmd_camera.h 移植）----
+        VmdMotionClip mmdCamClip;      // 独立镜头文件（Camera.vmd）；null = 用动作文件内嵌镜头轨
+        bool mmdCamUseFile;            // true = mmdCamClip；false = mmdClip.cameras
+        bool mmdCamDrive;
+        Camera mmdCamTarget;
+        bool mmdCamFollow = true;      // 机位跟随角色位移
+        bool mmdCamFollowVertical = true;
+        float mmdCamYaw;               // 机位基准偏航（角色背对镜头时调 ±180）
+        float mmdCamDistScale = 1f;
+        float mmdCamFovOffset;
+        Vector3 mmdCamOffset;
+        string mmdCamInfo = "镜头: 未载入";
+        bool mmdCamRestoreValid;
+        Vector3 mmdCamRestorePos;
+        Quaternion mmdCamRestoreRot;
+        float mmdCamRestoreFov, mmdCamRestoreOrtho;
+        bool mmdCamRestoreOrthoFlag;
+
         void MmdLoadVmd(string path)
         {
             try
@@ -580,6 +600,11 @@ namespace EndfieldShaderPack.EditorTools
                     mmdClip.Duration, calib ? "成功" : "失败(用未校准 profile)",
                     mmdRetargeter.unmapped.Count, mmdRetargeter.suggestedScale);
                 mmdScale = mmdRetargeter.suggestedScale;
+                if (mmdCamTarget == null) mmdCamTarget = Camera.main;
+                if (!mmdCamUseFile)
+                    mmdCamInfo = mmdClip.cameras.Count > 0
+                        ? string.Format("镜头: 动作文件内嵌 {0} 帧", mmdClip.cameras.Count)
+                        : "镜头: 动作文件无镜头轨（可单独打开 Camera.vmd）";
                 mmdMode = true;
                 CaptureMmdBind();
                 time = 0;
@@ -631,6 +656,78 @@ namespace EndfieldShaderPack.EditorTools
                 if (outPose.write[i]) b.transform.localRotation = outPose.localRot[i];
             }
             charRoot.position = mmdBindRootWorld + outPose.rootOffset;
+        }
+
+        // ---- MMD 镜头驱动（Phase 4）----
+        List<VmdCameraKey> MmdCameraKeys()
+        {
+            if (mmdCamUseFile && mmdCamClip != null) return mmdCamClip.cameras;
+            return mmdClip != null ? mmdClip.cameras : null;
+        }
+
+        void MmdLoadCameraVmd(string path)
+        {
+            try
+            {
+                var cam = Vmd.ReadFile(path);
+                mmdCamClip = cam;
+                mmdCamUseFile = true;
+                mmdCamInfo = cam.cameras.Count > 0
+                    ? string.Format("镜头文件: {0} 帧, 时长 {1:F1}s", cam.cameras.Count, cam.Duration)
+                    : "镜头文件内没有镜头帧: " + path;
+                mmdCamDrive = cam.cameras.Count > 0;
+                if (mmdCamTarget == null) mmdCamTarget = Camera.main;
+                if (mmdCamDrive) CaptureCameraRestore();
+                SampleAndSolve();
+            }
+            catch (Exception e)
+            {
+                mmdCamInfo = "镜头载入失败: " + e.Message;
+            }
+            Repaint();
+        }
+
+        void CaptureCameraRestore()
+        {
+            if (mmdCamTarget == null) return;
+            mmdCamRestoreValid = true;
+            mmdCamRestorePos = mmdCamTarget.transform.position;
+            mmdCamRestoreRot = mmdCamTarget.transform.rotation;
+            mmdCamRestoreFov = mmdCamTarget.fieldOfView;
+            mmdCamRestoreOrtho = mmdCamTarget.orthographicSize;
+            mmdCamRestoreOrthoFlag = mmdCamTarget.orthographic;
+        }
+
+        void RestoreCamera()
+        {
+            if (!mmdCamRestoreValid || mmdCamTarget == null) return;
+            mmdCamTarget.transform.position = mmdCamRestorePos;
+            mmdCamTarget.transform.rotation = mmdCamRestoreRot;
+            mmdCamTarget.fieldOfView = mmdCamRestoreFov;
+            mmdCamTarget.orthographicSize = mmdCamRestoreOrtho;
+            mmdCamTarget.orthographic = mmdCamRestoreOrthoFlag;
+            SceneView.RepaintAll();
+        }
+
+        void ApplyMmdCamera()
+        {
+            if (!mmdCamDrive || mmdCamTarget == null || charRoot == null) return;
+            var keys = MmdCameraKeys();
+            if (keys == null || keys.Count == 0) return;
+            var key = VmdCameraTrack.SampleKey(keys, time * 30.0);
+            Vector3 origin = mmdCamFollow ? charRoot.position : mmdBindRootWorld;
+            if (mmdCamFollow && !mmdCamFollowVertical && mmdBindCaptured)
+                origin = new Vector3(origin.x, mmdBindRootWorld.y, origin.z);
+            var settings = new VmdCameraSettings
+            {
+                origin = origin,
+                basis = charRoot.rotation * Quaternion.Euler(0f, mmdCamYaw, 0f),
+                offset = mmdCamOffset,
+                scale = mmdScale,
+                distanceScale = mmdCamDistScale,
+                fovOffset = mmdCamFovOffset
+            };
+            VmdCameraTrack.Apply(mmdCamTarget, VmdCameraTrack.Place(key, settings));
         }
 
         void OnGUI()
@@ -727,6 +824,53 @@ namespace EndfieldShaderPack.EditorTools
                     mmdInfo += " | 重校准" + (calib ? "成功" : "失败");
                     SampleAndSolve();
                 }
+            }
+
+            // ---- 镜头轨（Phase 4，VMD 相机驱动）----
+            GUILayout.Label("镜头轨（VMD 相机）", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("打开镜头 VMD...", GUILayout.Width(130)))
+                {
+                    string p = EditorUtility.OpenFilePanel("选择镜头 VMD（如 Camera.vmd）", "", "vmd");
+                    if (!string.IsNullOrEmpty(p)) MmdLoadCameraVmd(p);
+                }
+                var camKeys = MmdCameraKeys();
+                using (new EditorGUI.DisabledScope(camKeys == null || camKeys.Count == 0))
+                {
+                    bool nc = GUILayout.Toggle(mmdCamDrive, "镜头驱动", GUILayout.Width(90));
+                    if (nc != mmdCamDrive)
+                    {
+                        if (nc) CaptureCameraRestore(); else RestoreCamera();
+                        mmdCamDrive = nc;
+                        SampleAndSolve();
+                    }
+                    if (GUILayout.Button("复位相机", GUILayout.Width(80)))
+                    {
+                        RestoreCamera();
+                        mmdCamDrive = false;
+                        SampleAndSolve();
+                    }
+                }
+            }
+            var newCam = (Camera)EditorGUILayout.ObjectField("目标相机", mmdCamTarget, typeof(Camera), true);
+            if (newCam != mmdCamTarget)
+            {
+                if (mmdCamDrive) RestoreCamera();
+                mmdCamTarget = newCam;
+                if (mmdCamDrive) CaptureCameraRestore();
+                Repaint();
+            }
+            GUILayout.Label(mmdCamInfo, EditorStyles.wordWrappedMiniLabel);
+            var driveKeys = MmdCameraKeys();
+            if (driveKeys != null && driveKeys.Count > 0)
+            {
+                mmdCamYaw = EditorGUILayout.Slider("机位偏航（角色背对镜头时 ±180）", mmdCamYaw, -180f, 360f);
+                mmdCamDistScale = EditorGUILayout.Slider("距离缩放", mmdCamDistScale, 0.1f, 3f);
+                mmdCamFovOffset = EditorGUILayout.Slider("FOV 偏移", mmdCamFovOffset, -20f, 20f);
+                mmdCamOffset = EditorGUILayout.Vector3Field("目标偏移", mmdCamOffset);
+                mmdCamFollow = EditorGUILayout.Toggle("机位跟随角色位移", mmdCamFollow);
+                mmdCamFollowVertical = EditorGUILayout.Toggle("跟随高度", mmdCamFollowVertical);
             }
 
             GUILayout.Space(8);
