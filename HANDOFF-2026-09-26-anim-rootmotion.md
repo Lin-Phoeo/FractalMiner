@@ -200,3 +200,67 @@ Unity 离线管线（本仓库）转为研究/实验平台。
 - battle 官方动画的躯干跟随收尾（§4）继续作为研究课题：
   已确认 IK_Hand 轨=官方求解结果回写（gacha 0 误差），缺肩跟随；
   Clavicle 跟随（v9，默认关）+ 躯干链 IK 是方向；bone2/3 语义未定
+
+---
+
+## 11. ⭐ Endfield-Poser 移植方案（2026-09-26，MMD 接入的确定性路线）
+
+**情报源**：用户发现 B 站视频 BV1Y6hm6uEXi（大江户战士）→ 源码
+**https://github.com/OedoSoldier/Endfield-Poser**（AGPL-3.0，C++，已克隆到
+工作区 `../Endfield-Poser/`）。这是游戏内摆姿+MMD 播放器，v0.4.16，
+**完整可读源码**，且已实测在终末地骨架上 work（游戏内验证）。
+
+### 11.1 架构（全部可移植到 C#）
+
+| Poser 文件 | 行数 | 内容 | Unity 移植对应 |
+|---|---|---|---|
+| `src/math/mmd_motion.h` | 380 | **完整 VMD 解析器**（BoneKey/MorphKey/IkKey/CameraKey + Bezier 曲线采样） | `VmdMotion.cs` |
+| `src/math/mmd_retarget.h` | 546 | **RetargetProfile**：55 role（=Unity HumanBodyBones 数值）+ rest 层级 + **MakeCalibrationTPose** | `EndfieldRetarget.cs` |
+| `src/math/mmd_rig.h` | 572 | 标准 MMD rig + 游戏骨架提取 + 準標準骨 | `MmdRig.cs` |
+| `src/math/mmd_camera.h` | ~200 | **VMD 镜头解析+采样** | `VmdCamera.cs` |
+| `src/math/ik_two_bone.h` | — | 解析 2-bone IK | 已有（我们的 v2） |
+| `src/math/quat_math.h` | 84 | 四元数工具 | UnityEngine.Quaternion |
+| `src/game/skeleton.h` | 480 | 游戏骨架读取（il2cpp hook） | **不需要**——Unity 里直接遍历 Transform |
+| `src/game/mmd_player.h` | 1387 | 播放器主逻辑（写骨骼到运行时） | `MmdPlayer.cs`（写 localRotation） |
+
+### 11.2 核心思想（解决我们坐标系痛苦的钥匙）
+
+`mmd_retarget.h` 的 **MakeCalibrationTPose** 注释原文：
+> "Manual calibration starts from the actual pose, whose local axes need not
+> be Unity's axes. Only apply world-space deltas, converted through the real
+> parent. Never reset local rotations: **a Biped pelvis may be rotated 90
+> degrees at rest**."
+
+→ 正是我们纠结的"Biped 骨骼任意局部轴"问题的官方解法：
+**不假设局部轴语义，从解剖学特征点（髋/胸/肩/手）构造 body basis，
+所有对齐用世界空间 delta 通过真实父链转换**。T-pose 校准把每个骨的
+rest 朝向规范成"臂沿 X、脊柱沿 up"，之后 VMD 的 MMD 标准骨旋转
+就能直接映射（MMD rig 也是标准 T-pose 语义）。
+
+### 11.3 移植步骤（每步可独立验证）
+
+1. **VmdMotion.cs**：移植 mmd_motion.h（纯解析，无依赖，可单测：
+   读一个 VMD 对比 Poser 输出帧数/轨道数）
+2. **EndfieldRetarget.cs**：
+   - 骨架来源 = chr_0034_typhoea_rebuilt 层级（运行时遍历 Transform）
+   - role 手工映射表：hips=Bip001_Pelvis, spine=Bip001_Spine,
+     chest=Bip001_Spine1/Spine2, neck=Neck, head=Head,
+     leftShoulder=Clavicle_L, leftUpperArm/forearm/hand=UpperArm/Forearm/Hand,
+     legs 同理（55 role 只映射上半身+腿+手指就够）
+   - MakeCalibrationTPose 移植：跑一次得 restRot，存资产
+3. **MmdPlayer.cs**：每帧 VMD 采样 → retarget（局部旋转 = 校准逆 × MMD 世界旋转 × 校准）→ 写骨骼 localRotation。**替换/并列现有 SampleAnimation 姿态源**
+4. **VmdCamera.cs**：镜头驱动 Unity Camera（Poser 的 mmd_camera.h 含位置/朝向/FOV 插值）
+5. 表情：Poser 映射到游戏 SMC 通道——Unity 侧对应我们的 face blendshape 通道（后做）
+
+### 11.4 AGPL-3.0 合规
+
+- 移植产物若公开分发须遵循 AGPL（源码开放）；个人学习/自用无分发则无义务
+- 在代码头部标注 derived from OedoSoldier/Endfield-Poser (AGPL-3.0)
+
+### 11.5 与 battle 动画课题的关系
+
+- MMD VMD = 全骨骼关键帧 → **不需要 RM/运行时驱动层**，直接 FK
+- 官方 battle 动画（主骨缺失+RM 驱动）的躯干跟随收尾仍是独立研究课题（§4）
+- **Poser 的经验**：他们自研 IK 也"实测未生效"（ik_control.h 里
+  g_ikFeatureEnabled=false）→ 游戏内他们靠游戏自己的 IK 开关。
+  离线等价物 = 我们 §4 路线（Clavicle 跟随+躯干链），优先级让位于 MMD
