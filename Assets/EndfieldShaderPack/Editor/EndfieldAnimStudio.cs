@@ -303,6 +303,14 @@ namespace EndfieldShaderPack.EditorTools
         void SampleAndSolve()
         {
             if (clip == null || charRoot == null) return;
+            if (mmdMode && mmdClip != null && mmdBindCaptured)
+            {
+                // VMD 驱动：重置绑定 → 采样 retarget → 写骨骼（不走 SampleAnimation）
+                ResetToMmdBind();
+                ApplyMmdFrame();
+                SceneView.RepaintAll();
+                return;
+            }
             clip.SampleAnimation(charRoot.gameObject, Mathf.Min(time, clip.length));
             if (useRm && rm != null) { ApplyRootMotion(); UpdateRmVisualizers(); }
             if (!clavCaptured && rm != null) CaptureClavicles();
@@ -539,6 +547,92 @@ namespace EndfieldShaderPack.EditorTools
             c.solved = true;
         }
 
+        // ---- MMD 播放（Phase 3，Poser 架构移植）----
+        VmdMotionClip mmdClip;
+        MmdRetargetProfile mmdProfile;
+        MmdRetargeter mmdRetargeter;
+        MmdRigDefinition mmdSourceRig;
+        string mmdInfo = "MMD: 未载入";
+        bool mmdMode;                 // true = VMD 驱动；false = ACL clip 驱动
+        float mmdScale = 0.08f;
+        bool mmdInPlace = true;
+        float mmdHeight = 0f;
+        List<Transform> mmdBones = new List<Transform>();
+        List<Quaternion> mmdBindLocalRot = new List<Quaternion>();
+        List<Vector3> mmdBindLocalPos = new List<Vector3>();
+        Vector3 mmdBindRootWorld;
+        bool mmdBindCaptured;
+
+        void MmdLoadVmd(string path)
+        {
+            try
+            {
+                mmdClip = Vmd.ReadFile(path);
+                mmdSourceRig = MmdRigDefinition.StandardMmd();
+                mmdProfile = MmdRetargetProfile.FromUnity(charRoot);
+                bool calib = MmdCalibration.MakeTPose(mmdProfile);
+                mmdRetargeter = new MmdRetargeter();
+                mmdRetargeter.Bind(mmdSourceRig, mmdClip, mmdProfile);
+                mmdInfo = string.Format(
+                    "MMD 载入: {0} 骨骼轨, {1} 关键帧, {2} 镜头帧, 时长 {3:F1}s | " +
+                    "T-pose 校准{4} | 未映射轨道 {5} | scale={6:F3}",
+                    mmdClip.bones.Count, mmdClip.boneKeys, mmdClip.cameras.Count,
+                    mmdClip.Duration, calib ? "成功" : "失败(用未校准 profile)",
+                    mmdRetargeter.unmapped.Count, mmdRetargeter.suggestedScale);
+                mmdScale = mmdRetargeter.suggestedScale;
+                mmdMode = true;
+                CaptureMmdBind();
+                time = 0;
+                SampleAndSolve();
+            }
+            catch (Exception e)
+            {
+                mmdInfo = "MMD 载入失败: " + e.Message;
+            }
+            Repaint();
+        }
+
+        void CaptureMmdBind()
+        {
+            mmdBones.Clear(); mmdBindLocalRot.Clear(); mmdBindLocalPos.Clear();
+            foreach (var b in mmdProfile.bones)
+            {
+                if (b.transform == null) continue;
+                mmdBones.Add(b.transform);
+                mmdBindLocalRot.Add(b.transform.localRotation);
+                mmdBindLocalPos.Add(b.transform.localPosition);
+            }
+            mmdBindRootWorld = charRoot.position;
+            mmdBindCaptured = true;
+        }
+
+        void ResetToMmdBind()
+        {
+            if (!mmdBindCaptured) return;
+            for (int i = 0; i < mmdBones.Count; i++)
+            {
+                if (mmdBones[i] == null) continue;
+                mmdBones[i].localRotation = mmdBindLocalRot[i];
+                mmdBones[i].localPosition = mmdBindLocalPos[i];
+            }
+            charRoot.position = mmdBindRootWorld;
+        }
+
+        void ApplyMmdFrame()
+        {
+            if (mmdClip == null || mmdProfile == null || mmdRetargeter == null) return;
+            if (!mmdBindCaptured) CaptureMmdBind();
+            mmdRetargeter.Sample(time * 30.0, mmdScale, mmdInPlace, mmdHeight, VmdIkMode.FollowMotion);
+            var outPose = mmdRetargeter.output;
+            for (int i = 0; i < mmdProfile.bones.Count; i++)
+            {
+                var b = mmdProfile.bones[i];
+                if (b.transform == null) continue;
+                if (outPose.write[i]) b.transform.localRotation = outPose.localRot[i];
+            }
+            charRoot.position = mmdBindRootWorld + outPose.rootOffset;
+        }
+
         void OnGUI()
         {
             scroll = GUILayout.BeginScrollView(scroll);
@@ -595,6 +689,43 @@ namespace EndfieldShaderPack.EditorTools
                             rm.Get(idx, o), rm.Get(idx, o + 1), rm.Get(idx, o + 2));
                     }
                     GUILayout.Label(sb.ToString(), EditorStyles.miniLabel);
+                }
+            }
+
+            GUILayout.Space(8);
+
+            // ---- MMD 播放（定制化载入）----
+            GUILayout.Label("MMD 播放器（VMD 定制载入）", EditorStyles.boldLabel);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("打开 VMD...") && charRoot != null)
+                {
+                    string p = EditorUtility.OpenFilePanel("选择 VMD 动作文件", "", "vmd");
+                    if (!string.IsNullOrEmpty(p)) MmdLoadVmd(p);
+                }
+                using (new EditorGUI.DisabledScope(mmdClip == null))
+                {
+                    bool nm = GUILayout.Toggle(mmdMode, "VMD 驱动", GUILayout.Width(90));
+                    if (nm != mmdMode)
+                    {
+                        mmdMode = nm;
+                        if (!mmdMode) ResetToMmdBind();
+                        SampleAndSolve();
+                    }
+                }
+            }
+            GUILayout.Label(mmdInfo, EditorStyles.wordWrappedMiniLabel);
+            if (mmdClip != null)
+            {
+                mmdScale = EditorGUILayout.Slider("位移比例", mmdScale, 0f, 0.3f);
+                mmdInPlace = EditorGUILayout.Toggle("原地播放（锁水平位移）", mmdInPlace);
+                mmdHeight = EditorGUILayout.Slider("高度修正", mmdHeight, -1f, 1f);
+                if (GUILayout.Button("重新校准 T-pose"))
+                {
+                    bool calib = MmdCalibration.MakeTPose(mmdProfile);
+                    mmdRetargeter.Bind(mmdSourceRig, mmdClip, mmdProfile);
+                    mmdInfo += " | 重校准" + (calib ? "成功" : "失败");
+                    SampleAndSolve();
                 }
             }
 
