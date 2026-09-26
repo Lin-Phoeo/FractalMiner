@@ -14,7 +14,12 @@ namespace EndfieldShaderPack.EditorTools
     ///   ① IK 目标世界位（曲线驱动，必须变化）
     ///   ② 解析 IK 后手/脚末端世界位（求解输出，必须跟随①）
     ///   ③ 末端误差 |②-①|（应 <1cm；若恒为绑定距离说明求解未生效）
-    /// Scene 面板直接看模型动作，Mesh/骨骼开关用于肉眼判断"动了没有"。
+    /// v2 新增 RootMotion 驱动：battle clips 的躯干/四肢主骨不在 ACL Transform 轨里，
+    /// 它们的运行时驱动源 = RootMotionBufferData 的 4 根"根骨"
+    /// （Root=整体位移, IK_Root=转向+前冲, 另两根=手臂摆动源，映射待验证）。
+    /// RM 数据从 Assets/Typhoeus/rootmotion-<clip>.json 读取（由 EndfieldUnpacker 导出），
+    /// 每帧直接覆盖 [tx,ty,tz,qx,qy,qz,qw]（游戏 Z-up 坐标，经 RmZupToUnity 转换）。
+    /// 探针区显示 RM 各根骨位移，肉眼判断躯干是否跟随。
     /// </summary>
     public class EndfieldAnimStudio : EditorWindow
     {
@@ -49,6 +54,21 @@ namespace EndfieldShaderPack.EditorTools
         string status = "";
         bool pipelineActivated;
         EndfieldCharacterShadowCaster shadowCaster;
+
+        // ---- RootMotion 驱动 ----
+        class RmData
+        {
+            public float sampleRate = 60f;
+            public int numBones;
+            public int stride;             // numBones * 7
+            public float[] flat;           // numSamples * stride
+            public int FrameCount => (stride > 0 && flat != null) ? flat.Length / stride : 0;
+
+            public float Get(int frame, int idx) => flat[frame * stride + idx];
+        }
+        RmData rm;
+        bool useRm = true;
+        string rmInfo = "no RM data";
 
         [MenuItem("Endfield/Anim Studio")]
         public static void Open() => GetWindow<EndfieldAnimStudio>("Anim Studio");
@@ -90,6 +110,8 @@ namespace EndfieldShaderPack.EditorTools
 
             clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(DecodedDir + "/" + clipName + ".anim");
             if (clip == null) { status = "clip not found"; return; }
+
+            LoadRootMotion(clipName);
 
             chains.Clear();
             foreach (var side in new[] { "R", "L" })
@@ -140,11 +162,42 @@ namespace EndfieldShaderPack.EditorTools
             shadowCaster = charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
             shadowCaster.slot = 0;
             EndfieldCharacterShadowCaster.Refresh();
+            EnsureRmVisualizers();
 
             time = 0f;
             SampleAndSolve();
-            status = "ready: " + chains.Count + " chains, clip " + clip.length.ToString("F2") + "s";
+            status = "ready: " + chains.Count + " chains, clip " + clip.length.ToString("F2") + "s"
+                + (rm != null ? " + RM " + rm.numBones + " bones" : " (no RM)");
             Repaint();
+        }
+
+        // RM 可视化球（bone1/2/3 的世界位）
+        GameObject rmVis;
+        readonly Transform[] rmVisNodes = new Transform[4];
+
+        void EnsureRmVisualizers()
+        {
+            if (rmVis != null) return;
+            rmVis = new GameObject("EndfieldRmVis");
+            rmVis.hideFlags = HideFlags.HideAndDontSave;
+            for (int b = 0; b < 4; b++)
+            {
+                var s = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                s.name = "RmBone" + b;
+                s.transform.localScale = Vector3.one * (b == 0 ? 0.12f : 0.08f);
+                var col = s.GetComponent<Collider>();
+                if (col != null) UnityEngine.Object.DestroyImmediate(col);
+                var r = s.GetComponent<MeshRenderer>();
+                r.sharedMaterial = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Material.mat");
+                s.transform.SetParent(rmVis.transform, false);
+                rmVisNodes[b] = s.transform;
+            }
+        }
+
+        void DestroyRmVisualizers()
+        {
+            if (rmVis != null) { DestroyImmediate(rmVis); rmVis = null; }
+            for (int i = 0; i < 4; i++) rmVisNodes[i] = null;
         }
 
         void Teardown()
@@ -161,6 +214,8 @@ namespace EndfieldShaderPack.EditorTools
             }
             pipelineActivated = false;
             chains.Clear();
+            DestroyRmVisualizers();
+            if (rmVis != null) { DestroyImmediate(rmVis); }
             charRoot = null;
             clip = null;
         }
@@ -197,9 +252,125 @@ namespace EndfieldShaderPack.EditorTools
         {
             if (clip == null || charRoot == null) return;
             clip.SampleAnimation(charRoot.gameObject, Mathf.Min(time, clip.length));
+            if (useRm && rm != null) { ApplyRootMotion(); UpdateRmVisualizers(); }
             foreach (var c in chains) Solve(c);
             SceneView.RepaintAll();
         }
+
+        void UpdateRmVisualizers()
+        {
+            if (rm == null || rm.FrameCount == 0) return;
+            EnsureRmVisualizers();
+            // 挂到 chr 根下：RM 值直接作为 chr 局部坐标（无需换算）
+            if (rmVis.transform.parent != charRoot) rmVis.transform.SetParent(charRoot, false);
+            int idx = Mathf.Clamp(Mathf.RoundToInt(time * rm.sampleRate), 0, rm.FrameCount - 1);
+            for (int b = 0; b < 4; b++)
+            {
+                if (rmVisNodes[b] == null) continue;
+                if (b >= rm.numBones) { rmVisNodes[b].gameObject.SetActive(false); continue; }
+                rmVisNodes[b].gameObject.SetActive(true);
+                int o = b * 7;
+                rmVisNodes[b].localPosition = new Vector3(
+                    rm.Get(idx, o), rm.Get(idx, o + 1), rm.Get(idx, o + 2));
+                rmVisNodes[b].localRotation = new Quaternion(
+                    rm.Get(idx, o + 3), rm.Get(idx, o + 4), rm.Get(idx, o + 5), rm.Get(idx, o + 6));
+            }
+        }
+
+        // ---- RootMotion ----
+        /// <summary>读 rootmotion-<clip>.json（EndfieldUnpacker 导出，游戏 Z-up 坐标）。
+        /// 格式: {"sampleRate":60,"numBones":4,"numSamples":301,"stride":28,"framesFlat":[28*n floats]}
+        /// 每帧 stride 个浮点，bone-major: [tx,ty,tz,qx,qy,qz,qw]。
+        /// 注意：JsonUtility 不支持 List<float[]>，必须用扁平数组 framesFlat。</summary>
+        void LoadRootMotion(string name)
+        {
+            rm = null;
+            rmInfo = "no RM data";
+            string path = "Assets/Typhoeus/rootmotion-" + name + ".json";
+            var asset = AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+            if (asset == null) { rmInfo = "RM asset missing: " + path; return; }
+            try
+            {
+                var data = JsonUtility.FromJson<RmJson>(asset.text);
+                if (data == null || data.framesFlat == null || data.framesFlat.Length == 0)
+                { rmInfo = "RM empty/parse fail: " + path; return; }
+                int stride = data.stride > 0 ? data.stride : data.numBones * 7;
+                if (stride <= 0 || data.framesFlat.Length % stride != 0)
+                { rmInfo = "RM size mismatch: len=" + data.framesFlat.Length + " stride=" + stride; return; }
+                var parsed = new RmData
+                {
+                    sampleRate = data.sampleRate > 0 ? data.sampleRate : 60f,
+                    numBones = data.numBones,
+                    stride = stride,
+                    flat = data.framesFlat
+                };
+                rm = parsed;
+                rmInfo = string.Format("RM loaded: {0} bones x {1} frames @ {2}Hz",
+                    parsed.numBones, parsed.FrameCount, parsed.sampleRate);
+            }
+            catch (Exception e)
+            {
+                rmInfo = "RM parse error: " + e.Message;
+            }
+        }
+
+        [Serializable]
+        class RmJson
+        {
+            public float sampleRate;
+            public int numBones;
+            public int numSamples;
+            public int stride;
+            public float[] framesFlat;   // 全部帧的扁平数组 = numSamples * stride
+        }
+
+        static readonly string[] RmBoneGuess = { "Root", "IK_Root", "IK_Hand_L_001", "IK_Hand_R_001" };
+
+        /// <summary>RM 驱动 v8（躯干跟随近似）。实测结论：RM 坐标 = chr 根局部（Unity Y-up），
+        /// 无需换算。bone1 ≈ bone0 + 常量肩锚偏移（f300: bone0=(0,0,2.26), bone1=(-0.02,0.97,2.25)）。
+        /// v8 策略：
+        ///   1. bone0 → Root.localPosition（整体位移，用户实测正确）
+        ///   2. bone1 相对起始帧的 delta（位移+旋转）→ 写 Bip001_Pelvis（躯干跟随近似）
+        ///   3. bone2/3 不写 IK_Hand 节点——IK_Hand 的 transform 轨已是正确的模型空间目标，
+        ///      覆盖它们会双重叠加（v7 乱摆未收敛的原因之一）。bone2/3 仅保留可视化球。
+        /// 注意：IK_Root/IK_Hand 的 local 轨保持恒零=模型空间语义，解析 IK 直接用其世界位。</summary>
+        void ApplyRootMotion()
+        {
+            int idx = Mathf.Clamp(Mathf.RoundToInt(time * rm.sampleRate), 0, rm.FrameCount - 1);
+            // 1) 整体位移
+            var rootBone = Find(charRoot, "Root");
+            if (rootBone != null)
+            {
+                rootBone.localPosition = new Vector3(
+                    rm.Get(idx, 0), rm.Get(idx, 1), rm.Get(idx, 2));
+                rootBone.localRotation = new Quaternion(
+                    rm.Get(idx, 3), rm.Get(idx, 4), rm.Get(idx, 5), rm.Get(idx, 6));
+            }
+            // 2) 躯干跟随：bone1 相对 f0 的 delta 加到 Pelvis
+            if (rm.numBones > 1)
+            {
+                int o = 7;
+                var p0 = new Vector3(rm.Get(0, o), rm.Get(0, o + 1), rm.Get(0, o + 2));
+                var pN = new Vector3(rm.Get(idx, o), rm.Get(idx, o + 1), rm.Get(idx, o + 2));
+                var q0 = new Quaternion(rm.Get(0, o + 3), rm.Get(0, o + 4), rm.Get(0, o + 5), rm.Get(0, o + 6));
+                var qN = new Quaternion(rm.Get(idx, o + 3), rm.Get(idx, o + 4), rm.Get(idx, o + 5), rm.Get(idx, o + 6));
+                var pelvis = Find(charRoot, "Bip001_Pelvis");
+                if (pelvis != null)
+                {
+                    if (!pelvisRmInit)
+                    {
+                        pelvisBindPos = pelvis.localPosition;
+                        pelvisBindRot = pelvis.localRotation;
+                        pelvisRmInit = true;
+                    }
+                    pelvis.localPosition = pelvisBindPos + (pN - p0);
+                    pelvis.localRotation = Quaternion.Inverse(q0) * qN * pelvisBindRot;
+                }
+            }
+        }
+        bool pelvisRmInit;
+        Vector3 pelvisBindPos;
+        Quaternion pelvisBindRot;
 
         static Transform Find(Transform root, string name)
         {
@@ -300,6 +471,21 @@ namespace EndfieldShaderPack.EditorTools
                 float nt = EditorGUILayout.Slider("Time", time, 0f, clip != null ? clip.length : 1f);
                 if (!Mathf.Approximately(nt, time)) { time = nt; SampleAndSolve(); }
                 showBones = EditorGUILayout.Toggle("Draw IK helpers (Scene 视图)", showBones);
+                bool nu = EditorGUILayout.Toggle("Apply RootMotion (驱动 Root 节点)", useRm);
+                if (nu != useRm) { useRm = nu; SampleAndSolve(); }
+                GUILayout.Label(rmInfo, EditorStyles.wordWrappedMiniLabel);
+                if (rm != null && rm.FrameCount > 0)
+                {
+                    int idx = Mathf.Clamp(Mathf.RoundToInt(time * rm.sampleRate), 0, rm.FrameCount - 1);
+                    var sb = new System.Text.StringBuilder();
+                    for (int b = 0; b < rm.numBones; b++)
+                    {
+                        int o = b * 7;
+                        sb.AppendFormat("{0}: pos({1:F2},{2:F2},{3:F2})  ", RmBoneGuess[b],
+                            rm.Get(idx, o), rm.Get(idx, o + 1), rm.Get(idx, o + 2));
+                    }
+                    GUILayout.Label(sb.ToString(), EditorStyles.miniLabel);
+                }
             }
 
             GUILayout.Space(8);
