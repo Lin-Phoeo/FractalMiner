@@ -207,15 +207,15 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             foreach (int i in _rig.order)
             {
                 var b = _rig.bones[i];
-                Quaternion q = _anim[i].rotation;
-                Vector3 p = _anim[i].position;
+                Quaternion q = _anim[i].rotation.ToQuat();
+                Vector3 p = _anim[i].position.ToVec();
                 _appendRot[i] = Quaternion.identity;
                 _appendPos[i] = Vector3.zero;
                 if (b.grant >= 0)
                 {
                     var source = _rig.bones[b.grant];
                     Quaternion g = (b.grantLocal || source.grant < 0)
-                        ? _anim[b.grant].rotation : _appendRot[b.grant];
+                        ? _anim[b.grant].rotation.ToQuat() : _appendRot[b.grant];
                     g = MmdQ.Normalize(_ik[b.grant] * g);
                     if (b.grantRotation)
                     {
@@ -227,7 +227,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                     if (b.grantPosition)
                     {
                         _appendPos[i] = ((b.grantLocal || source.grant < 0)
-                            ? _anim[b.grant].position : _appendPos[b.grant]) * b.grantWeight;
+                            ? _anim[b.grant].position.ToVec() : _appendPos[b.grant]) * b.grantWeight;
                         p += _appendPos[i];
                     }
                 }

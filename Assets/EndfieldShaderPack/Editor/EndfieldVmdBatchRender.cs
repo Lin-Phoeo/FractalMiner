@@ -11,6 +11,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using EndfieldShaderPack.EditorTools.Mmd;
+using Debug = UnityEngine.Debug;
 
 namespace EndfieldShaderPack
 {
@@ -54,7 +55,7 @@ namespace EndfieldShaderPack
         {
             scroll = GUILayout.BeginScrollView(scroll);
             GUILayout.Label("VMD 离线批渲染（出视频）", EditorStyles.boldLabel);
-            GUILayout.HelpBox(
+            EditorGUILayout.HelpBox(
                 "逐帧渲染：VMD 驱动骨骼+镜头 → URP 官方管线 → PNG 序列 → ffmpeg 合成 MP4。\n" +
                 "无需录屏：固定帧率不掉帧、分辨率自定、可直接接音轨。", MessageType.Info);
 

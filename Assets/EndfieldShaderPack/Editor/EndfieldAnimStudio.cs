@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using EndfieldShaderPack.EditorTools.Mmd;
 
 namespace EndfieldShaderPack.EditorTools
 {

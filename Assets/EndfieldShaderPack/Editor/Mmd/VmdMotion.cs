@@ -6,16 +6,22 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace EndfieldShaderPack.EditorTools.Mmd
 {
     // ---------- math ----------
-    public struct VVec3 { public float x, y, z; }
+    public struct VVec3
+    {
+        public float x, y, z;
+        public Vector3 ToVec() { return new Vector3(x, y, z); }
+    }
 
     public struct VQuat
     {
         public float x, y, z, w;
         public static VQuat Identity => new VQuat { x = 0, y = 0, z = 0, w = 1 };
+        public Quaternion ToQuat() { return new Quaternion(x, y, z, w); }
 
         public static VQuat Slerp(VQuat a, VQuat b, float t)
         {
@@ -118,12 +124,12 @@ namespace EndfieldShaderPack.EditorTools.Mmd
     {
         readonly byte[] _bytes; int _offset;
         public VmdReader(byte[] bytes) { _bytes = bytes; }
-        int Remaining => _bytes.Length - _offset;
+        public int Remaining => _bytes.Length - _offset;
         void Require(int n)
         {
             if (n > Remaining) throw new InvalidDataException("Truncated MMD file");
         }
-        void Skip(int n) { Require(n); _offset += n; }
+        public void Skip(int n) { Require(n); _offset += n; }
         public byte U8() { Require(1); return _bytes[_offset++]; }
         public uint U32() { Require(4); uint v = BitConverter.ToUInt32(_bytes, _offset); _offset += 4; return v; }
         public int I32() { Require(4); int v = BitConverter.ToInt32(_bytes, _offset); _offset += 4; return v; }
@@ -181,8 +187,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
     public static class Vmd
     {
-        /// <summary>Parse a VMD file. decode: Shift-JIS (932) for old files, UTF-8/16 for newer.</summary>
-        public static VmdMotionClip Read(byte[] bytes, Func<string, int, string> decode)
+        /// <summary>Parse a VMD file. encodingFor(cp): cp932 Shift-JIS (standard VMD names).</summary>
+        public static VmdMotionClip Read(byte[] bytes, Func<int, Encoding> encodingFor)
         {
             var r = new VmdReader(bytes);
             var c = new VmdMotionClip();
@@ -190,12 +196,13 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             bool old = signature.StartsWith("Vocaloid Motion Data file", StringComparison.Ordinal);
             if (!signature.StartsWith("Vocaloid Motion Data 0002", StringComparison.Ordinal) && !old)
                 throw new InvalidDataException("Not a VMD 0002/file motion");
-            c.model = r.Fixed(old ? 10 : 20, enc => decode(enc, 932));
+            var sjis = encodingFor(932);
+            c.model = r.Fixed(old ? 10 : 20, sjis);
 
             var n = r.Count(111);
             for (uint i = 0; i < n; i++)
             {
-                var name = VmdName.Normalize(r.Fixed(15, enc => decode(enc, 932)));
+                var name = VmdName.Normalize(r.Fixed(15, sjis));
                 var k = new VmdBoneKey { frame = r.U32(), position = r.Vec(), rotation = r.Quat() };
                 var curve = r.Raw(64);
                 k.curves = new VCurve[4];
@@ -212,12 +219,12 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 }
             }
 
-            if (r.Remaining() > 0)
+            if (r.Remaining > 0)
             {
                 n = r.Count(23);
                 for (uint i = 0; i < n; i++)
                 {
-                    var name = VmdName.Normalize(r.Fixed(15, enc => decode(enc, 932)));
+                    var name = VmdName.Normalize(r.Fixed(15, sjis));
                     var k = new VmdMorphKey { frame = r.U32(), weight = Math.Max(0f, Math.Min(1f, r.F32())) };
                     if (!string.IsNullOrEmpty(name))
                     {
@@ -227,7 +234,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 }
             }
 
-            if (r.Remaining() > 0)
+            if (r.Remaining > 0)
             {
                 n = r.Count(61);
                 c.cameras = new List<VmdCameraKey>((int)n);
@@ -258,13 +265,13 @@ namespace EndfieldShaderPack.EditorTools.Mmd
 
             foreach (var section in new[] { (28, "Light tracks ignored"), (9, "Shadow tracks ignored") })
             {
-                if (r.Remaining() <= 0) break;
+                if (r.Remaining <= 0) break;
                 n = r.Count(section.Item1);
                 if (n > 0) c.warnings.Add(section.Item2);
                 r.Skip((int)(n * section.Item1));
             }
 
-            if (r.Remaining() > 0)
+            if (r.Remaining > 0)
             {
                 n = r.Count(9, 1000000);
                 for (uint i = 0; i < n; i++)
@@ -274,7 +281,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                     var m = r.Count(21, 10000);
                     for (uint j = 0; j < m; j++)
                     {
-                        var name = VmdName.Normalize(r.Fixed(20, enc => decode(enc, 932)));
+                        var name = VmdName.Normalize(r.Fixed(20, sjis));
                         bool on = r.U8() != 0;
                         if (!c.ik.TryGetValue(name, out var list)) { list = new List<VmdIkKey>(); c.ik[name] = list; }
                         list.Add(new VmdIkKey { frame = f, enabled = on });
@@ -282,7 +289,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 }
             }
 
-            if (r.Remaining() > 0) c.warnings.Add("Trailing VMD extension ignored");
+            if (r.Remaining > 0) c.warnings.Add("Trailing VMD extension ignored");
             Recount(c);
             return c;
         }
@@ -395,7 +402,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public static VmdMotionClip ReadFile(string path)
         {
             var bytes = File.ReadAllBytes(path);
-            return Read(bytes, (s, cp) => Decode(s, cp));
+            return Read(bytes, cp => GetEncoding(cp));
         }
 
         static Encoding GetEncoding(int cp)
@@ -403,14 +410,6 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             if (cp == 932) return Encoding.GetEncoding(932);
             if (cp == 65001) return Encoding.UTF8;
             return Encoding.GetEncoding(cp);
-        }
-
-        static string Decode(string s, int cp)
-        {
-            var enc = GetEncoding(cp);
-            // Bytes were decoded by Fixed() already with wrong encoding; re-interpret.
-            // Fixed() used enc.GetString, so here we only pass through for 932.
-            return s;
         }
     }
 }

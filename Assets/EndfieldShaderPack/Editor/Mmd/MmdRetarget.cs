@@ -55,7 +55,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             }
         }
 
-        static readonly int[] RequiredRoles = { 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 13, 14, 15, 16, 17, 18 };
+        public static readonly int[] RequiredRoles = { 0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 13, 14, 15, 16, 17, 18 };
 
         public bool Valid()
         {
@@ -541,11 +541,11 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 Vector3 pole = pa + (_basis * MmdV.Norm(sourceUpper)) * (upperLength + lowerLength);
                 output.legIkActive[side] = true;
                 Quaternion foot = output.worldRot[c];
-                Vector3 sa = pa, sb = pb, sc = pc;
-                MmdIk.SolveTwoBone(ref sa, ref sb, ref sc, goal, pole, true);
-                SetWorld(a, MmdQ.Normalize(Quaternion.FromToRotation(pb - pa, sb - sa) * output.worldRot[a]));
+                Vector3 ra = pa, rb = pb, rc = pc;
+                MmdIk.SolveTwoBone(ref ra, ref rb, ref rc, goal, pole, true);
+                SetWorld(a, MmdQ.Normalize(Quaternion.FromToRotation(pb - pa, rb - ra) * output.worldRot[a]));
                 SetWorld(b, MmdQ.Normalize(Quaternion.FromToRotation(
-                    output.worldPos[c] - output.worldPos[b], sc - sb) * output.worldRot[b]));
+                    output.worldPos[c] - output.worldPos[b], rc - rb) * output.worldRot[b]));
                 SetWorld(c, foot);
             }
         }
