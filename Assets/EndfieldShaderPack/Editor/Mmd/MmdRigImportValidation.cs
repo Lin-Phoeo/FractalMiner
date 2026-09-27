@@ -42,6 +42,29 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             }
             catch (InvalidDataException) { }
 
+            // VMDs rarely key ひざ/足首, so IK must still bend links that have no track.
+            const string leg = "{\"name\":\"leg\",\"bones\":[" +
+                "{\"name\":\"全ての親\",\"rest\":[0,0,0],\"parent\":-1,\"grant\":-1}," +
+                "{\"name\":\"右足\",\"rest\":[-1,10,0],\"parent\":0,\"grant\":-1}," +
+                "{\"name\":\"右ひざ\",\"rest\":[-1,5,0],\"parent\":1,\"grant\":-1}," +
+                "{\"name\":\"右足首\",\"rest\":[-1,1,0],\"parent\":2,\"grant\":-1}," +
+                "{\"name\":\"右足IK\",\"rest\":[-1,1,0],\"parent\":0,\"grant\":-1,\"effector\":3," +
+                "\"iterations\":40,\"angleLimit\":2,\"links\":[" +
+                "{\"bone\":2,\"limited\":true,\"minimum\":[-3.1415927,0,0],\"maximum\":[-0.008726646,0,0]}," +
+                "{\"bone\":1,\"limited\":false}]}]}";
+            var legRig = MmdRigDefinition.FromJson(leg);
+            var legClip = new VmdMotionClip();
+            legClip.bones["右足"] = new List<VmdBoneKey> { new VmdBoneKey { rotation = VQuat.Identity } };
+            legClip.bones["右足IK"] = new List<VmdBoneKey> {
+                new VmdBoneKey { position = new VVec3 { y = 2.5f, z = -2f }, rotation = VQuat.Identity } };
+            var legEvaluator = new MmdRigEvaluator();
+            legEvaluator.Bind(legRig, legClip);
+            legEvaluator.Sample(0);
+            float legError = Vector3.Distance(legEvaluator.pose.positions[legRig.Find("右足首")],
+                legEvaluator.pose.positions[legRig.Find("右足IK")]);
+            if (legError > 0.01f)
+                throw new InvalidOperationException("IK left the untracked knee unbent; ankle error " + legError);
+
             string[] args = Environment.GetCommandLineArgs();
             string Arg(string key)
             {

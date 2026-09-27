@@ -25,6 +25,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         readonly List<Quaternion> _bindRot = new List<Quaternion>();
         readonly List<Vector3> _bindPos = new List<Vector3>();
         Vector3 _bindRoot;
+        Quaternion _bindRootRot;
         Transform _leftFoot, _rightFoot;
         float _bindMinFootY;
         public bool captured { get; private set; }
@@ -76,6 +77,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 _bindPos.Add(b.transform.localPosition);
             }
             _bindRoot = charRoot.position;
+            _bindRootRot = charRoot.rotation;
             _leftFoot = profile.roles[5] >= 0 ? profile.bones[profile.roles[5]].transform : null;
             _rightFoot = profile.roles[6] >= 0 ? profile.bones[profile.roles[6]].transform : null;
             if (_leftFoot != null && _rightFoot != null)
@@ -108,6 +110,22 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 _bones[i].localPosition = _bindPos[i];
             }
             charRoot.position = _bindRoot;
+            charRoot.rotation = _bindRootRot;
+        }
+
+        /// <summary>
+        /// Convert the retargeter's profile-local root delta into Unity world space.
+        /// The recovered Endfield root carries the M5 geometry pivot rotation, so a
+        /// profile-local Y component is not necessarily world-up. In-place locking
+        /// and the user height offset are both world-space operations.
+        /// </summary>
+        public static Vector3 ResolveRootOffsetWorld(Quaternion bindRootRotation,
+            Vector3 profileLocalOffset, bool inPlace, float height)
+        {
+            Vector3 world = bindRootRotation * profileLocalOffset;
+            if (inPlace) { world.x = 0f; world.z = 0f; }
+            world.y += height;
+            return world;
         }
 
         /// <summary>Reset to bind, sample VMD at timeSec, write bones + root + morphs.</summary>
@@ -121,7 +139,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             retargeter.ampArms = ampArms;
             retargeter.ampLegs = ampLegs;
             retargeter.ampHead = ampHead;
-            retargeter.Sample(timeSec * 30.0, scale, inPlace, height, mode);
+            retargeter.Sample(timeSec * 30.0, scale, mode);
             var outPose = retargeter.output;
             for (int i = 0; i < profile.bones.Count; i++)
             {
@@ -129,7 +147,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 if (b.transform == null) continue;
                 if (outPose.write[i]) b.transform.localRotation = outPose.localRot[i];
             }
-            charRoot.position = _bindRoot + outPose.rootOffset;
+            charRoot.position = _bindRoot + ResolveRootOffsetWorld(
+                _bindRootRot, outPose.rootOffset, inPlace, height);
             MmdFace.ApplyMorphs(clip, timeSec * 30.0, charRoot);
         }
     }

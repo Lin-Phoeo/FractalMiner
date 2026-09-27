@@ -11,11 +11,38 @@ using UnityEngine;
 namespace EndfieldShaderPack.EditorTools.Mmd
 {
     // ---------------- rig definition ----------------
+    public enum MmdFixAxis { None = 0, X = 1, Y = 2, Z = 3, Fix = 4 }
+    public enum MmdEulerOrder { ZXY = 0, XYZ = 1, YZX = 2 }
+
     public class MmdIkLink
     {
         public int bone = -1;
         public bool limited;
         public Vector3 minimum, maximum;
+        // Derived from the limits with MMD semantics (nanoem/UMT NormalizePMXIKLimit):
+        // hinge axis for axis-snapped deltas, and the euler order used to clamp.
+        public MmdFixAxis fixAxis;
+        public MmdEulerOrder eulerOrder;
+
+        public void DeriveLimits()
+        {
+            if (!limited)
+            {
+                fixAxis = MmdFixAxis.None;
+                eulerOrder = MmdEulerOrder.ZXY;
+                return;
+            }
+            Vector3 lo = Vector3.Min(minimum, maximum), hi = Vector3.Max(minimum, maximum);
+            minimum = lo; maximum = hi;
+            eulerOrder = (-Mathf.PI * .5f < lo.x && hi.x < Mathf.PI * .5f) ? MmdEulerOrder.ZXY
+                : (-Mathf.PI * .5f < lo.y && hi.y < Mathf.PI * .5f) ? MmdEulerOrder.XYZ
+                : MmdEulerOrder.YZX;
+            if (lo == Vector3.zero && hi == Vector3.zero) fixAxis = MmdFixAxis.Fix;
+            else if (lo.y == 0f && hi.y == 0f && lo.z == 0f && hi.z == 0f) fixAxis = MmdFixAxis.X;
+            else if (lo.x == 0f && hi.x == 0f && lo.z == 0f && hi.z == 0f) fixAxis = MmdFixAxis.Y;
+            else if (lo.x == 0f && hi.x == 0f && lo.y == 0f && hi.y == 0f) fixAxis = MmdFixAxis.Z;
+            else fixAxis = MmdFixAxis.None;
+        }
     }
 
     public class MmdRigBone
@@ -140,7 +167,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                     throw new InvalidDataException("PMX source-rig bone has self dependency: " + bone.name);
                 if (bone.iterations < 0 || bone.iterations > 256 ||
                     float.IsNaN(bone.angleLimit) || float.IsInfinity(bone.angleLimit) ||
-                    bone.angleLimit < 0f || bone.angleLimit > Mathf.PI ||
+                    bone.angleLimit < 0f || bone.angleLimit > 2f * Mathf.PI ||
                     float.IsNaN(bone.grantWeight) || float.IsInfinity(bone.grantWeight) ||
                     Mathf.Abs(bone.grantWeight) > 10f || (item.links != null && item.links.Length > 64))
                     throw new InvalidDataException("PMX source-rig transform or IK limits invalid: " + bone.name);
@@ -201,6 +228,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 order.Add(i);
             }
             for (int i = 0; i < bones.Count; i++) Visit(i, 0);
+            foreach (var b in bones)
+                foreach (var link in b.links) link.DeriveLimits();
         }
 
         /// <summary>Same numeric roles as Unity HumanBodyBones (Poser RoleNames()).</summary>
@@ -304,7 +333,6 @@ namespace EndfieldShaderPack.EditorTools.Mmd
     {
         public Vector3[] positions;
         public Quaternion[] rotations;
-        public Quaternion[] localRot;
     }
 
     public class MmdRigEvaluator
@@ -321,6 +349,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         bool[] _needed;
         public List<string> unmapped = new List<string>();
         public MmdRigPose pose = new MmdRigPose();
+        // Opt-in per-iteration CCD trace for oracle A/B debugging (probe-only).
+        public static bool DebugIkTrace;
 
         void World()
         {
@@ -396,7 +426,6 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             _poseLocal = new Quaternion[n];
             pose.positions = new Vector3[n];
             pose.rotations = new Quaternion[n];
-            pose.localRot = new Quaternion[n];
             _needed = new bool[n];
             unmapped.Clear();
             for (int i = 0; i < n; ++i)
@@ -424,7 +453,12 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 foreach (var l in b.links) relevant = relevant || _needed[l.bone];
                 if (b.effector >= 0 && relevant) { _controllers.Add(i); Need(i); }
             }
-            _controllers.Sort((a, b) => rig.bones[a].layer.CompareTo(rig.bones[b].layer));
+            // MMD processes IK inline in (transform layer, bone index) order.
+            _controllers.Sort((a, b) =>
+            {
+                int c = rig.bones[a].layer.CompareTo(rig.bones[b].layer);
+                return c != 0 ? c : a.CompareTo(b);
+            });
             var used = new HashSet<string>();
             for (int i = 0; i < n; i++)
                 if (_needed[i] && _tracks[i] != null) used.Add(_trackNames[i]);
@@ -443,9 +477,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             bool hasTrack = _tracks[controller] != null;
             if (mode == VmdIkMode.ForceOn) return true;
             if (mode == VmdIkMode.ForceOff) return false;
-            // FollowMotion: use the clip's IK track; builtin rigs without a track
-            // default to enabled (Poser: !rig_->builtin || tracks_[controller]).
-            if (_rig.builtin && !hasTrack) return true;
+            // The approximate builtin rig must not invent IK for an FK-only clip.
+            // A real PMX source rig still defaults IK on when the VMD has no toggle.
+            if (_rig.builtin && !hasTrack) return false;
             return _clip != null && Vmd.SampleIk(_clip, _trackNames[controller], frame);
         }
 
@@ -453,7 +487,9 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         {
             for (int i = 0; i < _anim.Length; i++)
             {
-                _anim[i] = _tracks[i] != null ? Vmd.SampleBone(_tracks[i], frame) : new VmdLocalPose();
+                // Untracked bones must sample as identity: a default VQuat is all-zero, and
+                // World() would then normalize _ik[i] * 0 to identity, discarding the IK.
+                _anim[i] = Vmd.SampleBone(_tracks[i], frame);
                 _ik[i] = Quaternion.identity;
             }
             World();
@@ -462,6 +498,10 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             {
                 var controller = _rig.bones[c];
                 if (!IkEnabled(c, frame, mode)) continue;
+                // Match UMT/MMD: each controller starts its own link rotations
+                // from FK, even if another controller shares one of those links.
+                foreach (var link in controller.links) _ik[link.bone] = Quaternion.identity;
+                World();
                 Vector3 target = pose.positions[c];
                 if (_rig.builtin && (controller.name == "左足IK" || controller.name == "右足IK"))
                 {
@@ -481,40 +521,76 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                         * pose.rotations[b]));
                     continue;
                 }
+                // CCD calibrated against UMT's MMDTransformManager.TransformIK (the oracle):
+                // local-frame axis, limit-derived fix-axis, angleLimit*(linkIndex+1),
+                // euler-order-aware clamp with reflection in the first half of iterations.
+                const float kEps = 1.1920929e-7f; // Unity Mathematics EPSILON, parity with UMT
                 for (int iter = 0; iter < controller.iterations; iter++)
                 {
-                    if ((pose.positions[controller.effector] - target).sqrMagnitude < 1e-8f) break;
-                    foreach (var link in controller.links)
+                    if ((pose.positions[controller.effector] - target).sqrMagnitude < kEps) break;
+                    bool converged = false;
+                    for (int linkIndex = 0; linkIndex < controller.links.Count; linkIndex++)
                     {
+                        var link = controller.links[linkIndex];
+                        int fix = MmdIk.FixAxisNone;
+                        Vector3 lo = Vector3.zero, hi = Vector3.zero;
+                        int order = 0;
+                        if (link.limited)
+                        {
+                            MmdIk.NormalizeLimit(link.minimum, link.maximum,
+                                out lo, out hi, out fix, out order);
+                            if (fix == MmdIk.FixAxisFix) continue;
+                        }
                         int i = link.bone;
                         Vector3 va = pose.positions[controller.effector] - pose.positions[i],
                                  vb = target - pose.positions[i];
-                        if (va.sqrMagnitude < 1e-12f || vb.sqrMagnitude < 1e-12f) continue;
-                        Quaternion d = Quaternion.FromToRotation(va, vb);
-                        float angle = Quaternion.Angle(Quaternion.identity, d);
-                        float angleLimitDeg = controller.angleLimit * Mathf.Rad2Deg;
-                        if (angle > angleLimitDeg && angle > 1e-6f)
-                            d = Quaternion.Slerp(Quaternion.identity, d, angleLimitDeg / angle);
+                        if (va.sqrMagnitude < kEps || vb.sqrMagnitude < kEps) continue;
+                        Vector3 vaN = MmdV.Norm(va), vbN = MmdV.Norm(vb);
+                        Vector3 axisW = Vector3.Cross(vaN, vbN);
+                        bool degenerate = axisW.sqrMagnitude <= kEps;
+                        if (degenerate && link.limited) continue;
+                        if (!degenerate) axisW = MmdV.Norm(axisW);
                         int parent = _rig.bones[i].parent;
                         Quaternion pr = parent >= 0 ? pose.rotations[parent] : Quaternion.identity;
-                        Quaternion local = MmdQ.Normalize(Quaternion.Inverse(pr) * d * pose.rotations[i]);
-                        if (link.limited)
+                        Quaternion invPr = Quaternion.Inverse(pr);
+                        Vector3 localAxis = invPr * axisW;
+                        if (localAxis.sqrMagnitude > kEps) localAxis = MmdV.Norm(localAxis);
+                        float dot = Mathf.Clamp(Vector3.Dot(vaN, vbN), -1f, 1f);
+                        Quaternion localDelta;
+                        float angle;
+                        if (!link.limited)
                         {
-                            var eul = local.eulerAngles;
-                            var radians = new Vector3(
-                                Mathf.DeltaAngle(0f, eul.x) * Mathf.Deg2Rad,
-                                Mathf.DeltaAngle(0f, eul.y) * Mathf.Deg2Rad,
-                                Mathf.DeltaAngle(0f, eul.z) * Mathf.Deg2Rad);
-                            radians = new Vector3(
-                                Mathf.Clamp(radians.x, link.minimum.x, link.maximum.x),
-                                Mathf.Clamp(radians.y, link.minimum.y, link.maximum.y),
-                                Mathf.Clamp(radians.z, link.minimum.z, link.maximum.z));
-                            local = Quaternion.Euler(radians * Mathf.Rad2Deg);
+                            angle = Mathf.Min(Mathf.Acos(dot), controller.angleLimit);
+                            if (localAxis.sqrMagnitude <= kEps)
+                                localAxis = MmdIk.DeterministicAxis(invPr * vaN);
+                            localDelta = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, localAxis);
                         }
-                        Quaternion basis = MmdQ.Normalize(Quaternion.Inverse(_ik[i]) * _poseLocal[i]);
-                        _ik[i] = MmdQ.Normalize(local * Quaternion.Inverse(basis));
+                        else
+                        {
+                            localAxis = MmdIk.LimitAxis(axisW, pr, localAxis, fix);
+                            angle = Mathf.Min(Mathf.Acos(dot),
+                                controller.angleLimit * (linkIndex + 1));
+                            localDelta = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, localAxis);
+                        }
+                        Quaternion baseLocal = MmdQ.Normalize(Quaternion.Inverse(_ik[i]) * _poseLocal[i]);
+                        Quaternion next = MmdQ.Normalize(localDelta * MmdQ.Normalize(_ik[i] * baseLocal));
+                        if (link.limited)
+                            next = MmdIk.LimitTotal(next, lo, hi, order,
+                                iter < controller.iterations / 2);
+                        _ik[i] = MmdQ.Normalize(next * Quaternion.Inverse(baseLocal));
                         World();
+                        if (DebugIkTrace)
+                            Debug.Log($"[IkTrace] {controller.name} it{iter} link{linkIndex} " +
+                                $"{_rig.bones[i].name} ang={(angle * Mathf.Rad2Deg):F3} " +
+                                $"err={(pose.positions[controller.effector] - target).magnitude:F4} " +
+                                $"effP={pose.positions[controller.effector]}");
+                        if ((pose.positions[controller.effector] - target).sqrMagnitude < kEps)
+                        {
+                            converged = true;
+                            break;
+                        }
                     }
+                    if (converged) break;
                 }
             }
         }
@@ -540,6 +616,143 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             var k = MmdV.Norm(axis);
             float c = Mathf.Cos(rad), s = Mathf.Sin(rad);
             return v * c + Vector3.Cross(k, v) * s + k * (Vector3.Dot(k, v) * (1f - c));
+        }
+
+        // ---- CCD link limiting, ported from UMT MMDTransformManager (MIT) ----
+        // fix-axis kinds derived from PMX IK link limits
+        public const int FixAxisNone = 0, FixAxisX = 1, FixAxisY = 2, FixAxisZ = 3, FixAxisFix = 4;
+        // euler decomposition orders (indices into Decompose/Compose switches)
+        public const int EulerZXY = 0, EulerXYZ = 1, EulerYZX = 2;
+
+        /// <summary>UMT NormalizePMXIKLimit: componentwise sort, euler order by ±90° span,
+        /// fix-axis from zeroed limit planes.</summary>
+        public static void NormalizeLimit(Vector3 minimum, Vector3 maximum,
+            out Vector3 lower, out Vector3 upper, out int fixAxis, out int eulerOrder)
+        {
+            lower = Vector3.Min(minimum, maximum);
+            upper = Vector3.Max(minimum, maximum);
+            const float halfPi = Mathf.PI * 0.5f;
+            if (-halfPi < lower.x && upper.x < halfPi) eulerOrder = EulerZXY;
+            else if (-halfPi < lower.y && upper.y < halfPi) eulerOrder = EulerXYZ;
+            else eulerOrder = EulerYZX;
+            if (lower == Vector3.zero && upper == Vector3.zero) fixAxis = FixAxisFix;
+            else if (lower.y == 0f && upper.y == 0f && lower.z == 0f && upper.z == 0f) fixAxis = FixAxisX;
+            else if (lower.x == 0f && upper.x == 0f && lower.z == 0f && upper.z == 0f) fixAxis = FixAxisY;
+            else if (lower.x == 0f && upper.x == 0f && lower.y == 0f && upper.y == 0f) fixAxis = FixAxisZ;
+            else fixAxis = FixAxisNone;
+        }
+
+        /// <summary>UMT LimitIKAxis: snap the local rotation axis to the derived fix axis,
+        /// keeping the world-space rotation direction.</summary>
+        public static Vector3 LimitAxis(Vector3 worldAxis, Quaternion parentRot, Vector3 localAxis, int fixAxis)
+        {
+            switch (fixAxis)
+            {
+                case FixAxisX:
+                    return Vector3.Dot(worldAxis, parentRot * Vector3.right) >= 0f
+                        ? Vector3.right : Vector3.left;
+                case FixAxisY:
+                    return Vector3.Dot(worldAxis, parentRot * Vector3.up) >= 0f
+                        ? Vector3.up : Vector3.down;
+                case FixAxisZ:
+                    return Vector3.Dot(worldAxis, parentRot * Vector3.forward) >= 0f
+                        ? Vector3.forward : Vector3.back;
+                default:
+                    return localAxis;
+            }
+        }
+
+        /// <summary>UMT FindDeterministicLocalAxis: stable fallback when the cross-product
+        /// axis degenerates on an unlimited link.</summary>
+        public static Vector3 DeterministicAxis(Vector3 localDirection)
+        {
+            localDirection = MmdV.Norm(localDirection);
+            Vector3 reference = Mathf.Abs(localDirection.x) < 0.75f
+                ? Vector3.right : Vector3.up;
+            return MmdV.Norm(Vector3.Cross(localDirection, reference));
+        }
+
+        /// <summary>UMT LimitAngle: decompose the total local rotation with the derived
+        /// euler order, clamp per axis with optional reflection, recompose.</summary>
+        public static Quaternion LimitTotal(Quaternion totalLocal, Vector3 lower, Vector3 upper,
+            int eulerOrder, bool reflect)
+        {
+            Vector3 e = Decompose(totalLocal, eulerOrder);
+            e.x = LimitAxisAngle(e.x, lower.x, upper.x, reflect);
+            e.y = LimitAxisAngle(e.y, lower.y, upper.y, reflect);
+            e.z = LimitAxisAngle(e.z, lower.z, upper.z, reflect);
+            return Compose(e, eulerOrder);
+        }
+
+        static float AsinClamp(float v)
+        {
+            float a = Mathf.Asin(Mathf.Clamp(v, -1f, 1f));
+            const float cap = 1.535889f; // ~88deg, UMT parity
+            if (Mathf.Abs(a) > cap) a = a < 0f ? -cap : cap;
+            return a;
+        }
+
+        static float InvCos(float a)
+        {
+            float c = Mathf.Cos(a);
+            return c != 0f ? 1f / c : 0f;
+        }
+
+        public static Vector3 Decompose(Quaternion q, int eulerOrder)
+        {
+            Matrix4x4 m = Matrix4x4.Rotate(q);
+            switch (eulerOrder)
+            {
+                case EulerZXY:
+                {
+                    float ax = AsinClamp(m.m21); float ic = InvCos(ax);
+                    return new Vector3(ax,
+                        Mathf.Atan2(-m.m20 * ic, m.m22 * ic),
+                        Mathf.Atan2(-m.m01 * ic, m.m11 * ic));
+                }
+                case EulerXYZ:
+                {
+                    float ay = AsinClamp(m.m02); float ic = InvCos(ay);
+                    return new Vector3(
+                        Mathf.Atan2(-m.m12 * ic, m.m22 * ic), ay,
+                        Mathf.Atan2(-m.m01 * ic, m.m00 * ic));
+                }
+                default:
+                {
+                    float az = AsinClamp(m.m10); float ic = InvCos(az);
+                    return new Vector3(
+                        Mathf.Atan2(-m.m12 * ic, m.m11 * ic),
+                        Mathf.Atan2(-m.m20 * ic, m.m00 * ic), az);
+                }
+            }
+        }
+
+        public static Quaternion Compose(Vector3 e, int eulerOrder)
+        {
+            Quaternion x = Quaternion.AngleAxis(e.x * Mathf.Rad2Deg, Vector3.right);
+            Quaternion y = Quaternion.AngleAxis(e.y * Mathf.Rad2Deg, Vector3.up);
+            Quaternion z = Quaternion.AngleAxis(e.z * Mathf.Rad2Deg, Vector3.forward);
+            switch (eulerOrder)
+            {
+                case EulerZXY: return MmdQ.Normalize(z * x * y);
+                case EulerXYZ: return MmdQ.Normalize(x * y * z);
+                default: return MmdQ.Normalize(y * z * x);
+            }
+        }
+
+        static float LimitAxisAngle(float angle, float lower, float upper, bool reflect)
+        {
+            if (angle < lower)
+            {
+                float reflected = 2f * lower - angle;
+                return reflected <= upper && reflect ? reflected : lower;
+            }
+            if (angle > upper)
+            {
+                float reflected = 2f * upper - angle;
+                return reflected >= lower && reflect ? reflected : upper;
+            }
+            return angle;
         }
 
         /// <summary>Analytic two-bone IK. a=root, b=elbow, c=end; pole = bend direction.</summary>

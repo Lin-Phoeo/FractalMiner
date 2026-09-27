@@ -600,7 +600,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             }
         }
 
-        public void Sample(double frame, float scale, bool inPlace, float height,
+        public void Sample(double frame, float scale,
             VmdIkMode mode = VmdIkMode.FollowMotion)
         {
             _eval.Sample(frame, mode);
@@ -609,8 +609,6 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             int hip = _sourceRole[0];
             if (hip >= 0 && _affected[0])
                 output.rootOffset = _basis * (_eval.pose.positions[hip] - _source.bones[hip].rest) * scale;
-            if (inPlace) { output.rootOffset.x = 0; output.rootOffset.z = 0; }
-            output.rootOffset.y += height;
 
             int nb = _target.bones.Count;
             for (int i = 0; i < nb; i++)

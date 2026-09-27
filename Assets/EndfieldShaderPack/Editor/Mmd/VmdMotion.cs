@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -207,11 +208,14 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 var curve = r.Raw(64);
                 k.curves = new VCurve[4];
                 for (int j = 0; j < 4; j++)
+                {
+                    int offset = j * 16;
                     k.curves[j] = new VCurve {
-                        x1 = Math.Min(1f, curve[j] / 127f),
-                        y1 = Math.Min(1f, curve[j + 4] / 127f),
-                        x2 = Math.Min(1f, curve[j + 8] / 127f),
-                        y2 = Math.Min(1f, curve[j + 12] / 127f) };
+                        x1 = Math.Min(1f, curve[offset] / 127f),
+                        y1 = Math.Min(1f, curve[offset + 4] / 127f),
+                        x2 = Math.Min(1f, curve[offset + 8] / 127f),
+                        y2 = Math.Min(1f, curve[offset + 12] / 127f) };
+                }
                 if (!string.IsNullOrEmpty(name))
                 {
                     if (!c.bones.TryGetValue(name, out var list)) { list = new List<VmdBoneKey>(); c.bones[name] = list; }
@@ -251,7 +255,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                     {
                         // Camera bytes are x1,x2,y1,y2, unlike bone interpolation.
                         float U(int at) => Math.Min(1f, curve[j * 4 + at] / 127f);
-                        k.curves[j] = new VCurve { x1 = U(0), x2 = U(2), y1 = U(1), y2 = U(3) };
+                        k.curves[j] = new VCurve { x1 = U(0), x2 = U(1), y1 = U(2), y2 = U(3) };
                     }
                     uint angle = r.U32();
                     uint projection = r.U8();
@@ -294,10 +298,19 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             return c;
         }
 
-        static void SortKeys<T>(List<T> v, Func<T, uint> frame, Action<List<T>> dedup)
+        // VMD permits duplicate (track, frame) records. Match MMD-family tools:
+        // stable chronological order, with the later source record winning.
+        static void StableSortLastWins<T>(List<T> values, Func<T, uint> frame)
         {
-            v.Sort((a, b) => frame(a).CompareTo(frame(b)));
-            dedup(v);
+            var sorted = values.Select((value, order) => new { value, order })
+                .OrderBy(item => frame(item.value)).ThenBy(item => item.order).ToList();
+            values.Clear();
+            foreach (var item in sorted)
+            {
+                if (values.Count > 0 && frame(values[values.Count - 1]) == frame(item.value))
+                    values[values.Count - 1] = item.value;
+                else values.Add(item.value);
+            }
         }
 
         static void Recount(VmdMotionClip c)
@@ -307,15 +320,7 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             foreach (var name in boneNames)
             {
                 var list = c.bones[name];
-                SortKeys(list, k => k.frame, v => {
-                    int n = 0;
-                    for (int i = 0; i < v.Count; i++)
-                    {
-                        if (n > 0 && v[n - 1].frame == v[i].frame) v[n - 1] = v[i];
-                        else v[n++] = v[i];
-                    }
-                    v.RemoveRange(n, v.Count - n);
-                });
+                StableSortLastWins(list, k => k.frame);
                 if (list.Count > 0) c.lastFrame = Math.Max(c.lastFrame, list[list.Count - 1].frame);
                 c.boneKeys += list.Count;
             }
@@ -323,12 +328,17 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             foreach (var name in morphNames)
             {
                 var list = c.morphs[name];
-                list.Sort((a, b) => a.frame.CompareTo(b.frame));
+                StableSortLastWins(list, k => k.frame);
                 if (list.Count > 0) c.lastFrame = Math.Max(c.lastFrame, list[list.Count - 1].frame);
                 c.morphKeys += list.Count;
             }
-            foreach (var kv in c.ik) kv.Value.Sort((a, b) => a.frame.CompareTo(b.frame));
-            c.cameras.Sort((a, b) => a.frame.CompareTo(b.frame));
+            foreach (var kv in c.ik)
+            {
+                StableSortLastWins(kv.Value, k => k.frame);
+                if (kv.Value.Count > 0)
+                    c.lastFrame = Math.Max(c.lastFrame, kv.Value[kv.Value.Count - 1].frame);
+            }
+            StableSortLastWins(c.cameras, k => k.frame);
             if (c.cameras.Count > 0) c.lastFrame = Math.Max(c.lastFrame, c.cameras[c.cameras.Count - 1].frame);
         }
 

@@ -4,7 +4,7 @@
 //
 // Coordinate notes (kept identical to Poser, which runs inside a Unity game):
 //   * MMD camera keys: distance (mmd units, usually NEGATIVE for perspective),
-//     target + Euler rotation (degrees, as stored in the file).
+//     target + Euler rotation (radians, as stored in the file).
 //   * Unity cameras look along their local +Z, so
 //     position = target + rotation * (0, 0, distance) aims the camera at target.
 //   * world basis maps MMD world axes onto the Unity scene (see Studio panel).
@@ -42,7 +42,24 @@ namespace EndfieldShaderPack.EditorTools.Mmd
         public static VmdCameraKey SampleKey(List<VmdCameraKey> keys, double frame, bool cuts = true)
         {
             if (keys == null || keys.Count == 0)
-                return new VmdCameraKey { distance = -45f, fov = 30f };
+            {
+                var curves = new VCurve[6];
+                for (int i = 0; i < curves.Length; ++i)
+                    curves[i] = new VCurve
+                    {
+                        x1 = 20f / 127f,
+                        y1 = 20f / 127f,
+                        x2 = 107f / 127f,
+                        y2 = 107f / 127f
+                    };
+                return new VmdCameraKey
+                {
+                    distance = -45f,
+                    fov = 30f,
+                    perspective = true,
+                    curves = curves
+                };
+            }
             int n = UpperC(keys, frame);
             if (n == 0) return keys[0];
             if (n == keys.Count) return keys[keys.Count - 1];
@@ -92,7 +109,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 (new Vector3(key.target.x, key.target.y, key.target.z) * s.scale + s.offset);
             var pose = new VmdCameraPose
             {
-                rotation = s.basis * OrbitDeg(new Vector3(key.rotation.x, key.rotation.y, key.rotation.z)),
+                rotation = s.basis * OrbitDeg(
+                    new Vector3(key.rotation.x, key.rotation.y, key.rotation.z) * Mathf.Rad2Deg),
                 perspective = key.perspective,
                 fov = Mathf.Clamp(key.fov + s.fovOffset, 1f, 179f)
             };
