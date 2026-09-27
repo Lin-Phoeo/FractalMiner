@@ -71,7 +71,7 @@
 | 工作包 | 交付物 | 验证 |
 |---|---|---|
 | WP1.1 差距归因（先测后改） | 扩展 `Tools/compare_pose_official.py`：①轮廓误差按原因拆（官方 mask y≤0.83 截断区、书本道具像素、145 根未摆姿骨覆盖区）；②颜色误差在**后处理前 HDR 域**按材质区（皮肤 / 头发 / 布料 / 眼）与逐 draw 拆开。输出按误差贡献排序的来源表 | 归因表各项贡献之和与整帧 MAE 对账（残差 < 10%） |
-| WP1.2 几何 / 姿态补全 | 145 根 bind 姿态骨按捕获 `pose_apply` 补齐（捕获中有的部分）；书本道具补上或按决策从比较区剔除（D8） | 轮廓 IoU 过门禁 |
+| WP1.2 几何 / 姿态补全 | 先从提弗洛斯角色 bundle 导出鹰角原生的 `HGCorrectiveBoneData`（修正骨）与 `HGPoseDriverData`（姿势驱动），和 145 根 bind 姿态骨求交集——推断其中一部分是游戏运行时程序驱动、捕获拿不到的骨（`D:\EndfieldTechLib\notes\2026-09-27-claude-deep-dive.md` §2）；属实则实现其求值，其余按捕获 `pose_apply` 补齐；书本道具补上或按决策从比较区剔除（D8） | 轮廓 IoU 过门禁 |
 | WP1.3 八面体平滑法线解码 | 从模型 UV 解码平滑法线并接入描边与相关着色项 | 解码函数单测（编码→解码往返误差 < 1e-3）；描边宽度 / 颜色对官方 draw 输出做区域比对 |
 | WP1.4 未实现着色项 | 按 WP1.1 排序逐项补：描边颜色（官方公式）、刘海 / 头发阴影、覆盖层、dither、透明、眼部边缘光 | 每项先写对官方 draw 输出的区域门禁再实现 |
 | WP1.5 A 轨遗留 | 烘焙脸发黑、身后多一张脸 | 截图 + 区域门禁 |
@@ -87,7 +87,7 @@
 |---|---|---|
 | WP2.1 `MmdSession` | 合并 Studio / Batch / Smoke 三处初始化为一个会话对象；烟测加载相机 | Review Focus 3、5 的测试 |
 | WP2.2 接地与脚锁 | 源端（足 IK 目标 / 足首高度 + 速度）标记接触；目标骨架用已安装的 Animation Rigging 1.1.1 Two Bone IK 做锁定 / 释放。EIEM 的 FindFloor 只作行为参照（AGPL） | 足底高度与滑移逐帧曲线过门禁 |
-| WP2.3 表情 | 方案 A：用 `hakobune67/endfield-facemorph` 把官方表情骨骼动画烘成 blendshape（本地使用，不入库），复用现有 `MmdFace` 别名映射；方案 B：从官方表情动画采样每个 MMD morph 对应的 85 关节偏移并按权重叠加。先做可行性验证再选（D5） | 常用 morph（あ / い / う / え / お / まばたき / 笑い 等）逐个截图 + 偏移数值对官方表情帧 |
+| WP2.3 表情 | **方案 C（推荐，游戏同构）**：VMD 表情权重 → EIEM `smc_face.h` 的映射表（あいうえお ↔ 口型 A/I/U/E/O；まばたき等 ↔ `eye_*_ctrl` / `brow_*_ctrl`）→ `facemorph.py` 从游戏 `SkeletalMorphMappingData` 导出的"控制器 → 85 个脸部骨骼增量"表 → 叠加到脸部骨骼（详见 `D:\EndfieldTechLib\notes\2026-09-27-claude-deep-dive.md` §1）。备选 A：用同一份数据烘 blendshape 复用 `MmdFace`；备选 B：从官方表情动画采样偏移。第一步：用解包工具导出提弗洛斯的表情数据 `.dat` | 常用 morph（あ / い / う / え / お / まばたき / 笑い 等）逐个截图 + 关节偏移对官方表情帧 |
 | WP2.4 次级物理 | 头发 63 / 布料 66 / 裙摆 28 / 尾巴 8 / 胸 4 骨；固定步长、可开关（D6 选组件） | 两次出片哈希一致；采样帧穿模检查 |
 | WP2.5 全片出片 | 37.7 s，VMD 动作 + 相机 + 舞台 + 捕获管线，PNG → H.264 + AAC | 全片无 NaN / 跳变、相机无抖动、上述曲线门禁 |
 | WP2.6 共享 IK 链实测 | 构造共享链的合成 rig，对 UMT / mmd-anim | 与单链同量级误差 |
@@ -127,7 +127,7 @@
 | D2 | 真值备份到哪（3 个 RDC 共 3.9 GiB + 捕获 1.8 GB + GeneratedCapture 0.35 GB + 反编译 shader 0.97 GB；`Assets/Typhoeus` 24 GB 是否一起） | 另一块物理盘；`Assets/Typhoeus` 一起备 |
 | D3 | 今日复验与本路线图提交并推送到 `endfield-records` | 提交并推送 |
 | D4 | 第二真值来源 | 先评估现有 `123.rdc` / `213.rdc`，不够再用 RenderDuck |
-| D5 | 表情方案 A / B | 先做 A 的可行性验证（现成轮子） |
+| D5 | 表情方案 | 方案 C（EIEM 映射 + facemorph 骨骼增量，和游戏同构） |
 | D6 | 次级物理组件 | 先试 SPCRJointDynamics（MIT、免费）；不满足再评估 MagicaCloth 2（付费） |
 | D7 | 执行方式 | Native（见 §B 末尾） |
 | D8 | 书本道具：补上还是从比较区剔除 | 补上（官方帧里有） |
