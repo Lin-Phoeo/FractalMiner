@@ -27,6 +27,8 @@
 
 完整报告在 `D:\MmdOracle\out\report-{fixed-354-vs-umt,fixed-1182-vs-umt,mmdanim-354-vs-umt,mmdanim-1182-vs-umt}.json`；输出骨姿态在同目录。独立 B 与 A 的膝部极值差约 5–6 mm，说明求值器并非数学完全相同。原始 VMD 的原配 PMX 模型未知；这不是“原作者动作真值”。UMT 克隆保留 P2 稀疏欧拉修复；本地 oracle 文件和第三方模型不进公开库。
 
+**2026-09-27 18:00 Claude 复验（基于 e1569f8，未改代码）**：`MmdFormatRegressionValidation` PASS；`MmdRigImportValidation`（354 代理 rig，含腿链 IK 自检）A/B PASS；354/1182 各重导 1131 帧到 `D:\MmdOracle\out\reverify-pmx{354,1182}.json`，与 13:15 的 `ours-fixed-*` **逐位相同**，说明 13:21 加入的 IK 链重置和"内置 rig 默认关 IK"对这两套 rig 没有影响，上表数值仍然有效。相机：`reverify-pmx*.camera.json` 对 UMT 的 `pmx*-fixed.camera.json`，1131 帧（其中 994 帧相机在动）位置 P95 0.18 mm、最大 0.25 mm，旋转最大 0.13°，FOV 完全一致，下表"镜头与视频"行的相机数值比对**已完成**。注意 `compare_oracle.py --same-space` 不做 0.08 缩放：C# 对 mmd-anim 的膝部 0.0707 是 MMD 单位（约 5.7 mm），不是 70 mm。共享 IK 链仍无实测。
+
 ## 正确路线（取代继续盲修自研 MMD 求值）
 
 | 层 | 当前决策 | 验收门禁 |
