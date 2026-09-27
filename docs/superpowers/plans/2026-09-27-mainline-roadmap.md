@@ -45,7 +45,7 @@
 | MMD 目标端 | 55 role → Bip001 retarget、腿 IK、5 点烟测 PASS | 接地只有整体抬升（最低顶点 -0.158 m）；脸 0 个 blendshape（85 个脸部关节走 SMC 骨骼偏移，现有 `MmdFace` 无效）；无次级物理；烟测未加载相机；37.7 s 全片从未出片；Studio / Batch / Smoke 初始化三处重复 |
 | Unity 6 | — | 3 个 renderer feature 全走 Execute 兼容路径，0 个 RecordRenderGraph；`FindObjectOfType` 31 处；私有字段 `m_RendererDataList`；`camera.Render` 离线出片在 RenderGraph 下行为未知；6.3 起兼容模式被隐藏 |
 
-渲染缺口清单（来源：现状调研）：八面体平滑法线（存于 UV，`character-shadow-evidence-20260923.md` §9.4）未接入——注意这与上游作者（ShiyumeMeguri）B 站简介说的"没有实现法线解码函数"不是一回事，后者指法线贴图解码（X=A·R、Y=G、Z 重建），本工程已于 09-17 修正（`_agent_experience.md` §三.1）；145 根骨停在 bind 姿态；书本道具缺失且官方 mask 在 y≤0.83 截断；描边颜色是简化公式；覆盖层、刘海 / 头发阴影、dither、透明未做；方向阴影未验证（6411 的 R 通道恒为 1）；雾、局部灯、湿润、眼部边缘光未做；烘焙脸发黑、身后多一张脸；M7 多视角未开始。
+渲染缺口清单（来源：现状调研；平滑法线的编码与来源 09-28 已按官方描边顶点着色器更正，见 WP1.3）：官方平滑法线（存于 UV）未接入——注意这与上游作者（ShiyumeMeguri）B 站简介说的"没有实现法线解码函数"不是一回事，后者指法线贴图解码（X=A·R、Y=G、Z 重建），本工程已于 09-17 修正（`_agent_experience.md` §三.1）；145 根骨停在 bind 姿态；书本道具缺失且官方 mask 在 y≤0.83 截断；描边颜色是简化公式；覆盖层、刘海 / 头发阴影、dither、透明未做；方向阴影未验证（6411 的 R 通道恒为 1）；雾、局部灯、湿润、眼部边缘光未做；烘焙脸发黑、身后多一张脸；M7 多视角未开始。
 
 ## A.2 阶段总览
 
@@ -72,8 +72,8 @@
 |---|---|---|
 | WP1.1 差距归因（先测后改） | 扩展 `Tools/compare_pose_official.py`：①轮廓误差按原因拆（官方 mask y≤0.83 截断区、书本道具像素、145 根未摆姿骨覆盖区）；②颜色误差在**后处理前 HDR 域**按材质区（皮肤 / 头发 / 布料 / 眼）与逐 draw 拆开。输出按误差贡献排序的来源表 | 归因表各项贡献之和与整帧 MAE 对账（残差 < 10%） |
 | WP1.2 几何 / 姿态补全 | 先从提弗洛斯角色 bundle 导出鹰角原生的 `HGCorrectiveBoneData`（修正骨）与 `HGPoseDriverData`（姿势驱动），和 145 根 bind 姿态骨求交集——推断其中一部分是游戏运行时程序驱动、捕获拿不到的骨（`D:\EndfieldTechLib\notes\2026-09-27-claude-deep-dive.md` §2）；属实则实现其求值，其余按捕获 `pose_apply` 补齐；书本道具补上或按决策从比较区剔除（D8） | 轮廓 IoU 过门禁 |
-| WP1.3 八面体平滑法线解码 | 从模型 UV 解码平滑法线并接入描边与相关着色项 | 解码函数单测（编码→解码往返误差 < 1e-3）；描边宽度 / 颜色对官方 draw 输出做区域比对 |
-| WP1.4 未实现着色项 | 按 WP1.1 排序逐项补：描边颜色（官方公式）、刘海 / 头发阴影、覆盖层、dither、透明、眼部边缘光 | 每项先写对官方 draw 输出的区域门禁再实现 |
+| WP1.3 网格通道补全 + 官方描边顶点 | 09-28 核实（官方 `characternpr_skin/Sub0_Pass1_Vertex_b273.hlsl:298-480`）：①平滑法线是 2 通道**切线空间半球编码**（z = sqrt(1-dot(xy,xy))，基 = T / N×T·w / N，开关 `_OutlineAverageNormal`），不是八面体；八面体（10 bit）用于法线 / 切线自身的顶点压缩（同文件 300-330 行）。输入槽位按 Unity 顶点布局推断为 uv1（与 Perlica `Outline shader.shader:60-61` 一致），以捕获的顶点输入为准。②重建源 `_typhoea_model_data.json` 只有 vertices / normals / uvs + 蒙皮，**没有切线、uv1、顶点色**；现描边用的是上游 `Assets/Scripts/SmoothNormals.cs:96` 在 Unity 里自算、写入 uv7 的替代品。③官方外扩是屏幕空间 + FOV 补偿（atan 多项式）+ 距离钳制 + `_OutlineOffsetZ` 深度偏移（同文件 440-470 行），现实现只有 `2*w/屏幕尺寸`。交付：从 RenderDoc 捕获（或解包网格）取回切线 / uv1 / 顶点色写入重建网格，描边顶点按官方公式重写 | 与捕获顶点输入逐顶点比对（平滑法线角误差 < 0.5°）；描边轮廓对官方 CharacterOutline draw 输出做区域比对 |
+| WP1.4 未实现着色项 | 按 WP1.1 排序逐项补：描边颜色（官方 CharacterOutline 片元约 1000 行，含光照与屏幕空间阴影 mask，现为"饱和度 + 亮度"简化）、刘海 / 头发阴影（官方独立 shader `characternpr_shadowreceiver`）、覆盖层（`characternpr_overlayshadow`，关键字 `DISABLE_DRAW_UNDER_HAIR DITHER`）、dither、透明、ClearCoat `ccGGX` 标量近似改回矢量（`EndfieldCharacterLit.shader:913-914`）。眼部：官方 eye b28 不做深度 rim，只有逆光菲涅尔边缘光（已实现），剩 `_EyeScatteringColor` / `_EyeHighLightColor` / `_CharacterParams13.xyz` 捕获值核对。逐项对照见 `D:\EndfieldTechLib\reports\community-vs-official-shading.md` | 每项先写对官方 draw 输出的区域门禁再实现 |
 | WP1.5 A 轨遗留 | 烘焙脸发黑、身后多一张脸 | 截图 + 区域门禁 |
 | WP1.6 第二真值 | 先评估已有但未用的 `123.rdc` / `213.rdc`；不够再考虑 RenderDuck 新截（D4，ACE 检测风险） | 作为验证集，不参与调参；方向阴影也在这里验证 |
 
