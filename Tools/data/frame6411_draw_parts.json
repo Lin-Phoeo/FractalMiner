@@ -1,0 +1,407 @@
+{
+ "496": {
+  "part": "iris_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 618 matches Unity mesh iris_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "501": {
+  "part": "brow_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 1566 matches Unity mesh brow_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "507": {
+  "part": "body_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 4248 matches Unity mesh body_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "512": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 624 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "516": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 168 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "521": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 1230 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "526": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 624 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "530": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 1008 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "534": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 624 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "538": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 624 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "542": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 906 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "546": {
+  "part": "book",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 624 matches no Unity character mesh; shares book-family shader 22154/22155; same mesh as forward prop draw. pixels_final=0."
+ },
+ "551": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 52296 matches no Unity mesh; cull Back (unlike book family NoCull); shares book-family shader 22155. pixels_final=0."
+ },
+ "556": {
+  "part": "cloth_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 94791 matches Unity mesh cloth_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "561": {
+  "part": "cloth_04",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 16101 matches Unity mesh cloth_04; pixels_final=0 (overwritten by later passes)."
+ },
+ "566": {
+  "part": "cloth_05",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 5778 matches Unity mesh cloth_05; pixels_final=0 (overwritten by later passes)."
+ },
+ "571": {
+  "part": "cloth_02",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 36852 matches Unity mesh cloth_02; pixels_final=0 (overwritten by later passes)."
+ },
+ "576": {
+  "part": "cloth_06",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 17232 matches Unity mesh cloth_06; pixels_final=0 (overwritten by later passes)."
+ },
+ "581": {
+  "part": "face_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 10686 matches Unity mesh face_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "586": {
+  "part": "brow_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 420 matches Unity mesh brow_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "591": {
+  "part": "cloth_03",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 276 matches Unity mesh cloth_03; pixels_final=0 (overwritten by later passes)."
+ },
+ "596": {
+  "part": "hair_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw (pass 488, MRT incl. 55208); index count 54816 matches Unity mesh hair_01; pixels_final=0 (overwritten by later passes)."
+ },
+ "602": {
+  "part": "cloth_03",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 276 matches cloth_03; cull Front (outline-style); shader 22213/22214. pixels_final=0."
+ },
+ "607": {
+  "part": "hair_01",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 54816 matches hair_01; cull Front (outline-style); shader 22215/22216. pixels_final=0."
+ },
+ "613": {
+  "part": "background",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; index count 2304 matches no Unity mesh; changed 1.08M pixels (environment geometry); shader 19927/19928. pixels_final=0."
+ },
+ "619": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "GBuffer/prepass draw; 6-index quad; pixels_changed=0; shader 36177/36178."
+ },
+ "757": {
+  "part": "background",
+  "pass": "other",
+  "evidence": "Fullscreen deferred-lighting blit (3 indices) over GBuffer content; labels carry. Modified ~2.09M px."
+ },
+ "761": {
+  "part": "background",
+  "pass": "other",
+  "evidence": "Fullscreen deferred-lighting blit (3 indices); labels carry; modified 0 px."
+ },
+ "765": {
+  "part": "background",
+  "pass": "other",
+  "evidence": "Fullscreen deferred-lighting blit (3 indices); labels carry; modified 0 px."
+ },
+ "776": {
+  "part": "iris_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 618 matches Unity mesh iris_01."
+ },
+ "781": {
+  "part": "brow_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 1566 matches Unity mesh brow_01."
+ },
+ "786": {
+  "part": "body_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 4248 matches Unity mesh body_01."
+ },
+ "791": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 624 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "795": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 168 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "800": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 1230 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "805": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 624 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "809": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 1008 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "813": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 624 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "817": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 624 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "821": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 906 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "825": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 624 matches no Unity character mesh; all 9 events share shader 62033/62034 (book prop family); sits between body and cloth in draw order."
+ },
+ "830": {
+  "part": "book",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 52296 matches no Unity mesh; shares book-family shader 62033/62034; cull Back. pixels_final=0 (fully covered later)."
+ },
+ "835": {
+  "part": "cloth_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 94791 matches Unity mesh cloth_01."
+ },
+ "840": {
+  "part": "cloth_04",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 16101 matches Unity mesh cloth_04."
+ },
+ "845": {
+  "part": "cloth_05",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 5778 matches Unity mesh cloth_05."
+ },
+ "850": {
+  "part": "cloth_02",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 36852 matches Unity mesh cloth_02."
+ },
+ "855": {
+  "part": "cloth_06",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 17232 matches Unity mesh cloth_06."
+ },
+ "860": {
+  "part": "face_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 10686 matches Unity mesh face_01."
+ },
+ "865": {
+  "part": "brow_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 420 matches Unity mesh brow_01."
+ },
+ "870": {
+  "part": "cloth_03",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 276 matches Unity mesh cloth_03."
+ },
+ "875": {
+  "part": "hair_01",
+  "pass": "forward",
+  "evidence": "Forward character draw; index count 54816 matches Unity mesh hair_01."
+ },
+ "881": {
+  "part": "background",
+  "pass": "forward",
+  "evidence": "Forward draw; index count 5400 matches no Unity mesh; cull Front (inward-facing shell); final 2.07M pixels = wall/sky region."
+ },
+ "886": {
+  "part": "background",
+  "pass": "forward",
+  "evidence": "Forward draw; 6-index quad; final 1.49M pixels = ground plane."
+ },
+ "892": {
+  "part": "body_01",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 4248 matches Unity mesh body_01."
+ },
+ "897": {
+  "part": "cloth_01",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 94791 matches Unity mesh cloth_01."
+ },
+ "902": {
+  "part": "cloth_02",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 36852 matches Unity mesh cloth_02."
+ },
+ "907": {
+  "part": "cloth_06",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 17232 matches Unity mesh cloth_06."
+ },
+ "912": {
+  "part": "face_01",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 10686 matches Unity mesh face_01."
+ },
+ "917": {
+  "part": "brow_01",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 420 matches Unity mesh brow_01."
+ },
+ "923": {
+  "part": "hair_01",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 54816 matches Unity mesh hair_01."
+ },
+ "929": {
+  "part": "cloth_03",
+  "pass": "outline",
+  "evidence": "Outline draw (CharacterOutline): cull Front + stencil replace on; index count 276 matches Unity mesh cloth_03."
+ },
+ "935": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Draw after outline round; index count 240 matches no Unity mesh; cull Front but stencil off."
+ },
+ "953": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Fullscreen copy 55208->19414 (byte-verified); labels carry."
+ },
+ "962": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Fullscreen copy 55208->19414 (byte-verified); labels carry."
+ },
+ "968": {
+  "part": "eyeshadow_01",
+  "pass": "other",
+  "evidence": "Drawn after scene copy 962 into 19414; index count 108 matches eyeshadow_01; cull Back."
+ },
+ "971": {
+  "part": "eyeshadow_01",
+  "pass": "other",
+  "evidence": "Drawn after scene copy 962 into 19414; index count 108 matches eyeshadow_01; cull Back."
+ },
+ "977": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 1518 matches no Unity mesh; covers ground effect region (66.5K final px)."
+ },
+ "982": {
+  "part": "hair_01",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 54816 matches hair_01; distinct shader from anchor 875 and outline 923; cull NoCull, stencil off."
+ },
+ "987": {
+  "part": "hair_01",
+  "pass": "outline",
+  "evidence": "cull Front + stencil on; index count 54816 matches hair_01 (second hair outline after 923)."
+ },
+ "993": {
+  "part": "hairshadow_01",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 510 matches hairshadow_01; cull Back. pixels_final=0."
+ },
+ "997": {
+  "part": "hairshadow_01",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 510 matches hairshadow_01; cull Back."
+ },
+ "1003": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 600 matches no Unity mesh; covers ground contact-shadow region (97.2K final px)."
+ },
+ "1009": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 246 matches no Unity mesh; cull NoCull, stencil off."
+ },
+ "1014": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 2016 matches BOTH cloth_07 and vfxpart_03 (ambiguous); cull NoCull, stencil off; pixels_final=0."
+ },
+ "1020": {
+  "part": "other",
+  "pass": "outline",
+  "evidence": "cull Front + stencil on; index count 246 (same mesh as 1009) -> outline of unknown 246-idx mesh."
+ },
+ "1026": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 240 (same as 935); cull Back, stencil off; pixels_final=0."
+ },
+ "1030": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Drawn on scene copy 19414; index count 240 (same as 935); cull Back, stencil off; pixels_final=0."
+ },
+ "1075": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Screen-space composite dispatch (shader 36231): blends scene with 36161/59945 by mask 59963; modified 2.21M px; labels carry (not a draw)."
+ },
+ "1083": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Fullscreen copy 59948->59966 (byte-verified); labels carry."
+ },
+ "1089": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Geometry draw (540 indices) into 59966 after the copy; changed 0 px (blended to identical values / occluded)."
+ },
+ "1116": {
+  "part": "other",
+  "pass": "other",
+  "evidence": "Final composite draw writing post-input 19394 (shader 8248, 16-tap loop); modified 3.05M px; labels carry."
+ }
+}
