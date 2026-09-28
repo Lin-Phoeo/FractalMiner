@@ -23,6 +23,7 @@
 - 所有按名字的骨骼查找锚定重建角色根 `chr_0034_typhoea_rebuilt`（场景里停用的 `Typhoeus_SourceFBX` 有同名 Bip001）。
 - 许可证：`VmdMotion`、`VmdCamera`、`MmdRig`、`MmdRetarget`、`MmdPlayer` 派生自 AGPL Endfield-Poser；无许可证的社区仓库只作参考，不拷代码。
 - subagent 同一时间最多 1 个；当前网关下 WebSearch / WebFetch 不可用，检索用 `ddgs` / `trafilatura` / `gh api`。
+- **参照资产脆弱性（09-28 教训）**：`Typhoeus_OfficialFrame_Recovered.unity` 等 pose-apply 参照场景**无版本控制**，且被 MMD/动画工具（`EndfieldAclIkDriver`/`MmdStudio`/`VmdBatchRender`，都 OpenScene 这个路径）改坏过一次（IoU 0.765 不可复现）。跑任何会 OpenScene+SaveScene 的批处理前后，要么先备份该场景、要么确认它只读；理想上把参照场景+完整姿态导出纳入记录分支或可一键重建。截帧管线激活（`Library/EndfieldCapturedPipelineActivation.json`）用完必须 Restore，遗留激活会把 QualitySettings 的 Ultra 档管线指向 `f351…` 截帧管线。
 
 ## Review Focus
 
@@ -46,6 +47,19 @@
 | Unity 6 | — | 3 个 renderer feature 全走 Execute 兼容路径，0 个 RecordRenderGraph；`FindObjectOfType` 31 处；私有字段 `m_RendererDataList`；`camera.Render` 离线出片在 RenderGraph 下行为未知；6.3 起兼容模式被隐藏 |
 
 渲染缺口清单（来源：现状调研；平滑法线的编码与来源 09-28 已按官方描边顶点着色器更正，见 WP1.3）：官方平滑法线（存于 UV）未接入——注意这与上游作者（ShiyumeMeguri）B 站简介说的"没有实现法线解码函数"不是一回事，后者指法线贴图解码（X=A·R、Y=G、Z 重建），本工程已于 09-17 修正（`_agent_experience.md` §三.1）；145 根骨停在 bind 姿态；书本道具缺失且官方 mask 在 y≤0.83 截断；描边颜色是简化公式；覆盖层、刘海 / 头发阴影、dither、透明未做；方向阴影未验证（6411 的 R 通道恒为 1）；雾、局部灯、湿润、眼部边缘光未做；烘焙脸发黑、身后多一张脸；M7 多视角未开始。
+
+### 2026-09-28 更新（WP1.1 收尾 + 渲染回归 + C5/C6 交付）
+
+**WP1.1 工具已交付并推送**（记录分支 `e0141f8`/`4ea45a2`/`2c1c712`）：官方逐像素 draw 标签（`Tools/export_draw_labels.py`+`Tools/data/frame6411_draw_parts.json`，C5，kimi/deepseek 交付、已验收）；Unity 部件标签渲染（`EndfieldPoseApplyValidation.RenderPartLabels`，关标签时逐字节不变、undecodable=0、17 renderer、37 未摆姿主导骨）；归因脚本（`Tools/attribute_render_gap.py`+9 单测，与门禁逐位对账）。计划见 `2026-09-28-wp1.1-render-gap-attribution.md`。
+
+**渲染回归（重要，起点数字已失效）**：09-25 那份产生 IoU 0.765 的 `Typhoeus_OfficialFrame_Recovered.unity` 于 09-26 被 MMD/动画工具改坏（该场景**无版本控制、无备份**）。09-28 复现只能到 **IoU 0.417**，且对四项 09-26 变化逐一"实际回滚+重渲染"均无变化：骨骼 bind 重置、整角色 `TyphoeusModelBuilder.Rebuild` 重建、管线/QualitySettings/遗留激活还原、URP 14.0.12→14.0.11。**结论：0.765 不可从当前确定性来源复现**，丢失的是 09-25 手工场景里 145 根未摆姿次级骨（cloth/skirt/tail/hair，见 WP1.2）与 cloth/hair 的摆姿状态。归因显示残差在 cloth_01/hair_01/cloth_04-05（已摆姿部件位置不同），非未摆姿骨区。已清理：重建规范角色、QS 还原正常管线、清除 09-26 遗留的截帧管线激活。细节见 `poseapply-scene-regression-20260928` 记忆 + WP1.1 计划 `progress.md`。诊断工具 `Assets/EndfieldShaderPack/Editor/TyphoeusRigRepair.cs`（未提交）。
+
+**C6 已交付并验收**（GLM-5.3-flash，验收记录 `D:\EndfieldTechLib\notes\2026-09-28-c6-acceptance.md`）：官方描边/ShadowReceiver/OverlayShadow 逐行译读，对照 `_dump_1.5.3` 源码抽查全中（1/511@b273:309、描边宽度公式@:564）。**并入下方 WP1.3/1.4 更正**。
+
+**雨淋/湿身系统现状（澄清）**：并非"已实现"，只有脚手架——① C# 驱动 `EndfieldClipDriver.cs:207-211` / `EndfieldAclIkDriver.cs:117-118` 往全局 `_CharacterParams10` 塞 `-wetness`；② shader `EndfieldCharacterLit.shader:308` 只**声明** `_CharacterParams10` 不读取（预留钩子）；③ 材质 JSON（`M_actor_typhoea_cloth_01.json`）带完整官方湿身参数（`_RainEffectIntensity`/`_WetEffectIntensity`/`_SilkStockings*` 全族）但值全为 0（干态）；④ 官方公式已**文档化未移植**：`docs/research/official-wetness-b400-excerpt.txt`（雨/雪门、`_CharacterRainEffectTex` 三平面采样、丝袜湿身色 lerp）+ `official-forwardlit-cloth-b401.md`，官方 shader 源在 `characternpr_liquidag`。归到 WP1.4「湿润」项，干态还原收敛后再接。
+
+**MMD 唯一未闭合项**：源端对 UMT 已亚毫米（P95 0.11-0.14mm），但对第二 oracle `mmd-anim`(v0.5.2) 的腿 IK 链（膝/踝/趾）帧 0 起最大差 ~7cm（膝 70.7mm）——是 IK 解算器差异不是回归（对 UMT 亚毫米、对上轮逐位 0）。属 WP2.6 共享 IK 链实测范畴。
+
 
 ## A.2 阶段总览
 
@@ -71,9 +85,9 @@
 | 工作包 | 交付物 | 验证 |
 |---|---|---|
 | WP1.1 差距归因（先测后改） | 扩展 `Tools/compare_pose_official.py`：①轮廓误差按原因拆（官方 mask y≤0.83 截断区、书本道具像素、145 根未摆姿骨覆盖区）；②颜色误差在**后处理前 HDR 域**按材质区（皮肤 / 头发 / 布料 / 眼）与逐 draw 拆开。输出按误差贡献排序的来源表 | 归因表各项贡献之和与整帧 MAE 对账（残差 < 10%） |
-| WP1.2 几何 / 姿态补全 | 先从提弗洛斯角色 bundle 导出鹰角原生的 `HGCorrectiveBoneData`（修正骨）与 `HGPoseDriverData`（姿势驱动），和 145 根 bind 姿态骨求交集——推断其中一部分是游戏运行时程序驱动、捕获拿不到的骨（`D:\EndfieldTechLib\notes\2026-09-27-claude-deep-dive.md` §2）；属实则实现其求值，其余按捕获 `pose_apply` 补齐；书本道具补上或按决策从比较区剔除（D8） | 轮廓 IoU 过门禁 |
+| WP1.2 几何 / 姿态补全 | 先从提弗洛斯角色 bundle 导出鹰角原生的 `HGCorrectiveBoneData`（修正骨，TypeTree `04-engine-data/TypeTree/5/1.5.3/structs.dump` classID 1186182244）与 `HGPoseDriverData`（姿势驱动，classID 1979777000），和 145 根 bind 姿态骨求交集——**09-28 已用 WP1.1 标签渲染确认这 145 根就是 cloth(24)/skirt(7)/hair(19)/tail(8)/vfx/acc/IK 等次级动态骨**（`pose_apply.txt` 只覆盖 268 根主骨，次级骨在游戏里由布料/程序驱动、捕获拿不到），且 09-25→09-28 的渲染回归正是这批次级骨丢了摆姿状态（见 §A.1 更新）；属实则实现其求值，其余按捕获 `pose_apply` 补齐。**注意 `ExtendData/.../FacBoneTRS.bin` 是设施(Facility)骨，不是角色骨，勿误用**（`notes\2026-09-27-catalog-deep-read.md` §1）。书本道具补上或按决策从比较区剔除（D8） | 轮廓 IoU 过门禁 |
 | WP1.3 网格通道补全 + 官方描边顶点 | 09-28 核实（官方 `characternpr_skin/Sub0_Pass1_Vertex_b273.hlsl:298-480`）：①平滑法线是 2 通道**切线空间半球编码**（z = sqrt(1-dot(xy,xy))，基 = T / N×T·w / N，开关 `_OutlineAverageNormal`），不是八面体；八面体（10 bit）用于法线 / 切线自身的顶点压缩（同文件 300-330 行）。输入槽位按 Unity 顶点布局推断为 uv1（与 Perlica `Outline shader.shader:60-61` 一致），以捕获的顶点输入为准。②重建源 `_typhoea_model_data.json` 只有 vertices / normals / uvs + 蒙皮，**没有切线、uv1、顶点色**；现描边用的是上游 `Assets/Scripts/SmoothNormals.cs:96` 在 Unity 里自算、写入 uv7 的替代品。③官方外扩是屏幕空间 + FOV 补偿（atan 多项式）+ 距离钳制 + `_OutlineOffsetZ` 深度偏移（同文件 440-470 行），现实现只有 `2*w/屏幕尺寸`。交付：从 RenderDoc 捕获（或解包网格）取回切线 / uv1 / 顶点色写入重建网格，描边顶点按官方公式重写 | 与捕获顶点输入逐顶点比对（平滑法线角误差 < 0.5°）；描边轮廓对官方 CharacterOutline draw 输出做区域比对 |
-| WP1.4 未实现着色项 | 按 WP1.1 排序逐项补：描边颜色（官方 CharacterOutline 片元约 1000 行，含光照与屏幕空间阴影 mask，现为"饱和度 + 亮度"简化）、刘海 / 头发阴影（官方独立 shader `characternpr_shadowreceiver`）、覆盖层（`characternpr_overlayshadow`，关键字 `DISABLE_DRAW_UNDER_HAIR DITHER`）、dither、透明、ClearCoat `ccGGX` 标量近似改回矢量（`EndfieldCharacterLit.shader:913-914`）。眼部：官方 eye b28 不做深度 rim，只有逆光菲涅尔边缘光（已实现），剩 `_EyeScatteringColor` / `_EyeHighLightColor` / `_CharacterParams13.xyz` 捕获值核对。逐项对照见 `D:\EndfieldTechLib\reports\community-vs-official-shading.md` | 每项先写对官方 draw 输出的区域门禁再实现 |
+| WP1.4 未实现着色项 | 按 WP1.1 排序逐项补：描边颜色（官方 CharacterOutline 片元约 1000 行，**是"缩水 ForwardLit 全打光"**——环境 IV+方向光+屏幕空间阴影+点光 tile×z-bin+雾+VFX 调色，打光法线借 GBuffer 八面体解码；现为"饱和度 + 亮度"简化，差距大）、**刘海投脸（官方独立 shader `characternpr_overlayshadow`，蒙皮投影网，Pass1 `Blend Zero SrcColor, One One` 乘法叠色，关键字 `DISABLE_DRAW_UNDER_HAIR DITHER`）**、**脚下地面投影接收（`characternpr_shadowreceiver`，无蒙皮静态网，`Blend Zero SrcColor` 乘法，stencil `NotEqual 32`，15 张自阴影 atlas 3×3 tent PCF + CSM/ASM/云影 + `_CircleFade` + CapsuleAO 兜底）**、dither、透明、ClearCoat `ccGGX` 标量近似改回矢量（`EndfieldCharacterLit.shader:913-914`）。眼部：官方 eye b28 不做深度 rim，只有逆光菲涅尔边缘光（已实现），且 **eye 无 CharacterOutline pass**；剩 `_EyeScatteringColor` / `_EyeHighLightColor` / `_CharacterParams13.xyz` 捕获值核对。**C6 逐行译读已交付**（`D:\EndfieldTechLib\reports\translations\`，验收 `notes\2026-09-28-c6-acceptance.md`）作为本 WP 的官方公式输入。逐项对照见 `D:\EndfieldTechLib\reports\community-vs-official-shading.md` | 每项先写对官方 draw 输出的区域门禁再实现 |
 | WP1.5 A 轨遗留 | 烘焙脸发黑、身后多一张脸 | 截图 + 区域门禁 |
 | WP1.6 第二真值 | 先评估已有但未用的 `123.rdc` / `213.rdc`；不够再考虑 RenderDuck 新截（D4，ACE 检测风险） | 作为验证集，不参与调参；方向阴影也在这里验证 |
 
