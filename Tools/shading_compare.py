@@ -17,6 +17,7 @@ from PIL import Image
 from compare_pose_official import WORK_SIZE, largest_character_mask, percentile
 from attribute_render_gap import (
     load_official_labels, official_part, decode_unity_label, part_from_renderer_name,
+    label_coverage, LABEL_COVERAGE_MIN,
 )
 
 FAMILIES = ("skin", "hair", "cloth", "eye")
@@ -80,6 +81,25 @@ def compare_families(official, current, official_parts, current_parts, mask) -> 
     return families
 
 
+def flip_check(coverage: dict, flip: bool) -> dict:
+    """Guard against a wrong --flip-official-labels silently mis-registering labels.
+
+    Mirrors attribute_render_gap's label_coverage gate: the chosen orientation must
+    clear LABEL_COVERAGE_MIN and be no worse than the reverse flip. A wrong flip
+    tanks coverage while colour numbers still look plausible, so this is the only
+    thing that catches it.
+    """
+    key = "yes" if flip else "no"
+    other = "no" if flip else "yes"
+    chosen = coverage[key]
+    return {
+        "coverage": coverage,
+        "flip": key,
+        "chosen_coverage": chosen,
+        "ok": chosen >= LABEL_COVERAGE_MIN and chosen >= coverage[other],
+    }
+
+
 def parse_args() -> argparse.Namespace:
     cap = "Validation/Captures/tifuluosi-front-20260917"
     p = argparse.ArgumentParser()
@@ -96,7 +116,10 @@ def parse_args() -> argparse.Namespace:
 
 
 def render_md(report: dict) -> str:
+    fc = report["flip_check"]
     lines = ["# 逐部件比色 A/B（阶段1 渲染保真）", "", f"总判定 pass = {report['pass']}", "",
+             f"标签翻转 = {fc['flip']}（覆盖率 {fc['chosen_coverage']:.3f}，两向 {fc['coverage']}，"
+             f"方向校验 ok = {fc['ok']}）", "",
              "| 家族 | 重叠像素 | 通道 MAE | p95 | 8色阶内 | low_sample | pass |", "|---|---|---|---|---|---|---|"]
     for f, v in report["families"].items():
         lines.append(f"| {f} | {v['pixels']} | {v['mean_abs_rgb_max']:.1f} | {v['p95_abs_rgb']:.0f} | "
@@ -122,7 +145,12 @@ def main() -> int:
     target = json.loads(Path(a.official_draws).read_text(encoding="utf-8"))["target"]
     size = (target["width"], target["height"])
     parts_map = json.loads(Path(a.official_parts).read_text(encoding="utf-8"))
+    coverage = {}
+    for f in (True, False):
+        lab = load_official_labels(Path(a.official_labels), size, f).resize(WORK_SIZE, Image.Resampling.NEAREST)
+        coverage["yes" if f else "no"] = label_coverage(off_mask, lab, parts_map)
     flip = a.flip_official_labels == "yes"
+    fc = flip_check(coverage, flip)
     labels = load_official_labels(Path(a.official_labels), size, flip).resize(WORK_SIZE, Image.Resampling.NEAREST)
     lp = labels.load()
     official_parts = [[official_part(lp[x, y], parts_map) for x in range(WORK_SIZE[0])] for y in range(WORK_SIZE[1])]
@@ -132,10 +160,12 @@ def main() -> int:
     clp = clabels.load()
     current_parts = [[decode_unity_label(clp[x, y], renderer_parts) for x in range(WORK_SIZE[0])] for y in range(WORK_SIZE[1])]
     families = compare_families(official, current, official_parts, current_parts, inter)
-    report = {"inputs": vars(a), "families": families, "pass": all(v["pass"] for v in families.values())}
+    report = {"inputs": vars(a), "flip_check": fc, "families": families,
+              "pass": fc["ok"] and all(v["pass"] for v in families.values())}
     (out / "report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
     (out / "report.md").write_text(render_md(report), encoding="utf-8")
-    print(json.dumps({"pass": report["pass"], "families": {f: {"mae": round(v["mean_abs_rgb_max"], 1),
+    print(json.dumps({"pass": report["pass"], "flip_ok": fc["ok"], "coverage": fc["coverage"],
+          "families": {f: {"mae": round(v["mean_abs_rgb_max"], 1),
           "px": v["pixels"], "pass": v["pass"]} for f, v in families.items()}}, ensure_ascii=False))
     return 0 if report["pass"] else 2
 

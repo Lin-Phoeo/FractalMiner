@@ -59,6 +59,17 @@ class ShadingCompareTests(unittest.TestCase):
         exp0 = sum(abs(opx[x, y][0] - cpx[x, y][0]) for y in range(4) for x in range(4)) / 16
         self.assertAlmostEqual(fam["skin"]["mean_abs_rgb"][0], exp0)
 
+    def test_flip_check_flags_wrong_flip(self):
+        cov = {"yes": 0.97, "no": 0.18}
+        self.assertTrue(sc.flip_check(cov, True)["ok"])          # chosen flip has best coverage -> ok
+        self.assertFalse(sc.flip_check(cov, False)["ok"])        # wrong flip: lower coverage than the other -> flagged
+        # even the higher of the two must clear LABEL_COVERAGE_MIN
+        self.assertFalse(sc.flip_check({"yes": 0.6, "no": 0.4}, True)["ok"])
+        fc = sc.flip_check(cov, True)
+        self.assertEqual(fc["flip"], "yes")
+        self.assertEqual(fc["chosen_coverage"], 0.97)
+
+
 
 if __name__ == "__main__":
     unittest.main()
