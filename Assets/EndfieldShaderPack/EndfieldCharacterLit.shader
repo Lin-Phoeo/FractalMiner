@@ -289,6 +289,10 @@ Shader "Endfield/CharacterLit"
         float _EndfieldCapturedCubemapAvailable;
         float _EndfieldCapturedLightIntensity;
 
+        // WP1.1 part-label render (EndfieldPoseApplyValidation only): 0 = off, 1 = flat label, 2 = vertex colour.
+        float _EndfieldLabelMode;
+        float4 _EndfieldLabelColor;
+
         // 官方 HGRP _CharacterParamsN 全局参数（捕获帧已知值，由 C# SetGlobalVector 注入）
         // 详见 docs/research/official-forwardlit-{hair-b125,skin-b138,cloth-b401,eye-b28}.md §4
         float4 _CharacterParams0;   // x=? y=受光侧lightTerm乘数 z=阴影色深度系数(0.65) w=阴影侧lightTerm乘数(0.9)
@@ -365,6 +369,7 @@ Shader "Endfield/CharacterLit"
             float3 normalOS   : NORMAL;
             float4 tangentOS  : TANGENT;
             float2 uv         : TEXCOORD0;
+            float4 color      : COLOR;
         };
 
         struct Varyings
@@ -375,6 +380,7 @@ Shader "Endfield/CharacterLit"
             float3 normalWS    : TEXCOORD2;
             float4 tangentWS   : TEXCOORD3; // xyz=tangent, w=sign
             float3 viewDirWS   : TEXCOORD4;
+            float4 color       : TEXCOORD5;
             float  fogFactor   : TEXCOORD6;
         };
 
@@ -395,6 +401,7 @@ Shader "Endfield/CharacterLit"
             // Retain source UVs: each texture has its own transform. In particular,
             // mod DDS exports need a V flip while inherited SDF/normal maps do not.
             output.uv         = input.uv;
+            output.color      = input.color;
             output.fogFactor  = ComputeFogFactor(output.positionCS.z);
             return output;
         }
@@ -552,6 +559,10 @@ Shader "Endfield/CharacterLit"
                 }
 
                 if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+
+                // Alpha 1 makes SrcAlpha/OneMinusSrcAlpha blending write the label unchanged.
+                if (_EndfieldLabelMode > 0.5)
+                    return half4(_EndfieldLabelMode > 1.5 ? input.color.rgb : _EndfieldLabelColor.rgb, 1.0);
 
                 // ---- 法线 ----
                 half3 N = normalize(input.normalWS);
@@ -1075,6 +1086,10 @@ Shader "Endfield/CharacterLit"
             half4 frag(Vary input) : SV_Target
             {
                 clip(_EnableOutline - 0.5);
+                if (_EndfieldLabelMode > 1.5)
+                    return half4(0.0, 0.0, 0.0, 1.0);
+                if (_EndfieldLabelMode > 0.5)
+                    return half4(_EndfieldLabelColor.rg, 1.0, 1.0);
                 half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(input.uv, _BaseMap)).rgb * _BaseColor.rgb;
                 half lum = dot(base, half3(0.2126729, 0.7151522, 0.0721750));
                 half3 c = lerp(lum.xxx, base, _OutlineColorSaturation);

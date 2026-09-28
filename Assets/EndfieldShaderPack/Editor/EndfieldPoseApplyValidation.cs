@@ -530,6 +530,11 @@ namespace EndfieldShaderPack.EditorTools
                 UnityEngine.Object.DestroyImmediate(postMaterial);
             }
 
+            // WP1.1 diagnostic: part-label and unposed-coverage renders. Runs AFTER
+            // pose-applied-lit-post.png is written and restores every touched state in
+            // its own finally, so the lit render above is provably unaffected.
+            RenderPartLabels(camera, charRoot, poses, report);
+
             bool pass = g1 && g2l && g2r && g3;
             string json = "{\"gate_head_y\":" + (g1 ? "true" : "false")
                 + ",\"gate_lhand\":" + (g2l ? "true" : "false")
@@ -640,6 +645,142 @@ namespace EndfieldShaderPack.EditorTools
                 File.WriteAllBytes(path, png.EncodeToPNG());
             }
             finally { RenderTexture.active = previous; }
+        }
+
+        static void RenderPartLabels(Camera camera, Transform charRoot, Dictionary<string, Matrix4x4> poses, List<string> report)
+        {
+            var renderers = charRoot.GetComponentsInChildren<SkinnedMeshRenderer>(false);
+            var json = new System.Text.StringBuilder("{\"renderers\":[");
+            var unposedBones = new SortedSet<string>();
+            var originalMeshes = new Mesh[renderers.Length];
+            var cameraData = camera.GetUniversalAdditionalCameraData();
+            bool previousPost = cameraData.renderPostProcessing;
+            bool previousMsaa = camera.allowMSAA;
+            var previousAa = cameraData.antialiasing;
+            var previousClear = camera.clearFlags;
+            var previousBackground = camera.backgroundColor;
+            try
+            {
+                cameraData.renderPostProcessing = false;
+                cameraData.antialiasing = AntialiasingMode.None;
+                camera.allowMSAA = false;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.black;
+                for (int r = 0; r < renderers.Length; r++)
+                {
+                    var smr = renderers[r];
+                    var mats = smr.sharedMaterials;
+                    if (r > 0) json.Append(',');
+                    json.Append("{\"index\":").Append(r).Append(",\"name\":\"").Append(smr.name)
+                        .Append("\",\"mesh\":\"").Append(smr.sharedMesh.name).Append("\",\"submeshes\":[");
+                    for (int s = 0; s < mats.Length; s++)
+                    {
+                        if (mats[s].shader.name != "Endfield/CharacterLit")
+                            throw new InvalidOperationException(smr.name + " submesh " + s + " uses " + mats[s].shader.name);
+                        var block = new MaterialPropertyBlock();
+                        block.SetVector("_EndfieldLabelColor", new Vector4((r + 1) / 255f, (s + 1) / 255f, 128f / 255f, 1f));
+                        smr.SetPropertyBlock(block, s);
+                        if (s > 0) json.Append(',');
+                        json.Append("{\"index\":").Append(s).Append(",\"material\":\"").Append(mats[s].name)
+                            .Append("\",\"surface_type\":").Append(mats[s].GetFloat("_SurfaceType").ToString(CultureInfo.InvariantCulture)).Append('}');
+                    }
+                    json.Append("]}");
+                }
+                json.Append(']');
+
+                Shader.SetGlobalFloat("_EndfieldLabelMode", 1f);
+                int undecodable = RenderLabelPng(camera, Path.Combine(OutDir, "pose-applied-labels.png"), renderers);
+
+                for (int r = 0; r < renderers.Length; r++)
+                {
+                    var smr = renderers[r];
+                    originalMeshes[r] = smr.sharedMesh;
+                    var copy = UnityEngine.Object.Instantiate(smr.sharedMesh);
+                    var weights = copy.boneWeights;
+                    var colors = new Color[copy.vertexCount];
+                    for (int v = 0; v < colors.Length; v++)
+                    {
+                        var w = weights[v];
+                        int dominant = w.weight0 >= w.weight1 && w.weight0 >= w.weight2 && w.weight0 >= w.weight3 ? w.boneIndex0
+                            : w.weight1 >= w.weight2 && w.weight1 >= w.weight3 ? w.boneIndex1
+                            : w.weight2 >= w.weight3 ? w.boneIndex2 : w.boneIndex3;
+                        string bone = smr.bones[dominant].name;
+                        bool unposed = !poses.ContainsKey(bone);
+                        if (unposed) unposedBones.Add(bone);
+                        colors[v] = unposed ? Color.red : Color.black;
+                    }
+                    copy.colors = colors;
+                    smr.sharedMesh = copy;
+                }
+                Shader.SetGlobalFloat("_EndfieldLabelMode", 2f);
+                RenderLabelPng(camera, Path.Combine(OutDir, "pose-applied-unposed.png"), null);
+
+                json.Append(",\"undecodable_pixels\":").Append(undecodable).Append(",\"unposed_bones\":[");
+                int n = 0;
+                foreach (var bone in unposedBones) json.Append(n++ > 0 ? ",\"" : "\"").Append(bone).Append('"');
+                json.Append("]}");
+                File.WriteAllText(Path.Combine(OutDir, "pose-applied-labels.json"), json.ToString());
+                report.Add("part labels: renderers=" + renderers.Length + " undecodable=" + undecodable
+                    + " unposed dominant bones=" + unposedBones.Count);
+            }
+            finally
+            {
+                Shader.SetGlobalFloat("_EndfieldLabelMode", 0f);
+                for (int r = 0; r < renderers.Length; r++)
+                {
+                    for (int s = 0; s < renderers[r].sharedMaterials.Length; s++)
+                        renderers[r].SetPropertyBlock(null, s);
+                    if (originalMeshes[r] != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(renderers[r].sharedMesh);
+                        renderers[r].sharedMesh = originalMeshes[r];
+                    }
+                }
+                cameraData.renderPostProcessing = previousPost;
+                cameraData.antialiasing = previousAa;
+                camera.allowMSAA = previousMsaa;
+                camera.clearFlags = previousClear;
+                camera.backgroundColor = previousBackground;
+            }
+        }
+
+        // Returns the number of non-empty pixels that do not decode to a known renderer/submesh/pass
+        // (checked only when renderers != null).
+        static int RenderLabelPng(Camera camera, string path, SkinnedMeshRenderer[] renderers)
+        {
+            var target = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear) { antiAliasing = 1 };
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = target;
+                camera.Render();
+                var readback = new Texture2D(Width, Height, TextureFormat.RGB24, false, true);
+                RenderTexture.active = target;
+                readback.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
+                readback.Apply();
+                int undecodable = 0;
+                if (renderers != null)
+                {
+                    foreach (Color32 p in readback.GetPixels32())
+                    {
+                        if (p.r == 0 && p.g == 0 && p.b == 0) continue;
+                        int r = p.r - 1, s = p.g - 1;
+                        bool ok = r >= 0 && r < renderers.Length && s >= 0 && s < renderers[r].sharedMaterials.Length
+                            && (p.b == 128 || p.b == 255);
+                        if (!ok) undecodable++;
+                    }
+                }
+                File.WriteAllBytes(path, readback.EncodeToPNG());
+                UnityEngine.Object.DestroyImmediate(readback);
+                return undecodable;
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                target.Release();
+            }
         }
     }
 }
