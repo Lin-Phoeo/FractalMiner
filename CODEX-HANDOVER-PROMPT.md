@@ -1,4 +1,6 @@
-> 2026-09-30 最新指令与增量：先读 `CODEX-HANDOFF-2026-09-30-eye-hair-shadow.md`，再读 `CODEX-HANDOFF-2026-09-30-live-skin-and-motion.md` 和 `CODEX-AUDIT-HANDOFF-2026-09-30.md`。用户明确不要逐像素对照；按官方代码、光照、管线/后处理的结构与逻辑验收，然后接解包动作/MMD。动态根已覆盖face/body/iris/hair；眼睛投影光公式、虹膜描边、根参数块遮住阴影参数的问题已修正，解包动作/VMD六个时刻的实时阴影/Bloom/post链路通过。下一项是官方OverlayShadow模板/乘色pass，不是调曝光。旧颜色LSB/IoU门禁不再作为主线。仍未宣称全渲染/MMD完成，不按旧垃圾清单删用户资源。
+> 2026-09-30 当前优先级更新：用户要求先核实已有资料与解包官方代码一致，再用上湿身等成果。先读 `docs/research/source-contract-audit-20260930.md` 和更新后的 `INDEX-shader-sources.md`。湿身/雨系统/C6文档存在实质错误，已修正本批关键输入与数学，但天气生产端、实际绑定及未展开变体仍待核；不要宣称全部文档/官方渲染已完全准确，不先按旧伪码接湿身。外部C6报告确实存在，不重复调研。旧文档里的逐像素/LSB/清垃圾指令不再执行，不碰用户9557项暂存索引。
+
+> 2026-09-30 已完成实现增量：先读 `CODEX-HANDOFF-2026-09-30-eye-hair-shadow.md`，再读 `CODEX-HANDOFF-2026-09-30-live-skin-and-motion.md` 和 `CODEX-AUDIT-HANDOFF-2026-09-30.md`。用户明确不要逐像素对照；按官方代码、光照、管线/后处理的结构与逻辑验收，然后接解包动作/MMD。动态根已覆盖face/body/iris/hair；眼睛投影光公式、虹膜描边、根参数块遮住阴影参数的问题已修正，解包动作/VMD六个时刻的实时阴影/Bloom/post链路通过。后续实现是官方OverlayShadow模板/乘色pass，不是调曝光，须先完成当前资料优先事项。旧颜色LSB/IoU门禁不再作为主线。仍未宣称全渲染/MMD完成，不按旧垃圾清单删用户资源。
 
 你是这个 Unity 逆向渲染工程的接手者。目标：在 Unity 2022.3.30f1 / URP 14 上，把《明日方舟：终末地》角色提弗洛斯的官方渲染**逐部件还原**（skin/hair/cloth/eye + 描边 + 刘海投脸 + 地面投影 + 雨淋湿身 + 后处理），参数 inspector 可调；再接入 MMD（VMD 动作+相机）离线出片；最终迁 Unity 6 重过验收。
 
