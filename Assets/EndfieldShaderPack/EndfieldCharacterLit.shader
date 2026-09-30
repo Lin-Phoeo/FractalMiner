@@ -357,6 +357,7 @@ Shader "Endfield/CharacterLit"
         TEXTURE2D(_EndfieldCharacterShadowScreen);
         float4 _EndfieldCharacterShadowScreenSize;
         float _EndfieldCharacterSelfShadow;
+        float _EndfieldDebugValueMode;
 
         // SV_POSITION in the fragment stage is the pixel centre of the current target,
         // which is the same memory space the resolve wrote, so no flip or NDC round trip
@@ -421,6 +422,13 @@ Shader "Endfield/CharacterLit"
 
         void GetCharacterLight(float3 positionWS, out half3 L, out half3 lightColor, out half shadowAttenuation)
         {
+            // Debug: 检查 _CharacterLightDir.w 的值
+            if (_EndfieldDebugValueMode > 7.5 && _EndfieldDebugValueMode < 8.5)
+            {
+                // Debug mode 8: 显示 _CharacterLightDir.w (红=0, 白=1)
+                // 这应该在任何分支执行前返回
+            }
+
             if (_CharacterLightDir.w > 0.0)
             {
                 L = normalize(_CharacterLightDir.xyz);
@@ -435,6 +443,7 @@ Shader "Endfield/CharacterLit"
                 lightColor = mainLight.color * mainLight.distanceAttenuation;
                 shadowAttenuation = mainLight.shadowAttenuation;
             }
+
             if (_EndfieldOfficialFrameEnabled > 0.5)
             {
                 L = SafeNormalize(lerp(L, _CharacterParams11.xyz, _CharacterParams1.w));
@@ -615,6 +624,17 @@ Shader "Endfield/CharacterLit"
                     // selfShadow argument. The gate keeps scenes without the feature at 1.
                     float directionalShadow = lerp(shadowAtten, 1.0, _CharacterParams1.z);
                     float selfShadow = EndfieldCharacterSelfShadow(input.positionCS.xy);
+
+                    // Debug value visualization
+                    if (_EndfieldDebugValueMode > 0.5)
+                    {
+                        if (_EndfieldDebugValueMode < 1.5) return float4(directionalShadow.xxx, 1);
+                        if (_EndfieldDebugValueMode < 2.5) return float4(selfShadow.xxx, 1);
+                        if (_EndfieldDebugValueMode < 3.5) return float4(shadowAtten.xxx, 1);
+                        if (_EndfieldDebugValueMode < 4.5) return float4(albedo, 1);
+                        if (_EndfieldDebugValueMode < 8.5) return float4(_CharacterLightDir.w.xxx, 1);
+                    }
+
                     float3 sourceColor;
                     if (_MaterialFamily > 2.5)
                         sourceColor = EndfieldShadeOfficialEye(input.uv, input.normalWS, V, input.tangentWS,
@@ -1032,6 +1052,12 @@ Shader "Endfield/CharacterLit"
             #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _DIFF_RAMP_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
             struct Attr
             {
@@ -1047,6 +1073,9 @@ Shader "Endfield/CharacterLit"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv         : TEXCOORD0;
+                float3 positionWS : TEXCOORD1;
+                float3 normalWS   : TEXCOORD2;
+                float4 shadowCoord : TEXCOORD3;
             };
 
             Vary vert(Attr input)
@@ -1086,7 +1115,18 @@ Shader "Endfield/CharacterLit"
                 pixelDirection *= rsqrt(max(dot(pixelDirection, pixelDirection), 1e-8));
                 output.positionCS.xy += pixelDirection * (2.0 * w * widthMask / _ScaledScreenParams.xy)
                     * output.positionCS.w * step(0.5, _EnableOutline);
+                // Official b273 pushes the outline back in view depth (z += -0.1*param) to
+                // avoid z-fighting with the lit surface. Clip-space equivalent, reversed-Z aware.
+                // Default _OutlineOffsetZ = 0 keeps this a no-op unless authored.
+                #if UNITY_REVERSED_Z
+                    output.positionCS.z -= _OutlineOffsetZ * 0.01 * output.positionCS.w;
+                #else
+                    output.positionCS.z += _OutlineOffsetZ * 0.01 * output.positionCS.w;
+                #endif
                 output.uv = input.uv;
+                output.positionWS = positionWS;
+                output.normalWS = smoothWS;
+                output.shadowCoord = TransformWorldToShadowCoord(positionWS);
                 return output;
             }
 
@@ -1100,13 +1140,43 @@ Shader "Endfield/CharacterLit"
                     return half4(0.0, 0.0, 0.0, 1.0);
                 if (_EndfieldLabelMode > 0.5)
                     return half4(_EndfieldLabelColor.rg, 1.0, 1.0);
-                half3 base = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(input.uv, _BaseMap)).rgb * _BaseColor.rgb;
-                half lum = dot(base, half3(0.2126729, 0.7151522, 0.0721750));
-                half3 c = lerp(lum.xxx, base, _OutlineColorSaturation);
-                c *= _OutlineColorBrightness;
+
+                // Base color
+                half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(input.uv, _BaseMap)).rgb;
+                half3 baseColor = albedo * _BaseColor.rgb;
+
+                // Main light
+                Light mainLight = GetMainLight(input.shadowCoord);
+                half3 lightDir = mainLight.direction;
+                half3 lightColor = mainLight.color;
+                half shadow = mainLight.shadowAttenuation;
+
+                // N·L for ramp sampling
+                half3 N = normalize(input.normalWS);
+                half NdotL = dot(N, lightDir);
+                half rampU = NdotL * 0.5 + 0.5;
+
+                #ifdef _DIFF_RAMP_ON
+                    half3 ramp = SAMPLE_TEXTURE2D(_DiffRampMap, sampler_Endfield_LinearRepeat, half2(rampU, 0.5)).rgb;
+                #else
+                    half3 ramp = smoothstep(-0.5, 0.5, NdotL).xxx;
+                #endif
+
+                // Environment light (simplified SH - use Unity's built-in)
+                half3 ambient = SampleSH(N);
+
+                // Final lighting: (ambient + mainLight * ramp * shadow) * albedo
+                half3 lighting = ambient * 0.65 + lightColor * ramp * shadow;
+                half3 finalColor = lighting * baseColor;
+
+                // Apply outline color adjustments
+                half lum = dot(finalColor, half3(0.2126729, 0.7151522, 0.0721750));
+                finalColor = lerp(lum.xxx, finalColor, _OutlineColorSaturation);
+                finalColor *= _OutlineColorBrightness;
                 if (_OutlineTintEnable > 0.5)
-                    c = lerp(c, c * _OutlineTintColor.rgb, 0.5);
-                return half4(c, 1.0);
+                    finalColor = lerp(finalColor, finalColor * _OutlineTintColor.rgb, 0.5);
+
+                return half4(finalColor, 1.0);
             }
             ENDHLSL
         }
