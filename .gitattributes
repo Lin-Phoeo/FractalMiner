@@ -1,0 +1,22 @@
+# Preserve exact bytes for the published evidence baseline and this audit's texts.
+# Scoped deliberately: do not change imported assets, game sources or other docs.
+/.gitattributes -text
+/docs/render-baseline/v1/** -text
+/Tools/render_spec_baseline.py -text
+/Tools/tests/test_render_spec_baseline.py -text
+/CODEX-HANDOVER-PROMPT.md -text
+/docs/learning/README.md -text
+/docs/research/INDEX-shader-sources.md -text
+/docs/research/source-contract-audit-20260930.md -text
+/docs/research/official-forwardlit-skin-b138.md -text
+/docs/research/official-forwardlit-hair-b125.md -text
+/docs/research/official-forwardlit-cloth-b401.md -text
+/docs/research/official-forwardlit-eye-b28.md -text
+/docs/research/official-source-shading-20260923.md -text
+/docs/research/official-outline-skin-b273.md -text
+/docs/research/character-shadow-evidence-20260923.md -text
+/docs/research/official-postprocess-uberpost.md -text
+/docs/research/official-postprocess-lutbuilder2d.md -text
+/docs/research/official-postprocess-finalpass.md -text
+/docs/research/official-postprocess-bloom.md -text
+/docs/research/official-postprocess-stack.md -text

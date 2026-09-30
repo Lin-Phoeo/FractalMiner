@@ -1,5 +1,7 @@
 # 2026-09-23 角色自阴影证据导出与坐标约定验证
 
+> 2026-09-30 资料基线复核：本文是2026-09-23固定捕获实验的历史记录，不代表当前工程状态；后文“动态atlas未开始/selfShadow=1”只描述当时。当前实现已有 `EndfieldCharacterSelfShadow` 消费链，是否完全正确另行按源契约审查。历史逐字节/IoU结果仅留存实验证据，不是当前用户要求的验收目标。本轮修正了绑定定位的绝对化、官方设计动机的无证推断、零遮挡NaN结论和将模型UV直接套GBuffer八面体解码的错误路线。
+
 接续 `official-source-shading-20260923.md`。本文记录阶段2-1/2-2 的产物、以及**在写任何 GPU resolve 代码之前就已解析确认的坐标约定**。这些约定是交接文档要求 1-tap 实验优先验证的项，提前确认可以避免把"深度符号搞反"误诊成"矩阵方向搞反"。
 
 ## 1. 产物
@@ -29,7 +31,7 @@ Validation/Captures/tifuluosi-front-20260917/
 
 GBuffer 是 R10G10B10A2 正好解释官方索引解码里的 `*1023`（10 位）与 `*3`（2 位）。
 
-**绑定号不可用作契约**：同一 cbuffer 在 748 是 binding 13、在 744 是 binding 12。这与上游作者所述"Bindings 魔改成 Vulkan 风格 DescriptorSetParams（PackedBinding/PackedInfo）、可能绕过 hlslcc 直接用 Vulkan 工具链编译"一致，也是反射把常量名全剥成 `_childN` 的原因。因此定位方式只有两种可靠：**块按字节大小、字段按 packoffset×16**。
+**不能跨pass照搬绑定号**：同一 cbuffer 在748是binding13、在744是binding12。块字节大小、字段偏移是定位约束，不是单独唯一的身份证明；必须结合该事件shader反射、descriptor set/binding、资源身份、字段布局/类型和实际值自洽检查。仅按大小可能选中同尺寸的别块。Vulkan编译链与匿名`_childN`的因果关系没有本地直接证据，不作为官方基线结论。
 
 ## 3. cbuffer 定位与字段偏移
 
@@ -112,7 +114,7 @@ Biases[0]                 = (0.003473, 0.006946, 0.001158, 256.0)
                             .w 逐槽为 256,512,1024,2048,4096,8192,16384（2 的幂，语义待查）
 ```
 
-7 槽光向完全相同，说明本帧只有一个方向光参与角色阴影。这给阶段3 一个可判定检验：把该光向与 frame6411 的相机 forward 求夹角，即可判定第三方赏析文所说的"局内把光照方向摆正到相机方向"是否成立。
+本帧7槽光向完全相同，支持它们共用方向的观察，不证明整个帧/引擎只存在一个方向光，也不能外推运行期相机随动关系。与相机forward的夹角仅是这一个捕获状态的关系证据，动态依赖需要额外状态/生产端证明。
 
 ## 6. 导出后独立复核（不经 Unity）
 
@@ -138,7 +140,7 @@ G/255 < 0.99 的像素 = 116890 / 4096000
 `Validation/LocalReference/` 下两份第三方摘要，均标注来源与"冲突时以捕获证据为准"：
 
 - `zhihu-endfield-urp-toon-digest.md`：URP 复刻教程摘要。最有价值的一条是它给出的角色着色消费屏幕空间阴影的方式 `min(_ScreenSpaceShadowmapTexture, PerObjectScreenSpaceShadowmap)`，与本项目"统一屏幕空间 shadow 纹理 + 逐角色 atlas 槽"的方向一致；另指出刘海阴影可能是**独立错位网格 + 模板渲染**，这是阶段4 排查 draw call 的具体假设。
-- `zhihu-endfield-rendering-appreciation-digest.md`：TA 观感赏析（作者自称"纯顶针，不保真"，无截帧）。其中"角色甚至可能没有采样间接光"与本项目已验证的 `ResourceId::14188` 环境 cube 绑定**直接冲突，该论断为错**；但"角色在不同曝光下几乎没变"这一观察值得在阶段5 单独验证。
+- `zhihu-endfield-rendering-appreciation-digest.md`：TA观感赏析（无截帧），不是官方契约。“角色甚至可能没有采样间接光”不能以环境cube已绑定就直接判错：绑定不等于活跃分支实际采样，须对照实际变体及参数。官方dump中确有IV/平坦环境/环境反射消费路径，但具体帧是否启用须独立证明；曝光稳定观察同样不能直接写成生产逻辑。
 
 原始网页正文抽取件在 `Validation/LocalReference/raw/`，抽取脚本 `extract_html.py`（仅标准库，venv 无 bs4/lxml）。整个 `Validation/LocalReference/` 已 gitignore，第三方版权内容不入库。
 
@@ -148,7 +150,7 @@ G/255 < 0.99 的像素 = 116890 / 4096000
 
 官方角色路径是 `GatherRed(sampler_LinearMirror, uv) - refDepth` 后接 `step(0, ·)` 手动比较，**不是** `SampleCmp`/`GatherCmp`；同文件的 CSM 路径才用 `SampleCmpLevelZero(sampler_LinearMirrorOnce, ·)`。两条路径不能混用。
 
-这不只是风格问题。第三方踩坑记录（GuardHei《用 TextureArray 实现 Shadowmap 的一个坑》）指出：`SampleCmp` 作用于 `Texture2DArray`/`TextureCubeArray` **需要 Shader Model 4.1+**，Unity `#pragma target 4.0` 下会报 `cannot map expression to ps_4_0 instruction set`，而微软 SM4.0 文档并未标注这一限制。该作者给出的降级方案正是"Gather 邻近 4 个深度值、单独比较、手动 lerp"——**与官方角色路径的做法一致**。因此官方的手动比较是可移植性选择，实现时应原样保留。
+第三方关于SM4.0的踩坑记录只能作为外部上下文，不证明官方选择GatherRed的设计动机。官方角色路径用普通Gather得到原始深度差，随后累计正差和及遮挡计数（shader:1108–1118）；比较采样器只返回比较结果，不能等价提供该算法所需的深度差。因此应按数学消费需求保留普通采样器。该shader其它pass的CSM也有Gather路径（407行），不能概括为所有CSM只用SampleCmp。
 
 本地可用性已核实：`Library/PackageCache/com.unity.render-pipelines.core@14.0.11/ShaderLibrary/API/D3D11.hlsl:158` 定义 `GATHER_RED_TEXTURE2D(tex,samp,coord2) -> tex.GatherRed(samp,coord2)`（GLES2 分支为 `ERROR_ON_UNSUPPORTED_FUNCTION`）。新 resolve shader 应声明 `#pragma target 4.5` 或以上——现有 `EndfieldCapturedPost.shader` 用 4.5、`EndfieldCharacterLit.shader` 用 5.0，`EndfieldCaptureCubeProbe.shader` 的 3.0 不可作为参照。
 
@@ -197,7 +199,7 @@ n = normalize(n);
 
 关键点：官方把重建分量放在 **Y（中间）**，折叠判据是 `z_var = 1-(|e.x|+|e.y|) < 0`，即**折叠轴是 Y（Y-up 约定）**；通用/Blender 公式以 Z 为折叠轴（Z-up）。照抄通用八面体公式会得到轴序错误的法线。符号判据是 `>= 0 ? 1 : -1`，与 encode 的 `sign_not_zero`（0 视为正）一致。
 
-该 decode 是本文所有结论中**唯一直接来自官方 dump** 的一条，阶段2-3 必须原样使用。
+该decode直接来自所引用官方dump的GBuffer消费链；本文也有其它直接dump证据，不能称其为唯一一条。它只适用于对应的GBuffer编码，不能据此推断模型UV或其它顶点压缩采用同一轴序/编码。
 
 ### 9.4 阶段4 新线索：模型 UV 里的八面体平滑法线尚未接入
 
@@ -212,7 +214,7 @@ n = normalize(n);
 
 即：9.3 的八面体解码目前只用于屏幕空间 GBuffer1（阶段2-3 会用到），而**模型网格上那个菱形 UV 通道（八面体编码的平滑法线，疑似头发高光用）在本项目里完全没有接入**。这与上游作者"我没有实现法线解码函数，需要在 shader 加上法线解码"的说法吻合。
 
-=> 阶段4 待办：确认导入的提弗洛斯网格是否存在菱形分布的 UV 通道，若有，用 9.3 的 Y 折叠 decode 解出平滑法线，与现有头发高光路径（已定案的 b125 RGorAG 法线 + LineMap）对照，判断二者是同一套数据的两种用法还是两套独立数据。**在数值对照之前不要替换已通过的头发高光实现。**
+=> 模型属性必须按实际捕获布局及对应顶点shader消费链解码，不能仅凭“菱形UV”就套用§9.3的GBuffer Y轴八面体decode。已读skin描边V435–439的平滑法线是TS半球重建`z=sqrt(1-clamp(dot(xy,xy),0,1))`；V309–316的10bit压缩法线则按Z分量八面体重建。三种编码是独立契约。头发相应变体仍须逐项核查，不替换现有高光路径来迎合几何形状猜测。
 
 ### 9.5 两条对后续阶段有约束力的观察
 
@@ -241,7 +243,7 @@ n = normalize(n);
 
 1. **索引不要求是整数。** GBuffer0 全帧只有 4 个 distinct raw 值：`258`(365226 像素，角色)、`1047552`(1633999)、`665844736`(2094636)、`0`(2139)，**没有一个是 2 的幂**。官方是 `int _837 = int(_829)` 截断，有效性判据作用于小数值 `_829 ∈ [0, Params.z)`。我最初写的"必须精确整数"门禁是臆造的，`log2(258)-8 = 0.011227` 截断为 0 完全正确；11.99859→11 与 21.31→21 都 ≥7 判为无效。真正的不变量是**截断不歧义**（余量 0.988773）。
 2. **`step` 的语义是"遮挡"不是"受光"。** `gathered >= refDepth` 在 reversed-Z 阴影图里意味着存储深度更靠近光源，即存在遮挡物。所以计数为 0 表示**完全无遮挡 = 全亮 G=1**，计数为 64 表示全遮挡 G=0。变量名叫 `countLit` 会误导，理解错了就会把符号搞反。
-3. **0/0 不产生 NaN。** `sumPositive/countLit` 在无遮挡时是 `0 * (1/0)`，但 HLSL 的 `min`/`max` 遇到 NaN 返回**另一个非 NaN 操作数**，于是 `clamp(0*inf,0,1) = max(0, min(NaN,1)) = 1`，`lerp(o^3,o,1) = o = 0`，最终 `G = min(1, 0.5-0.5*((1-0)*(-1))) = 1`。实测 `nonFiniteG=0` 且 232666 个零遮挡像素全部 G=255。**在这里加 NaN 保护会静默改变全亮像素**，所以表达式必须原样保留。
+3. **零遮挡输出与中间NaN必须分开。** 官方shader:1118在计数为0时包含`0*(1/0)`，中间量可能非有限；本次目标后端实测最终`nonFiniteG=0`且232666个零遮挡像素全部G=255，不能由此宣称“0/0不产生NaN”或所有API/编译器min/max都有同一保证。原式及目标后端边界行为应留存并独立验证。显式零遮挡分支若返回G=1可以在该边界等价，不能把所有NaN保护统称为必然改变全亮输出；其它退化/零深度条件另审。
 4. **捕获数据导入 Unity 后整体上下翻转，且必须区分两种坐标。** RenderDoc 顶向下写出、Unity 行 0 对应 v=0，导致导入结果相对官方 D3D 约定垂直镜像。实测证据（与 DDS 真值逐个吻合）：atlas 非零行 Unity `[1199,1925]` vs DDS 顶向下 `[122,848]`（列 `[3191,3943]` 两边相同，故只有垂直翻转）；官方阴影像素平均行 Unity `689.77` vs DDS `909.23`（差 219 行，判据无歧义）；角色像素行范围 Unity `[69,1513]` vs DDS `[86,1530]`。**深度目标与颜色目标翻转一致**，RenderDoc 未对两类目标使用不同行序。
 
 由此得到必须遵守的实现约定：`Load`/`store` 用 Unity 内存行 `q`，而 **NDC 与 4×4 旋转格索引必须用 D3D 行 `p=(q.x, H-1-q.y)`**；atlas 采样在官方空间算完 base+Poisson 偏移后，只对最终查找坐标做 `v -> 1-v`（偏移模式本身不镜像）。三处都由 `_CaptureFlipY` 单一开关门控，验证器传 1，将来 Unity 实时渲染的 atlas 必须传 0。
@@ -250,7 +252,7 @@ n = normalize(n);
 
 ### 10.2 导入格式的硬约束
 
-- atlas 必须 `TextureImporterFormat.R16`：128-bit float 在 D3D11 上只能 Load/Store，**不可过滤也不可 Gather**，与本项目 Bloom 阶段撞过的 R11G11B10 是同一堵墙；而 R16_UNORM 既可过滤又与源 D16 逐位同精度。
+- 本固定捕获导入实验采用 `TextureImporterFormat.R16`：对应源D16的UNORM精度及本地Gather支持已按实验验证；不把“所有128-bit float只能Load/Store”或“所有D3D11设备不支持Gather”当作普遍规格。格式能力须按具体DXGI格式、采样/过滤/Gather操作与目标设备查询；最终运行期atlas格式按原始状态和用途契约确认。
 - 其余四张只用 `Load`，保持 `RGBAFloat` 无损。
 - 不能用 RGBAHalf：half 在 1.0 附近精度仅 2^-11≈4.9e-4，而 D16 步长 1.5e-5，会毁掉深度比较所需的分辨率。
 - EXR 通道类型是 **UINT32** 而非 HALF/FLOAT（只有 `camera-depth` 是 HALF）。Unity 能正确处理：GBuffer0 导入后 4 个 distinct packed 值及其计数与 DDS 逐个精确吻合。
@@ -261,5 +263,3 @@ n = normalize(n);
 - 未接回 `EndfieldCharacterLit.shader:576-578`，`selfShadow` 仍是 `1.0`。
 - 官方是全屏 pixel pass，本实验用 compute 只为便于回读中间量；最终集成必须改回 pixel pass，且 `_CaptureFlipY` 必须为 0。
 - 转动相机/角色/灯光的验证无法在固定捕获上做，属于动态 atlas 阶段。
-
-

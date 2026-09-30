@@ -2,7 +2,7 @@
 
 来源:`_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/postprocessing/finalpass.shader`(45903 B)+ `finalpass\Sub0_Pass0_{Vertex,Fragment}_b8..b103.hlsl`;以及**同名**的 `blitbackbuffer.shader`(14516 B,单变体内联)。
 
-> **重要发现**:`blitbackbuffer.shader:1` 与 `finalpass.shader:1` 的 Shader 名**完全相同**,都是 `"Hidden/HGRP/FinalPass"`——dump 里同一逻辑 shader 的两份形态(finalpass.shader 是全 keyword 版,blitbackbuffer.shader 是单变体纯 blit 版)。Unity 同名 shader 以后加载者为准 ⚠待核哪份生效。
+> **重要发现**:`blitbackbuffer.shader:1` 与 `finalpass.shader:1` 的 Shader 名相同，都是 `"Hidden/HGRP/FinalPass"`。这只证明两份导出资产的名字相同，不证明运行时互相覆盖、加载顺序或资产引用身份；绑定须由原始资产引用或捕获 shader ID 确认，不能以 Shader.Find 名称代替。
 
 **本文不含任何单元测试或参考实现**(独立 oracle 由验收方另写),仅忠实转写源码。简写:`f_bN` = finalpass/Sub0_Pass0_Fragment_bN.hlsl,`v_bN` = 同名 Vertex。
 
@@ -11,7 +11,7 @@
 单 Pass(finalpass.shader:6-10:ZClip On/ZTest Always/ZWrite Off/Cull Off,无 Pass Name),`#pragma target 5.0` + `use_dxc`(:12-13),**无 Properties 块**。7 个独立 bool keyword(:17-23):
 `CATMULL_ROM_4 / BYPASS / APPLY_AFTER_POST / ENABLE_ALPHA / DITHER / GRAIN / FXAA`。
 
-7 bool 理论 128 组合,dump 实际编译 **96 组合**(f_b8–f_b103,无 b2–b7)——缺失的 32 组是游戏从未用过的组合 ⚠待核具体哪 32 组。派发顺序(f_bN 编号与 v_bN 一一对应,finalpass.shader:27 起逐条 `#if/#elif`,fragment 段与 vertex 段条件相同):b9=CM4、b10=BYPASS、b11=AAP、b14=ALPHA、b20=DITHER、b32=GRAIN、b56=FXAA,其余按二进制位组合。
+7 bool 理论128组合，导出外置fragment为b8–b103共96份；缺失/折叠组合不能证明游戏从未使用。实际选择按wrapper的`#if/#elif/#else`，不按blob数字二进制位猜测。b9=CM4、b10=BYPASS、b11=AAP、b14=ALPHA、b20=DITHER、b32=GRAIN、b56=FXAA 是代表文件注释，仅能辅助定位。
 
 **归一化 diff 结论**(96 个 fragment 全部与 f_b8 做 `_[0-9]+`→`_N` 归一化后 Compare-Object,已完成):差异只有六档,全部由 {APPLY_AFTER_POST, DITHER, GRAIN} 三个开关组合而来:
 
@@ -77,7 +77,7 @@ c   = _InputTexture.SampleBias(sampler_LinearRepeat, 像素对齐uv(同§4), _Gl
 aft = _AfterPostProcessTexture.SampleLevel(sampler_LinearClamp, (uv × UVTransform.xy) + UVTransform.zw, 0.0f)   // :179(连续 uv,无像素量化!)
 out = float4((c.xyz × aft.w) + aft.xyz, c.w)                                                 // :180-181
 ```
-即 **after-post 纹理按预乘 alpha 叠加在 blit 结果上**(`rgb×a + aft.rgb`),输出 alpha 沿用输入。aft 的采样坐标不走像素量化(:179)——两纹理坐标系不同,注意。
+精确契约是 `rgb=c.rgb*aft.a+aft.rgb`，输出alpha沿用输入；aft.a是背景保留/透射系数形式，不能把它当普通前景不透明alpha再实现为`c*(1-aft.a)+aft.rgb`。aft.rgb是否预乘、aft.a生产语义须追踪生产者，当前只封存消费者原式。aft坐标连续、不走输入像素量化。
 
 ## 6. GRAIN(f_b32:176-182;b103:184 同式)
 
@@ -88,7 +88,7 @@ n   = (g - 0.5) × 2.0                                                          
 out.rgb = c.rgb + ((c.rgb × n) × GrainParams.x) × lerp(1.0, 1.0 - sqrt(dot(c.rgb, (0.21267290413379669189453125, 0.715152204036712646484375, 0.072175003588199615478515625))), GrainParams.y)   // :180
 out.a   = c.a                                                                                  // :181
 ```
-`GrainParams.x` = 强度;`GrainParams.y` = 暗部加权(0=均匀,1=按 `1-sqrt(luma709)` 加权,暗处颗粒更强)。噪声取 `_GrainTexture` 的 **.w 通道**。亮度权重为 Rec709。**在线性域直接加减,无色彩空间往返**。
+`GrainParams.x`控制强度，`.y`插值亮度权重；噪声取`.w`。本分支直接对采样数值运算、没有显式传递函数，不能只凭指令断言输入一定在线性域。与DITHER组合时公式把该结果当线性色做OETF/EOTF；生产端纹理view格式和链路必须一并核实。
 
 ## 7. DITHER(f_b20:176-191;b103:185-193 同式)
 
@@ -104,9 +104,9 @@ d'  = sel + d                                                                   
 // sRGB → 线性解码(精确分段式):
 l1  = d' × 0.077399380505084991455078125                                              (低段)        // :186(=1/12.92)
 l2  = pow(abs((d' + 0.054999999701976776123046875) × 0.947867333889007568359375), 2.400000095367431640625)       // :187(0.9478… = 1/1.055)
-out = float3(d' ≤ 0.040449999272823333740234375 ? l1 : l2, c.a)                                       // :188-190
+out = float4(d' ≤ 0.040449999272823333740234375 ? l1 : l2, c.a)                                       // :188-190（RGB逐通道选择）
 ```
-要点:① 抖动在 **sRGB 编码域按 ±1/255 量子**施加(蓝噪声经 `sign×(1-√(1-|σ|))` 重映射,σ→0 附近斜率 0 起步、σ=±1 时幅度 ±1/255);② 随后立即解码回线性输出——**说明 finalpass 输出是线性色,交给 sRGB 格式的目标 RT 由硬件编码**(与 uberpost 末端抖动直接加在 sRGB 值上不同,那边输出即显示域)⚠待核 RT 格式;③ 蓝噪声是 **Texture2DArray**,`DitherParams.z` 选切片、`.xy` 缩放 uv。
+要点:①抖动在OETF编码域按±1/255施加；`sign×(1-√(1-|σ|))`在σ=0两侧一阶斜率为0.5，不是0。②随后EOTF解码；这限定了DITHER分支的输入/输出数值契约，不自动证明其目标RT为sRGB，也不能把非DITHER变体的透传输入统称线性色。须结合捕获附件/view格式确认，不得在UberPost显示域输出之后直接再叠一条假定线性的FinalPass而双重编码。③蓝噪声为Texture2DArray，`.z`切片、`.xy`缩放。
 
 ## 8. 组合顺序(满配 f_b103:179-197,已全文)
 
@@ -126,7 +126,7 @@ out    = float4(rgb × aft.w + aft.xyz, c.w)                              // :19
 
 ## 10. ⚠待核汇总
 
-1. 两个同名 `Hidden/HGRP/FinalPass`(finalpass.shader vs blitbackbuffer.shader)哪份生效(Unity 按加载顺序覆盖)。
+1. 两个同名资产的运行时引用身份与选择，不能凭名字/假定加载顺序推断。
 2. CATMULL_ROM_4 / BYPASS / ENABLE_ALPHA / FXAA 四个无代码效果 keyword 的实际用途(CPU 侧换 RT/换链路?预留?)。
 3. 输出 RT 格式(§7 的 sRGB 往返暗示线性写入 + sRGB RT 硬件编码)。
 4. 96 组合之外缺失的 32 组 keyword 组合。
@@ -136,3 +136,7 @@ out    = float4(rgb × aft.w + aft.xyz, c.w)                              // :19
 
 ---
 *仅静态转写,行号指 finalpass.shader、finalpass\Sub0_Pass0_*.hlsl、blitbackbuffer.shader;无测试/参考实现。*
+
+## 11. 封存审核范围（2026-09-30）
+
+回源检查了b11/b20/b32/b103的采样器、后合成、grain/dither公式和数值域；其余96变体的“归一化diff完成”是历史报告，不等于本轮逐变体再认证。帧6411 event1205是UberPost，不是此FinalPass尾链证明。后者是否启用、afterpost生产者、蓝噪声view格式/切片、最终显示附件仍待绑定；不得用旧截图数值验收宣布该尾链全闭合。

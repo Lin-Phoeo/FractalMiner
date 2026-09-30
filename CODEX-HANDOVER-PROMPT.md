@@ -1,4 +1,4 @@
-> 2026-09-30 当前优先级更新：用户要求先核实已有资料与解包官方代码一致，再用上湿身等成果。先读 `docs/research/source-contract-audit-20260930.md` 和更新后的 `INDEX-shader-sources.md`。湿身/雨系统/C6文档存在实质错误，已修正本批关键输入与数学，但天气生产端、实际绑定及未展开变体仍待核；不要宣称全部文档/官方渲染已完全准确，不先按旧伪码接湿身。外部C6报告确实存在，不重复调研。旧文档里的逐像素/LSB/清垃圾指令不再执行，不碰用户9557项暂存索引。
+> 2026-09-30 最新优先级：先读`docs/render-baseline/v1/foundation.md`、`plan.json`及封存manifest，再读`docs/research/INDEX-shader-sources.md`。已回源修正四族/描边/C6/后处理多处实质错误，并沿用天气审计；v1是证据与更正基线，14模块六维仍有pending，禁止称全量规格完美闭合。`render_spec_baseline.py verify --require-complete`当前应返回2。先关资料缺口，再按foundation§7对照实现；不要调曝光/截图拟合或按旧伪码接湿身。旧handoff正文仅历史参考，其逐像素/LSB/删垃圾优先级全部失效；不碰用户9557项暂存索引、不改本轮运行时代码。
 
 > 2026-09-30 已完成实现增量：先读 `CODEX-HANDOFF-2026-09-30-eye-hair-shadow.md`，再读 `CODEX-HANDOFF-2026-09-30-live-skin-and-motion.md` 和 `CODEX-AUDIT-HANDOFF-2026-09-30.md`。用户明确不要逐像素对照；按官方代码、光照、管线/后处理的结构与逻辑验收，然后接解包动作/MMD。动态根已覆盖face/body/iris/hair；眼睛投影光公式、虹膜描边、根参数块遮住阴影参数的问题已修正，解包动作/VMD六个时刻的实时阴影/Bloom/post链路通过。后续实现是官方OverlayShadow模板/乘色pass，不是调曝光，须先完成当前资料优先事项。旧颜色LSB/IoU门禁不再作为主线。仍未宣称全渲染/MMD完成，不按旧垃圾清单删用户资源。
 

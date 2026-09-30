@@ -3,7 +3,9 @@
 来源:`_dump_1.5.3/.../characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl`(1279 行,SPIR-V-Cross 输出),
 配套顶点 `Sub0_Pass0_Vertex_b138.hlsl`(同一 keyword 行,输出结构 TEXCOORD0..8 与片元输入完全一致),
 属性/关键字来自 `characternpr_skin.shader`(Pass "ForwardLit",LightMode `ForwardCharacterOnly`,`#pragma target` 见下,dxc)。
-下文中所有数字、swizzle、clamp、pow 指数均按原码保留;`mad`/位运算已改写为普通算式。
+> 2026-09-30 资料核查：这是选定 b138 变体的研究转写，不是可直接编译的完整实现。已回源修正下列核心公式和插值器；省略的 IV、天气、rim、点光源和雾尾链必须直接查原 HLSL，不能凭“同 hair”认定等价。捕获数值表仍含历史推断，未逐 draw 认证；输入生产端、其他变体与运行时管线也未由本篇封闭验证。
+
+下文的说明性变量保留对应原临时变量编号；未给完整表达式的段落不构成精确公式规格。
 
 本变体是 **皮肤(face)部位** 的专用着色器,与 hair 变体(b125)最大的差异在于:
 - 反照率经 linear→sRGB 后查 **_ShadowLutTex** 得到 SSS/厚度阴影色;
@@ -13,6 +15,8 @@
 - 边缘光/脸缘光分别由 `_CharacterParams8`(深度边缘光,本帧=0)与 `_CharacterParams14`(脸缘 SDF,本帧=0)控制,且**不使用 _CameraDepthTexture**(hair 的深度边缘光被替换为 rooted 方向 + sdfMask.w 门控)。
 
 ## 1. 变体识别
+
+分派依据是wrapper的完整条件：vertex `characternpr_skin.shader:261–262`、fragment `:549–550`，以及两份b138文件第2行keyword。不是编号选择、不是catchall，也不能据寄存器形似把其他draw认证为b138。
 
 `characternpr_skin.shader:158-171` 的 `#pragma multi_compile_local` 全部关键字(片元头行 2 给出命中的 ON 集合):
 
@@ -33,9 +37,9 @@ OFF: _EMISSION  BAKED_SKINNING_ANIMATION_TEXTURE  _CUSTOMIZE_AVATAR  VFX_CHARACT
 | t8,space1 | `_BaseMap` | `SampleBias(LinearClamp, uv0, _GlobalMipBias)`,rgb*`_BaseColor` | 唯一乘 BaseColor 的 sRGB 图 | `_D` 1024² BC7_SRGB = **b8** |
 | t7,space1 | `_BumpMap` | `SampleBias(LinearClamp, uv0)`,后 `w*=r; n.xy=(w,y)*2-1`(Unity RGorAG 解包) | 法线解包 | `_HN` 1024² BC5_UNORM = **b7** |
 | t1,space1 | `_ShadowLutTex` | `SampleLevel(LinearRepeat, lutUV, 0)` 两次插值 | 256x32 / 1024x32 的 SSS LUT,索引 = linearToSRGB(albedo) | `shadow_lut` 1024x32 BC7_SRGB = **b1** |
-| t2,space1 | `_SDFMask` | `SampleBias(LinearRepeat, uv0)` | 4 通道:R=rim 掩码,G=SDF 权重混合,B=skin/face 选择,W=脸缘强度 | `sdf_mask` 512² BC7_UNORM = **b2** |
-| t3,space1 | `_SDFLightmap` | `SampleLevel(LinearRepeat, flipUV(uv0), 0)` | 2D SDF 光照方向图(RG=方向,B=范围,A=遮罩) | `sdf_lightmap` 1024² R8G8B8A8_UNORM = **b3** |
-| t4,space1 | `_HighlightMap` | `SampleBias(LinearClamp, uv0 + mul(V,M_o2w).xy*_HighlightMapVector.xy)` | 无 mip、按视角偏移的脸部高光图 | `highlight` 512² BC7_UNORM = **b4** |
+| t2,space1 | `_SDFMask` | `SampleBias(LinearRepeat, uv0)` | 4 通道:R=rim 掩码,G=普通法线分支权重（0取SDF、1取普通法线）,B=skin/face 选择,W=脸缘强度 | `sdf_mask` 512² BC7_UNORM = **b2** |
+| t3,space1 | `_SDFLightmap` | `SampleLevel(LinearRepeat, flipUV(uv0), 0)` | RG取平均作为SDF阈值输入，B×2用于重建方向；A被读入_1530但此变体未继续使用，不能称A遮罩 | `sdf_lightmap` 1024² R8G8B8A8_UNORM = **b3** |
+| t4,space1 | `_HighlightMap` | `SampleBias(LinearClamp, uv0 + mul(V,M_o2w).xy*_HighlightMapVector.xy, _GlobalMipBias)` | 按视角偏移、带 mip bias 的脸部高光图 | `highlight` 512² BC7_UNORM = **b4** |
 | t5,space1 | `_EmotionMap` | `SampleBias(LinearClamp, emotionTile + 0.5*uv0)` | 表情图,带 tile 偏移与 `_EmotionIndex/_EmotionBlend` 混合 | `emotion` 1024² BC7_SRGB = **b5** |
 | t6,space1 | `_DiffRampMap` | `SampleLevel(LinearRepeat, float2(x, 0.5), 0)` | 一维 ramp,v 固定 0.5 | `ramp` 256x1 R8G8B8A8_UNORM = **b6** |
 
@@ -57,7 +61,7 @@ Set0 全局纹理:`_ScreenSpaceShadowMask`(t22,Load 像素),`_PunctualLightShado
 | TEXCOORD4 float3 | `clipCur` | 当前帧非抖动裁剪坐标 `.xyw`(运动矢量) |
 | TEXCOORD5 float3 | `clipPrev` | 上一帧裁剪坐标 `.xyw` |
 | TEXCOORD6 float3 | `restNormalOS` | 物体空间法线(GPU 蒙皮时取第二套法线流),仅雪三平面用 |
-| TEXCOORD7 float4 | `restTangentOS` | 物体空间切线;**雪分支把它当 restPosOS 用**(`_10.xzy` 即 restPosOS 近似) |
+| TEXCOORD7 float3 | `restPosOS` | 顶点输入 `_8:TEXCOORD1` 原样透传为 `_20`，供雪三平面坐标使用（vertex b138:283、299、464；fragment:375） |
 | TEXCOORD8 uint (nointerp) | `instanceID` | 索引 `_SRP_UnityPerDraw_UnityPerDrawArray[256]` |
 | SV_Position | `fragCoord` | `.xy` 像素坐标(阴影掩码 Load、光源分箱);`1/w` 转回线性视深 `eyeDepth` |
 | SV_IsFrontFace | `isFront` | 背面法线翻转、雪只在正面 |
@@ -70,13 +74,14 @@ Set0 全局纹理:`_ScreenSpaceShadowMask`(t22,Load 像素),`_PunctualLightShado
 // ===== 0. 通用量 =====
 float  eyeDepth  = 1.0 / fragCoord.w;                       // _384: 线性视深
 float3 viewVec   = lerp(-positionRWS, ViewMatrix[2].xyz, _unity_OrthoParams.w.xxx);
-float  viewDist  = length(viewVec);                          // _400,_402,_404 = viewDist
-float3 V         = viewVec / viewDist;                      // _403
+float viewLen2 = dot(viewVec, viewVec); float viewInvLen = rsqrt(max(viewLen2, 1e-8));
+float  viewDist  = viewLen2 * viewInvLen;                    // _404（短向量时不能换成 length）
+float3 V         = viewVec * viewInvLen;                     // _403
 bool   skinned   = (asuint(PerDraw.Stripped_64.w) & 16u) != 0;
 float4 row0,row1,row2;   // objectToWorld 三行:蒙皮时从 _VertexSkinMatrices[Stripped_80.x + {0,1,2}] 读,否则 PerDraw.Stripped_0[0..2]
 float3x3 M_o2w   = float3x3(row0.xyz, row1.xyz, row2.xyz);  // 这里 _584
 float3 positionWS = positionRWS + _WorldSpaceCameraPos_Internal.xyz;   // _540
-float3 rootToPixelH = normalize(positionWS.xz - float2(row0.w, row2.w).xy); // _544.y=6.1e-5 -> _547
+float3 rootToPixelH = normalize(float3(positionWS.x-row0.w, 6.103515625e-05, positionWS.z-row2.w)); // _544→_547
 float3 camAxisZ  = mul((float3x3)InvViewMatrix, float3(0,0,1)); // _580
 float2 screenUV  = fragCoord.xy * _ScreenSize.zw;
 int2   pixel     = int2(fragCoord.xy);
@@ -90,16 +95,19 @@ float4 emo       = _EmotionMap.SampleBias(sampler_LinearClamp,
 float3 albedo    = lerp(baseMap.xyz * _BaseColor.xyz, emo.xyz, (emo.w * _EmotionBlend).xxx);  // _471
 // linear->sRGB 近似(供 LUT 索引):_472=*12.92 小值分支, _476=pow(x,1/2.4)*1.055-0.055 大值分支
 float3 sRGBalbedo = linearToSRGB(albedo);                                       // _479 (clamp 0..1)
-// LUT 坐标: B 通道 *31 取行, R/G *31 取列,各 1/32 步进 + 半纹素偏移,行间线性插值
-float3 _489 = lutCoords(sRGBalbedo);                                           // _483.._489
+// LUT 坐标: B*31选横向切片；R步进1/1024、G步进1/32，加半纹素偏移，再插值相邻切片
+float slice = sRGBalbedo.z*31.0; float slice0=floor(slice);
+float2 lutXY = (sRGBalbedo.xy*31.0)*float2(1.0/1024.0,1.0/32.0)+float2(.5/1024.0,.5/32.0);
+lutXY.x += slice0*(1.0/32.0);
+float3 _489 = float3(lutXY,sRGBalbedo.z); // _483.._489，fragment:433–437；32个32×32切片横向排列
 float3 shadowColor0 = _ShadowLutTex.SampleLevel(sampler_LinearRepeat, _489.xy, 0).xyz;        // _504 前
 float3 shadowColor1 = _ShadowLutTex.SampleLevel(sampler_LinearRepeat, _489.xy + float2(0.03125,0), 0).xyz;
-float3 shadowColor  = lerp(shadowColor0, shadowColor1, (_483 - floor(_483)).xxx);             // _504
+float3 shadowColor  = lerp(shadowColor0, shadowColor1, (slice-slice0).xxx);                    // _504
 
 // ===== 2. 法线 =====
 float4 sdfMask   = _SDFMask.SampleBias(sampler_LinearRepeat, uv0, _GlobalMipBias);   // _508
 float  sdfRimR   = sdfMask.x;   // _510 下方命名沿用:见下
-float  sdfW      = sdfMask.y;   // _510 = sdfMask.y (SDF 权重/混合)
+float  sdfW      = sdfMask.y;   // _510：普通法线分支权重，G=0取SDF，G=1取普通法线/ramp NdotL
 float  sdfSkin   = sdfMask.z;   // _511 = sdfMask.z (skin vs face 选择)
 float  sdfFace   = sdfMask.w;   // _512 = sdfMask.w (脸缘强度)
 float4 nm = _BumpMap.SampleBias(sampler_LinearClamp, uv0, _GlobalMipBias);          // _516
@@ -109,7 +117,7 @@ nTS.xy *= _BumpScale;                                                          /
 float3 T = tangentWS.xyz, B = cross(normalWS, tangentWS.xyz) * tangentWS.w, Nv0 = normalWS;
 float3 nWS = nTS.x*T + nTS.y*B + nTS.z*Nv0;                                    // _557
 float  faceSign = isFront ? 1.0 : (-1.0 + 2.0*_BackFaceNormalFlip);
-float3 N  = normalize(nWS) * faceSign;                                         // _567 (贴图法线)
+float3 N  = (nWS * rsqrt(max(1.1754943508222875e-38, dot(nWS,nWS)))) * faceSign; // _567：保留贴图法线归一下限
 float3 Nv = normalize(normalWS) * faceSign;                                    // _568 (顶点法线,仅点光源分支用)
 float  Nz = N.z;                                                               // _639
 
@@ -134,8 +142,8 @@ if (_CharacterParams1.y < 0.5) {
 // ===== 5. SDF 边缘 / 脸缘(皮肤特有)=====
 float _592 = normalize(mul(camAxisZ, M_o2w).xz).y;        // _591,_592:角色-相机水平朝向
 float sdfRimMask = sdfMask.x * lerp(clamp(_592 + 0.5, 0, 1), 1.0, sdfW);   // _1155
-float rimI = clamp(1.0 - clamp((clamp(dot(N, V), 0, 1) * 0.85 + 0.15, 0, 1))
-                       * (sdfRimMask * lerp(_FaceRimOffScale, _SkinRimOffScale, sdfSkin)), 0, 1);   // _1169
+float rimI = clamp((1.0 - clamp(clamp(dot(N, V), 0, 1) * 0.85 + 0.15, 0, 1))
+                       * (sdfRimMask * lerp(_FaceRimOffScale, _SkinRimOffScale, sdfSkin)), 0, 1);   // _1169，fragment:630
 float3 diffuseBase = albedo * ((1.0 - rimI).xxx + (_SDFRimColor.xyz * rimI));   // _1177 (脸缘被 SDFRimColor 染)
 float  specStrength = lerp(0.0, _Specular, sdfW);                              // _1178
 
@@ -155,25 +163,26 @@ float3 useN          = N;                // _1266
 float  smooth        = 1.0 - _Smoothness; // _1267 = 0.742
 float  rainAmt       = 0.0;              // _1268
 
-// ===== 7. 雪(三平面,restPosOS 来自 _10.xzy,restNormalOS 来自 _9.xzy)=====
+// ===== 7. 雪(三平面,restPosOS 来自 _10；仅skinned时坐标xzy*(1,1,-1)，normal仅xzy)=====
 // if (wm.w - _DisableRainEffectOnMaterial > 0.01):
-//   权重 = normalize(pow(abs(restNormalOS)-0.2,3)) 三平面 _CharacterSnowEffectTex
+//   q=abs(restNormalOS)-0.2; weights=max(q*q*q,6.103515625e-05); weights/=dot(weights,1)
+//   注意是分量和归一，不是 normalize 的欧式长度归一（fragment:683–686）
 //   coverage = smoothstep(2-_1328, 2.35-_1328, lerp(0,(smoothstep(-1,0,restN.y)+snowTex.z)*0.6, sdfW*_1155)) * (alpha2^2 * isFront)
 //   useN = 由 snowTex.rg 扰动的法线;smooth = lerp(smooth,0.9,clamp(coverage*4,0,1))
 //   shadowColor = lerp(shadowColor, 0.308, coverage); diffuseBase = lerp(diffuseBase, 0.88, coverage); metallic = lerp(_Metallic,0,coverage)
 // 捕获帧天气≈0 -> else 分支:
-float3 finalN     = useN;                // _1387 = N
+float3 finalN     = N;                   // _1387=原始_567；无雪也不能改成雨法线useN（fragment:710）
 float  smooth2    = smooth;              // _1388
 float3 shadowCol2 = shadowColor;         // _1389
 float3 diffuseB2  = diffuseBase;         // _1390
 float  metallic   = _Metallic;           // _1391 = 0
 
 // ===== 8. 漫反射/高光基础量 =====
-float  metalOut     = 0.0;                                  // skin 无金属,metalOut 恒为 0
+// metallic 来自 _Metallic（雪时衰减），并非skin家族恒为0；捕获值0不代表源码常量。
 float3 diffuseColor = diffuseB2 * (0.96 - metallic*0.96);   // _1394 (0.96 系数)
 float3 specColor    = lerp(0.04.xxx * specStrength2, diffuseB2, metallic.xxx); // _1397 (金属走 albedo,否则 0.04*高光强度)
 float3 shadowDiff   = shadowCol2 * (0.96 - metallic*0.96);  // _1398
-float  shininess    = max(smooth2*smooth2, 0.0078125);      // _1400 (smoothness^2, 下限 1/128)
+float  shininess    = max(smooth2*smooth2, 0.0078125);      // _1400；smooth2实际为roughness，不是smoothness
 
 // 运动矢量 (SV_Target1):同 hair,_1427 = (enc.x, enc.y, 1.0, 0.4)
 float2 mv = clipCur.xy/max(clipCur.z,1e-8) - clipPrev.xy/max(clipPrev.z,1e-8); mv.y = -mv.y;
@@ -190,27 +199,31 @@ float  shadowDir = lerp(lerp(1.0, ssm.r, _DirectionalShadowParams.x), 1.0, _Char
 float3 shadowDeep  = shadowDiff * _CharacterParams0.z;      // _1483 (×0.65)
 float3 shadowDeep2 = shadowDeep * 0.65;                     // _1484
 // SDF 光照方向(物体空间水平光 Lh,按 Lh.x 左右翻转 uv)
-float3 Lh = normalize(mul(L, M_o2w)); Lh.y = 6.103515625e-05; Lh = normalize(Lh);   // _1501
+float3 Lh = mul(L, M_o2w); Lh.y = 6.103515625e-05; Lh = normalize(Lh);   // _1498→_1501；替换y前不能先normalize
 float  lhSide = Lh.x > 0 ? 1.0 : 0.0;
 float2 sdfUV = float2(lerp(1.0-uv0.x, uv0.x, lhSide), uv0.y);
 float4 sdfLM = _SDFLightmap.SampleLevel(sampler_LinearRepeat, sdfUV, 0);          // _1512
 float  sdfRange = sdfLM.z * 2.0;
 float  sdfAng = lerp(1.0 - sdfRange, sdfRange - 1.0, lhSide);
-float3 sdfLDir = normalize(mul(M_o2w, normalize(float3(sdfAng, 6.103515625e-05, 1.0 - abs(sdfAng))))); // _1522
+float3 sdfLRaw = mul(M_o2w, normalize(float3(sdfAng, 6.103515625e-05, 1.0 - abs(sdfAng)))); // _1522
+float3 sdfLDir = sdfLRaw * rsqrt(max(1.1754943508222875e-38, dot(sdfLRaw,sdfLRaw))); // _1529 lerp前安全归一
 float3 sdfN   = normalize(lerp(sdfLDir, finalN, sdfW));     // _1529 (SDF 方向混合表面法线,权重 sdfW)
 float3 sssN   = normalize(lerp(rootToPixelH, normalize(float3(N.x, 6.103515625e-05, Nz)), sdfW)); // _644 (SSS 法线:根方向↔水平法线)
 // 背光 SDF 项(_1547.._1549,用于 ramp 输入与脸缘)
 float  sdfBack = lerp(Lh.z, (-Lh.z)*((Lh.z*0.5)-1)+0.5,
-                      (clamp(-dot(normalize(float3(L.x,6.1e-5,L.z)).xz), normalize(camAxisZ.xz)),0,1)
+                      (clamp(-dot(normalize(float3(L.x,6.103515625e-05,L.z)).xz, normalize(camAxisZ.xz)),0,1)
                        * clamp(-Lh.z,0,1) * (1.0 - _CharacterParams12.x)) * 0.5;  // _1547
 float  sdfBackClamped = clamp(0.5 - sdfBack, 0.001, 0.999);   // _1549
 float  sdfGrad = (sdfLM.x + sdfLM.y) * 0.5;                   // _1555
 float  faceRimCenter = clamp(0.5 - _CharacterParams15.z*0.5, 0.001, 0.999);  // _1568 (CP15.z=-1 -> 0.999)
 // 漫反射 ramp
+float sdfLo = max(sdfBackClamped - (1.0 - sdfBackClamped), 0.0);
+float sdfHi = min(sdfBackClamped + sdfBackClamped, 1.0);
+float sdfEval = lerp(-1.0, 1.0,
+    abs((-smoothstep(sdfLo, sdfHi, sdfGrad)) - (sdfBack * ceil(sdfBack))));
+float nEval = clamp(dot(finalN, L) + (_CharacterParams11.w * _CharacterParams12.x), -1.0, 1.0);
 float4 ramp = _DiffRampMap.SampleLevel(sampler_LinearRepeat,
-    float2((lerp(lerp(-1.0, 1.0, abs(-smoothstep(max(sdfBackClamped-(1-sdfBackClamped),0),
-                    min(sdfBackClamped+sdfBackClamped,1), sdfGrad)) - (sdfBack*ceil(sdfBack)))),
-                clamp(dot(finalN, L) + (_CharacterParams11.w * _CharacterParams12.x), -1.0, 1.0), sdfW) * 0.5) + 0.5, 0.5), 0);  // _1589
+    float2(lerp(sdfEval, nEval, sdfW) * 0.5 + 0.5, 0.5), 0); // _1589：背光项在abs内，不能移出
 float  rampA    = ramp.w;                                     // _1590
 float  rampChroma = max3(ramp.rgb) - min3(ramp.rgb);          // _1599
 float  rimSel   = max(sdfW, sdfSkin * smoothstep(0.75, 0.25, _592));   // _1602
@@ -242,12 +255,13 @@ float3 specLight = lightTerm * ((litBlend * 0.5 + 0.5) * lerp(_CharacterParams0.
 // ===== 11. 脸部高光(GGX 近似)+ SDF 高光图 =====
 float3 Lh2  = float3(camAxisZ.x, lerp(0.5, L.y, shadowDir), camAxisZ.z);   // _1679 伪光向(用于半角)
 float  NdotV = clamp(dot(useN, V), 0, 1);                                  // _1692
-float  HdotN = dot(useN, normalize((L * shadowDir) + (Lh2 * 2.0) + (V * (2.0 + shadowDir)))); // _1693
+float3 pseudoLNorm = Lh2 * rsqrt(max(1.1754943508222875e-38, dot(Lh2,Lh2)));
+float  HdotN = dot(useN, normalize((L * shadowDir) + (pseudoLNorm * 2.0) + (V * (2.0 + shadowDir)))); // _1693，fragment:780
 float  shin4 = shininess * shininess;                                      // _1694
 float  d     = (((HdotN * shin4) - HdotN) * HdotN) + 1.0;                   // _1698
 float  d2    = d * d;                                                      // _1699
 float  specNDL = clamp((((shin4 != d2) ? (shin4 / d2) : 1.0)
-                     * (0.5 / ((2.0*NdotV + shininess*1.0) + 1e-5))) - 6.103515625e-05, 0.0, 20.0);  // _1763 内
+                     * (0.5 / ((2.0*NdotV + shininess*((1.0+NdotV)-NdotV)) + 9.9999997473787516e-05))) - 6.103515625e-05, 0.0, 20.0);  // _1763 内
 float3 highlightMap = _HighlightMap.SampleBias(sampler_LinearClamp,
                       uv0 + mul(V, M_o2w).xy * _HighlightMapVector.xy, _GlobalMipBias).rgb;  // _1728
 // 雨滴高光(仅 rainAmt>0.001):_1760 = … * (clamp(ambientPeak,0.5,1.5)*CP0.w) * rainAmt^2 ;捕获 rainAmt=0
@@ -270,7 +284,7 @@ color = lerp(lum.xxx, color, (s*s + 1.0).xxx);                            // _18
 // 每光:PunctualLightData[i*8+k]。k=5.w 位1 -> 盒形衰减((max|p|-(r+0.5))/(0.5-r))^2);k=3.w 类型:16 跳过,
 //   (k=3.z + _CharacterParams12.z) < 0.5 跳过(角色灯层)。距离衰减:k=1.w 为 1/range,k=6.w 或 2*k=4.y 为指数(<0 用 (1-(d²r²)²)²/(d²+1));
 //   聚光:cone 由 k=2.xy 八面体解码方向,(dot-k2.z)*k2.w 平方;管状灯 k=2.z>0 走 LTC 近似;cookie k=7.w>=0。
-//   阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, LinearMirrorOnce)。
+//   阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认）)。
 //   类型 4:color = lerp(color, lightRGB, atten * k4.x * ((1-k4.w) + smoothstep(-0.5,0.5,dot(sdfN,Ldir))*k4.w))  (体积/环境灯)
 //   类型 0:diffuse = lightRGB * ((1-k4.y) + (1/max(1, max3(lightRGB*atten)*lerp(0.75,0.5,1-shadowDir)))*k4.y)
 //            * lerp(0.5*k4.x, 1, clamp(dot(normalize(lerp(float3(rootToPixelH.x,6.1e-5,rootToPixelH.z), sdfN, sdfW)), Ldir)+0.5,0,1))
@@ -285,7 +299,7 @@ color += punctualLightsAccum;   // _1881
 if (_EnableVFXColorAdjustment > 0.5)
     color = lerp(lerp(0.5.xxx, lerp(dot(color,LUM).xxx, color, _ColorAdjustmentSaturation), _ColorAdjustmentContrast) * _ColorAdjustmentBrightness,
                  _ColorAdjustmentColorBlend.rgb, _ColorAdjustmentColorBlend.a)
-          + _ColorAdjustmentRimColor.rgb * smoothstep(1.0 - _ColorAdjustmentRimWidth, 1.0, 1.0 - saturate(NdotV)) * _ColorAdjustmentRimIntensity;
+          + _ColorAdjustmentRimColor.rgb * (smoothstep(1.0 - _ColorAdjustmentRimWidth, 1.0, 1.0 - clamp(dot(V,sdfN),0,1)) * sdfRimMask) * _ColorAdjustmentRimIntensity; // _1809、_1155，fragment:1189；不是GGX NdotV
 float4 outColor = float4(color * _ExposureWithMiscParams.y, 1.0);
 if (_CharacterParams12.w < 0.5) {
     // 大气雾 / 指数高度雾(_ExponentialFogParams0..5)/ 体积雾(_VolumetricFogParams0.z>0 + _IntegratedLightScattering)
@@ -321,11 +335,11 @@ SV_Target0 = outColor;   SV_Target1 = target1;   // _3167, _1427
 | CP10.w | 全局水位高度 | -100 |
 | CP11.xyz | 角色专用"指向光源"方向 | (0.176,0.530,0.830) |
 | CP11.w | ramp 输入 NdotL 偏移(权重 CP12.x) | -0.1 |
-| CP12.x | 1 = 关闭逆光 SDF 暗部抬亮(权重项 `(1-CP12.x)`) | 未捕获(置 1) |
+| CP12.x | 1 = 关闭逆光 SDF 暗部抬亮(权重项 `(1-CP12.x)`) | 历史未读取，须从该draw常量证据取得，不认证默认置1 |
 | CP12.y | 光颜色覆盖权重(同时改变受光侧环境项乘 lightColor) | 1 |
 | CP12.z | 点光源"角色灯层"门槛加数 | 1 |
 | CP12.w | >=0.5:环境不乘 `_EnvironmentGlobalParams0.x`、光强不乘 CustomData1.w、跳过雾(UI/展示模式) | 0 |
-| CP13.w | 高光(主 GGX + _HighlightMap + 点光 spec)总乘数 | 1 |
+| CP13.w | 主 GGX 的乘数；不乘 `_HighlightMap` 项（fragment:796），不能当所有高光总乘数；点光独立查尾链 | 1 |
 | CP14.xyz / w | 脸缘光颜色 / 强度(本帧=0) | (0,0,0,1) |
 | CP15.z | 脸缘中心 `clamp(0.5 - CP15.z*0.5, ...)` | -1 |
 | CP15.w | 0 = CP9.xy 为世界轴(rimAxis 用 cross(camAxisZ, CP9.xy)) | 0 |
@@ -349,7 +363,7 @@ SV_Target0 = outColor;   SV_Target1 = target1;   // _3167, _1427
 | LightCookieCB b50 | `_lightCookieData/_lightCookieMatrices` | 点光源 cookie |
 | UnityPerDraw (space2) | `Stripped_0`(O2W)、`Stripped_64.w` bit4 蒙皮、`Stripped_80.x` 蒙皮矩阵起点、`Stripped_208.xy` per-object 天气掩码/水位、`Stripped_208.x` 天气打包 | |
 | t22 `_ScreenSpaceShadowMask` | `.r` 方向光阴影,`.g` 角色遮挡/自阴影 | Load 像素 |
-| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | LinearMirrorOnce (cmp) |
+| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认） (cmp) |
 | t30-t35 IV clipmap A/B Lod0/1/3 | 环境 SH | A: LinearClamp,B: LinearRepeat(CP1.y=1 未用) |
 | t36 `_IntegratedLightScattering` | 体积雾 froxel | LinearRepeat(本帧 z=0 跳过) |
 | t39 `_CharacterSnowEffectTex` | 雪三平面 | LinearClamp + bias |
@@ -360,14 +374,14 @@ SV_Target0 = outColor;   SV_Target1 = target1;   // _3167, _1427
 ## 6. 未能解析的点
 
 1. **`_BaseMap` 用 `sampler_LinearClamp` 而非 LinearRepeat**:与 hair 不同,皮肤 BaseMap 采样不重复;若 uv0 越界会被钳制,需确认模型 uv 是否严格在 [0,1]。
-2. **`_10`(restTangentOS)被当作 restPosOS 用于雪三平面**:原码 `_1276 = _10.xzy * (1,1,-1)`,与通用 restPosOS 语义不符,可能是该变体顶点流复用;捕获帧雪≈0 不影响结果,但换有雪场景时坐标基准需重新核对。
+2. **静止位置流已回源澄清**：`_10` 是 float3 `restPosOS`，不是切线；vertex 的 `_20=_8` 消除了旧“切线当位置”猜测。资源导入是否正确提供此流仍须独立检查。
 3. **`linearToSRGB` 近似的精确意图**:`_472=*12.92`、`_476=pow(x,0.4167)*1.055-0.055` 是标准 linear→sRGB,但仅用于索引 `_ShadowLutTex`(SSS LUT 在 sRGB 空间),并非最终输出;确认 LUT 本身的色彩空间。
 4. **`_CharacterParams3/4` 取代 hair 的 `_CharacterParams2/5`**:皮肤平坦环境色调与光颜色覆盖分别走 CP3/CP4。若其它角色(身体/头发)共用同一 CP 向量,需确认 CP3/CP4 是否也由同一驱动设置(hair 文档里 CP3/CP4 标"未捕获")。
 5. **`_CharacterParams8`、`_CharacterParams14` 捕获均为 0**:皮肤/脸缘边缘光在本帧完全关闭;其完整公式(朝向衰减、sdfMask.w 门控、rooted 方向)已按原码还原结构,但缺少非零捕获值验证视觉效果。
-6. **`_CharacterParams12.x` 捕获值**:summary 表 event 860 段未单列 CP12.x,按 hair 同名项推断为 1(关闭逆光 SDF 抬亮);若实际为 0,逆光分支会启用。
+6. **`_CharacterParams12.x` 捕获值待核**：summary 表 event 860 段未单列此值，不能跨hair的同名字段推定为1；须查该draw常量。0与1会改变背光SDF与ramp偏置，禁止用假定默认值宣称捕获等价。
 7. **点光源 PCF/cookie/LTC/类型 0/1/2/3/4 细节**:结构与 hair 文档一致,但皮肤代入的是 `diffuseColor(_1394)`、`shadowDiff(_1398)`、`specColor(_1397)`、`sdfN(_1529)`、`rooted 方向(_547)`;捕获帧无点光源命中,不改变结果。
-8. **`_SDFMask` 四通道语义**:R=rim 掩码,G=SDF 权重混合(`sdfW`,门控 SSS 法线/SDF 方向/ramp 输入),B=skin vs face 选择(`sdfSkin`,切换 FaceRimOffScale 与 ramp 混合),W=脸缘强度(`sdfFace`);需贴图资源确认各通道含义。
-9. **`_ShadowLutTex` 尺寸**:捕获为 1024x32 BC7_SRGB,`_489` 的步进(1/32 列、1/32 行)与 1024 宽匹配(1024/32=32 行?),但实际 LUT 布局需贴图确认。
+8. **`_SDFMask` 四通道语义**:R=rim 掩码，G=普通法线分支权重（`sdfW`；SDF方向与ramp的`lerp(SDF,normal,G)`中，0取SDF、1取普通法线；SSS另按源码两端混合），B=skin vs face 选择(`sdfSkin`,切换 FaceRimOffScale 与 ramp 混合)，W=脸缘强度(`sdfFace`)；贴图内容仍须核查，不能把G=1说成更强SDF。
+9. **LUT布局公式已澄清**：源码433–438固定R步进1/1024、G步进1/32、B切片横向步进1/32并在相邻切片间插值，因此逻辑布局是32个32×32切片横向排列（1024×32），不是“1024/32=32行”。实际贴图内容、资源sRGB view及捕获绑定仍须独立检查。
 
 ---
 

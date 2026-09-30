@@ -5,6 +5,8 @@
 
 **本文不含任何单元测试或参考实现**(独立 oracle 由验收方另写),仅忠实转写源码。
 
+> **范围校正（2026-09-30）**：本篇是dump中**raster Bloom四pass家族**的导读，不是帧6411实际Bloom生成链。现有捕获在events1121…1153产生9层、1157…1185产生8层，均为compute dispatch；三个捕获HLSL位于`Validation/Captures/tifuluosi-front-20260917/bloom-source-01/shader-{20453,20455,20463}.hlsl`。其中20453是13tap加权prefilter（不是本文5tap）。应独立封存compute source/17dispatch资源依赖与`bloom-samplers-02`证据，不能用四passraster结构替代。最终BloomResource58923为1280×800、R11G11B10_FLOAT；生产端阶段的有限精度也属于契约。
+
 ## 1. Pass 列表与链路
 
 | PassIdx | Name | 状态 | 关键字 | 代表变体 |
@@ -14,9 +16,9 @@
 | 2 | Bloom Blur Vertical | 同上(:110-116) | 同 Pass1 | b13/b14 |
 | 3 | Bloom Upsample | 同上(:148-154) | 同 Pass1 | b17(LOW)/b18(HIGH) |
 
-链路:Prefilter(阈值提取,下采样)→ 多级(Blur H → Blur V)金字塔 → Upsample 逐级上采样合成(最终被 `uberpost` 的 `_BloomTexture` 消费,见 official-postprocess-uberpost.md §4.1)。
+从pass职责推导的候选raster链：Prefilter→多级Blur H/V→Upsample；wrapper本身只列pass，不证明运行时重复次数、层级尺寸/格式或dispatch顺序。其结果可由UberPost消费，但帧6411实际生产端是上框中的compute链。
 
-**无 _Property 块**(bloom.shader 无 Properties);参数由 C# 注入:`_TexelSize`、`_Params`(Upsample 混合 x)、`_BloomThreshold`、`_BloomCharacterThreshold`、`_BloomCharacterParams`(cb0 b2,space3,bloom\Sub0_Pass0_Fragment_b2.hlsl:148-156)。
+**无Properties块**；确认cbuffer参数布局，不据此推断由C#而不是自研C++生产。参数包括`_TexelSize`、`_Params`、两组threshold和`_BloomCharacterParams`。
 
 ## 2. Pass0 Bloom Prefilter(b2,catch-all:LOW/CHARACTER_MASK/ENABLE_ALPHA/HIGH 全关)
 
@@ -28,7 +30,7 @@ knee   = clamp(bright - _BloomThreshold.y, 0.0f, _BloomThreshold.z)
 weight = max((_BloomThreshold.w × knee) × knee, bright - _BloomThreshold.x) / max(bright, 9.9999997473787516355514526367188e-05f)
 tap    = c × weight × _ExposureWithMiscParams.x
 ```
-- **亮度加权归一化**(f_b2:180/201):每 tap 权重 `1 / (luma(tap) + 1.0f)`,输出 = `Σ(tap×w_luma) / Σ(w_luma)`,a=1。这一步是"亮度守恒的加权平均"(亮 tap 权重低),非标准 URP 直接平均。
+- **亮度加权归一化**(f_b2:180/201):每tap权重`1/(luma(tap)+1)`，输出加权均值、a=1。亮tap权重低，不能称“亮度守恒”：例如灰度tap=0与2，均值为0.5而算术均值为1。精确luma使用源码Rec709常量。
 
 ## 3. Pass1/Pass2 分离高斯(b11/b13;HIGH b12/b14)
 
@@ -44,12 +46,12 @@ out = Σ SampleBias(LinearClamp, uv ± offset) × 权重;a = 1
 权重:0.0702702701091766357421875f、0.3162162303924560546875f、中心 0.2270270287990570068359375f(左右对称)
 out = Σ SampleBias(LinearClamp, uv ± offset) × 权重;a = 1
 ```
-b12/b14(HIGH)行数与 LOW 相同(182/180)——差异为采样偏移/权重档位 ⚠待核(未逐行)。
+b11/b12及b13/b14回源公式相同（本轮核对函数体），HIGH标签不改变这里的偏移或权重；不得凭keyword名称虚构不同档位。HIGH上采样才有不同采样公式。
 
 ## 4. Pass3 Upsample
 
 - **LOW(b17:177)**:`out = lerp(_InputHighTexture.SampleBias(uv), _InputTexture.SampleLevel(uv), _Params.x)`,a=1 —— 低分辨率 bloom 层与上一层线性混合。
-- **HIGH(b18:175-178)**:B-spline **4-tap tent 上采样**(URP 同款):
+- **HIGH(b18:175-178)**:cubic B-spline的双线性采样重组（4次读取），不是简单4tap tent；精确组合权重/采样位置以该源码为准，不可用“URP同款”替代：
 ```
 pos = uv × cb0_Stripped_32.xy + 0.5f; cell = floor(pos); f = frac(pos)
 w0 = 0.16666667163372039794921875f + (f × (-0.5f + (f × (0.5f - f×0.16666667163372039794921875f))))   // 1/6 cubic
@@ -60,14 +62,15 @@ out = lerp(_InputHighTexture, 4-tap 加权和(采样点 min(uv, 1-texel)), _Para
 ```
 
 ## 5. keyword 差异(补记)
-- `CHARACTER_MASK`(b3/b5/b7/b9):角色掩码版(使用 `_BloomCharacterThreshold/_BloomCharacterParams`,未逐行 ⚠待核)——用于"角色发光与场景发光分离"。
-- `ENABLE_ALPHA`(b4/b5/b8/b9):输出 alpha 通道(未逐行 ⚠待核)。
-- `HIGH_QUALITY`(b6 等):Prefilter 同为 203 行,采样数差异 ⚠待核;Blur/Upsample 见 §3/§4。
+- `CHARACTER_MASK`代表b3:180–187：每tap读取MotionVector.w，`charMask=abs(w-.3000000119)<.1000000015`，插值角色/场景threshold；角色命中最终选择`max(rgb-characterThreshold.x,0)*BloomCharacterParams.x`，再乘Exposure.x，随后同式luma加权。不能只替换threshold而漏掉角色分支。
+- `ENABLE_ALPHA`代表b4:177–180：**输入rgb先乘输入alpha再提取阈值**，不是输出alpha；最终`SV_Target0.a=1`（:206）。组合分支仍须逐式复核。
+- `HIGH_QUALITY`b6的prefilter函数与b2同形同值；没有采样数差异。这里仍是5tap；捕获compute20453的13tap是另一管线。
 
 ## 6. ⚠待核汇总
-1. CHARACTER_MASK/ENABLE_ALPHA 分支逐行公式。
-2. HIGH_QUALITY Prefilter/Blur 与 LOW 的具体差异(行数相同,疑权重/偏移档位)。
-3. `_Params.yzw` 与 `_BloomCharacterParams` 的 C# 侧赋值语义(源码不可见)。
+1. CHARACTER_MASK与ENABLE_ALPHA组合的完整公式、输入MotionVector分类生产者、其格式/过滤仍待核；本轮只检查代表b3/b4。
+2. b18的完整cubic重组式不能由本文省略伪码直接实施；raster全部变体还不是全覆盖认证。
+3. 参数生产语义、raster启用条件/层级尺寸和格式待核；当前帧compute资源有独立证据，不允许混写。
+4. frame6411compute20453:182使用threshold后乘全局`_5_m20.x`曝光；UberPost先对主色曝光再合成已经曝光的Bloom，两处曝光分别作用各自输入，不能合并成对整个颜色再次曝光。
 
 ---
 *仅静态转写,行号指 bloom.shader 与 bloom\bloom\Sub0_Pass*.hlsl;无测试/参考实现。*

@@ -1,6 +1,8 @@
 # 官方 Shader 源码转写索引（2026-09-30 重建）
 
-来源：`_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/`，SPIR-V-Cross 反编译 HLSL + wrapper shader 分析。所有文档均为**只读转写**，不含单元测试或参考实现（独立 oracle 由验收方另写）。
+> 当前资料基石入口：[官方渲染证据基线v1](../render-baseline/v1/foundation.md)。本轮回源修订四族主着色、描边/C6各层和后处理；哈希封存是证据身份，不是全量认证。14模块六维待核见plan，完整规格门禁仍未通过；历史过程报告与社区建议不是官方规范。
+
+来源：`_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/`，SPIR-V-Cross反编译HLSL+wrapper分析。转写与历史实现/测试报告分开使用；独立oracle不能从我方实现循环生成。基线工具仅防来源漂移，不证明shader等价。
 
 > 2026-09-30 核查更正：文档分布在本仓库和 `D:/EndfieldTechLib/`，不能只扫描 `docs/research/` 就断言未创建。C6 覆盖阴影/地面阴影等成果实际存在，见下方外部资料入口。行数只描述某个快照，不代表准确性；本轮审计范围见 [资料审计记录](source-contract-audit-20260930.md)，其它资料没有因此自动获得“完全准确”认证。
 
@@ -14,7 +16,7 @@
 
 | 文档 | 行数 | 覆盖范围 |
 |---|---|---|
-| `official-outline-skin-b273.md` | 240 | 描边 Pass（Sub0 Pass1，skin/hair/cloth 共用 catch-all b273）。本质是"缩水 ForwardLit"：片元跑近乎完整打光后在 `_44_Stripped_48>0.5` 分支做去饱和/描边色/rim 调色；挤出在裁剪空间外扩（屏幕空间偏移 + 逐分量像素钳制），非物体空间挤出。与主体共用 `_BaseMap`，无专用描边贴图 |
+| `official-outline-skin-b273.md` | 以文件为准 | Skin Sub0 Pass1 b273；hair b306、主CharacterNPR b1088独立派发，不是三族共用b273。顶点VP3×3屏幕偏移和逐分量限制；平滑法线为TS半球xy，不是折叠八面体 |
 | `official-forwardlit-skin-b138.md` | 374 | 皮肤 ForwardLit（Skin family=1，face/body 均走此路径）。CP3 环境色、CP4 光色覆盖、SDF/LUT/HighlightMap |
 | `official-forwardlit-hair-b125.md` | 362 | 头发 ForwardLit。CP2 环境色、CP5 光色、各向异性主/次高光 + LineMap |
 | `official-forwardlit-cloth-b401.md` | 393 | 布料 ForwardLit（b401 源码转写本体）。环境 BRDF 12 常量、GGX 1e-5、ClearCoat power-3、LOD=1.2·log2(rough)+5。注：文中旧的"b401=body"归属已撤回，body 实走 Skin |
@@ -41,19 +43,19 @@
 
 ---
 
-## 外部技术库已有资料（不要重复调研）
+## 外部技术库已有资料及v1版本档（不要重复调研）
 
 | 文档 | 实际入口 | 状态 |
 |---|---|---|
-| OverlayShadow | [official-overlayshadow-b5.md](D:/EndfieldTechLib/reports/translations/official-overlayshadow-b5.md) | 已有两 pass 译读；里面的实现建议不是官方源码事实，须结合审计更正与捕获绑定 |
-| 地面 ShadowReceiver | [official-shadowreceiver.md](D:/EndfieldTechLib/reports/translations/official-shadowreceiver.md) | 已有译读；不是刘海投脸通道，SH/bias 等匿名语义仍待核 |
-| C6 描边详解 | [official-outline-skin-b273.md](D:/EndfieldTechLib/reports/translations/official-outline-skin-b273.md) | 与仓库内同名文档不是同一份文本，逐行层/变体 diff 在外部目录 |
-| C6 汇总 | [HANDOFF-C6.md](D:/EndfieldTechLib/reports/translations/HANDOFF-C6.md) | 只读研究成果，不等同已实现或全部运行时验证 |
+| OverlayShadow | [official-overlayshadow-b5.md](../render-baseline/v1/external/reports/translations/official-overlayshadow-b5.md) | 回源修订v1版本档；建议不是官方源码事实，须结合捕获及缺口 |
+| 地面 ShadowReceiver | [official-shadowreceiver.md](../render-baseline/v1/external/reports/translations/official-shadowreceiver.md) | 回源修订版；不是刘海投脸通道，SH/bias生产仍待核 |
+| C6 描边详解 | [official-outline-skin-b273.md](../render-baseline/v1/external/reports/translations/official-outline-skin-b273.md) | 与research同名文不是一份文本；三份逐行层也收入版本档 |
+| C6 汇总 | [HANDOFF-C6.md](../render-baseline/v1/external/reports/translations/HANDOFF-C6.md) | 研究成果，不等同已实现或运行时全认证 |
 | C6 抽查验收 | [2026-09-28-c6-acceptance.md](D:/EndfieldTechLib/notes/2026-09-28-c6-acceptance.md) | 抽查接受不代表逐项完整证明；8 项未确认仍须保留 |
 
-外部路径是当前机器入口；GitHub 读者若没有该技术库应明确报资料不可访问，不得把它再次标成“从未创建”。
+原文仍在`D:/EndfieldTechLib/reports/translations/`，原始字节hash与UTF-8 LF版本档hash分别保存。GitHub现在也可读关键译读，不依赖D盘路径；差异证据及官方源文件仍需本地技术库/原dump，不得把未上传文件说成“从未创建”。
 
-> 描边 `official-outline-skin-b273.md` 已于 2026-09-30 补齐（见上表），WP1.3/WP1.4a 依赖已解除。源文件位于 `characternpr_skin/Sub0_Pass1_{Fragment,Vertex}_b273.hlsl`（1012+509 行），文档含 7 处 ⚠待核（顶点输入语义疑似错位、参数语义为数学推断、片元法线取自 `_GBufferTexture1` 等）。
+> 描边资料已经存在并回源修订，但“文档存在”不等于WP依赖全解除。源文件位于`characternpr_skin/Sub0_Pass1_{Fragment,Vertex}_b273.hlsl`；匿名生产端、完整片元尾链、运行时平滑法线输入仍待核，详见基线及C6更正。
 
 ---
 
@@ -66,7 +68,7 @@
 ## 转写质量要求（要求不等于已经逐项验收）
 
 1. **只读源码**：不写单元测试、不写参考实现、不写 Unity C# 集成代码
-2. **代表变体选择**：每 Pass 取编号最小 Fragment（catch-all 或首个分支）+ 同号 Vertex 完整抽取，其余变体只补 keyword 差异
+2. **代表变体选择**：按实际draw签名、wrapper完整条件、keyword头选并保留同号Vertex；编号最小不证明catch-all或全OFF。未覆盖组合登记，不把单开diff拼成通用规格
 3. **数值保真**：数字/swizzle/clamp/pow 指数逐字保留；mad/位运算改普通算式但不改数值
 4. **行号标注**：每个常量和公式后标 `file.hlsl:行号`
 5. **不确定标记**：不确定标 `⚠待核`，禁止编造

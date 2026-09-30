@@ -3,14 +3,16 @@
 来源:`_dump_1.5.3/.../characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl`(1134 行,SPIR-V-Cross 输出),
 配套顶点 `Sub0_Pass0_Vertex_b28.hlsl`(同一 keyword 行,输出结构 TEXCOORD0..7 与片元输入完全一致),
 属性/关键字来自 `characternpr_eye.shader`(Pass "ForwardLit",LightMode `ForwardCharacterOnly`,`#pragma target 5.0`,dxc)。
-下文中所有数字、swizzle、clamp、pow 指数均按原码保留;`mad`/位运算已改写为普通算式。
+> 2026-09-30 资料核查：本篇是 b28 选定核心公式的说明性转写，不是完整可编译实现。已回源修正 UV/切线流表述、投影光向、雪后CP13输入等；IV、雪扰动、点光源/PCF/cookie/LTC、雾尾链及常量/纹理生产端未全部闭合。精确捕获绑定与其他变体仍需独立确认，不能把历史猜测或现有实现当官方证明。
+
+说明变量保留原临时变量映射；占位符/省略段落必须以原 HLSL 为准。
 
 本变体是 **iris(虹膜)专属**:没有法线贴图、没有 spec/metallic gloss mask、没有深度边缘 rim(无 `_CameraDepthTexture`/`_ScreenSize`/`_CharacterParams8/9`),
 但有 **视差瞳孔折射(parallax pupil)**、**Matcap 采样**、以及 **EyeHighLightColor / EyeScatteringColor** 按 UV 圆盘与 alpha 通道调制的虹膜特殊项。
 
 ## 1. 变体识别
 
-`characternpr_eye.shader:127`(顶点)/`:205`(片元)命中的组合(对比 `:120` 全 OFF 的 b25):
+`characternpr_eye.shader:126–127`(顶点)/`:204–205`(片元)完整条件命中的组合。b25不是“全OFF”：`:120`仍要求 `SRP_INSTANCING_ON/HG_ENABLE_PER_OBJECT_MV/HG_ENABLE_SCREEN_SPACE_SHADOW_MASK/_DIFF_RAMP_ON` 为ON，只是 `_EYE_HIGHLIGHT/_MATCAP_ON` 为OFF。最小blob编号不等于catchall。
 
 ```
 ON : SRP_INSTANCING_ON  HG_ENABLE_PER_OBJECT_MV  HG_ENABLE_SCREEN_SPACE_SHADOW_MASK
@@ -20,7 +22,7 @@ OFF: _EMISSION  _CUSTOMIZE_AVATAR  _SHADOW_LUT_TEX  BAKED_SKINNING_ANIMATION_TEX
 ```
 
 后果:
-- 只有**一张** albedo 图 `_BaseMap`(同时承载 rgb 反照率与 **a = 瞳孔深度**);没有 `_BumpMap`、没有 `_MetallicGlossMap`、没有 `_LineMap`、没有 `_SpecRampMap`。
+- 只有一张 `_BaseMap`：rgb为反照率，a乘BaseColor.a后用于散射调制、premultiply与条件输出alpha；源码没有用a计算视差偏移，不能认证“a=瞳孔深度”。没有 `_BumpMap/_MetallicGlossMap/_LineMap/_SpecRampMap`。
 - 没有自发光、没有 LUT 阴影色、没有 VAT、没有 Dissolve、没有 Dither、没有 AlphaTest。
 - `_EYE_HIGHLIGHT` 让 `EyeHighLightColor` 参与虹膜调制;`_MATCAP_ON` 打开 Matcap 采样。
 - 阴影只来自 `_ScreenSpaceShadowMask.Load(...).r`(方向光阴影);**`.g` 未被读取**,所以 iris 没有 hair 那样的 `ssmG` 门控(litMask 直接取 ramp.a)。
@@ -30,7 +32,7 @@ OFF: _EMISSION  _CUSTOMIZE_AVATAR  _SHADOW_LUT_TEX  BAKED_SKINNING_ANIMATION_TEX
 
 | 寄存器 | HLSL 名 | 采样表达式 | 判据 | 本 iris 对应贴图 / 捕获 binding |
 |---|---|---|---|---|
-| t3,space1 | `_BaseMap` | `SampleBias(sampler_LinearClamp, uv0 - parallax, _GlobalMipBias)`,rgb*`_BaseColor`,a*`_BaseColor.a` | 唯一乘 BaseColor 的 sRGB 图;a 通道当作瞳孔深度 | 需参照 capture 纹理 binding 表(已知 UnityPerMaterial 色,未知 bN 序号) |
+| t3,space1 | `_BaseMap` | `SampleBias(sampler_LinearClamp, uv0 - parallax, _GlobalMipBias)`,rgb*`_BaseColor`,a*`_BaseColor.a` | a用于散射/alpha调制，其美术物理语义未认证 | 需参照capture绑定与资源view格式，不能从shader符号证明sRGB |
 | t2,space1 | `_DiffRampMap` | `SampleLevel(sampler_LinearRepeat, float2(rampU,0.5),0)` 两次 | v 固定 0.5 的一维 ramp(u=受光,第二采样 u=dot(N,camAxisZ)) | 同上 |
 | t1,space1 | `_MatcapTex` | `SampleBias(sampler_LinearRepeat, matcapUV, _GlobalMipBias)`,matcapUV 由 `_489`→view 空间法线 | 视线空间 matcap | 同上 |
 
@@ -58,7 +60,7 @@ Set0 全局纹理:`_ScreenSpaceShadowMask`(t22,Load 像素,仅 `.r`)、`_Charact
 | SV_Position | `fragCoord` | `.xy` 像素坐标;`1/w` 经 main 翻转为 `w` 本身 = 线性视深 `eyeDepth` |
 | SV_IsFrontFace | `isFront` | 背面法线翻转 |
 
-**与 hair 的差异**:hair 有 TEXCOORD7=restTangentOS、TEXCOORD8=restPosOS 两个;eye 只有 TEXCOORD6/7 且分别是 restNormalOS / restPosOS,**没有独立 restTangentOS**(雪分支不需要切线框架)。顶点色 `COLOR0` 槽位承载八面体解码法线,未被片元用作颜色。
+**与 hair 的差异**:hair有TEXCOORD7=restTangentOS、TEXCOORD8=restPosOS；eye只有TEXCOORD6/7分别为restNormalOS/restPosOS，没有独立restTangentOS。vertex:281的 `COLOR0` 是float4切线后备流，packed normal/tangent来自`TANGENT0` bit30开启的解码；不是“COLOR0承载法线颜色”。
 
 ## 3. 片元着色器整洁重构
 
@@ -66,11 +68,12 @@ Set0 全局纹理:`_ScreenSpaceShadowMask`(t22,Load 像素,仅 `.r`)、`_Charact
 // ===== 0. 通用量 =====
 float  eyeDepth  = 1.0 / fragCoord.w;                       // main 里 w 已被翻转为原 w,故这里 = 线性视深
 float3 viewVec   = lerp(-positionRWS, ViewMatrix[2].xyz, _unity_OrthoParams.w);
-float  viewDist  = sqrt(dot(viewVec, viewVec));             // _371
-float3 V         = viewVec / viewDist;                     // _370
+float viewLen2 = dot(viewVec,viewVec); float viewInvLen = rsqrt(max(viewLen2,1e-8));
+float  viewDist  = viewLen2 * viewInvLen;                   // _371
+float3 V         = viewVec * viewInvLen;                   // _370
 bool   skinned   = (asuint(PerDraw.Stripped_64.w) & 16u) != 0;
 float4 row0,row1,row2;   // objectToWorld 三行:蒙皮时从 _VertexSkinMatrices[Stripped_80.x + {0,1,2}] 读,否则 PerDraw.Stripped_0[0..2]
-float3x3 M_o2w   = float3x3(row0.xyz, row1.xyz, row2.xyz);  // mul(M_o2w, v): OS->WS ; mul(v, M_o2w): WS->OS
+float3x3 M_o2w   = float3x3(row0.xyz, row1.xyz, row2.xyz);  // 保留源mul方向；mul(v,M)不是一般非正交矩阵的逆
 float3 positionWS = positionRWS + _WorldSpaceCameraPos_Internal.xyz;
 float3 rootToPixelH = normalize(float3(positionWS.x - row0.w, 6.103515625e-05, positionWS.z - row2.w)); // 角色根到像素的水平方向
 float3x3 TBN = float3x3(tangentWS.xyz, cross(normalWS, tangentWS.xyz) * tangentWS.w, normalWS);        // _467
@@ -83,19 +86,20 @@ float2 centered  = fracUV - 0.5;
 float  d2        = dot(centered, centered);
 float  pupilMask = step(0.25, d2);                         // _402:1 = UV cell 边角(虹膜外环),0 = 圆心附近(瞳孔盘)
 float  nLenInv   = 1.0 / length(normalWS);
-float3  Vts = normalize(mul(float3x3(TBN[0]*nLenInv, TBN[1]*nLenInv, TBN[2]*nLenInv), V)); // 切线空间视线
+float3 Bparallax = cross(normalWS,tangentWS.xyz) * (tangentWS.w>0 ? 1.0 : -1.0);
+float3 Vts = normalize(mul(float3x3(tangentWS.xyz*nLenInv,Bparallax*nLenInv,normalWS*nLenInv),V)); // fragment:420–422；视差用sign，matcap框架仍用原tangent.w
 float2 parallaxOff = Vts.xy * _ParallaxScale * float2(1.0, 0.25)
                    * smoothstep(0.25, 0.0500000007450580596923828125, d2);  // 仅圆心附近(瞳孔)才有折射偏移
 float4 baseMap   = _BaseMap.SampleBias(sampler_LinearClamp, uv0 - parallaxOff, _GlobalMipBias); // 注意:LinearClamp
 float3 albedo    = baseMap.rgb * _BaseColor.rgb;
-float  alpha     = baseMap.a   * _BaseColor.a;             // a 即瞳孔深度 / 透明度
+float  alpha     = baseMap.a   * _BaseColor.a;             // _442：散射/alpha因子，不能据此称瞳孔深度
 float3 shadowColor = lerp(dot(albedo * _ShadowColorBrightness, LUM).xxx,
                           albedo * _ShadowColorBrightness, _ShadowColorSaturation); // _451(无雪时透传给 _1156)
 
 // ===== 2. Matcap 法线(由 UV 圆盘构造的"虹膜球面"法线)=====
 float2 ndc       = fracUV * 2.0 - 1.0;                      // _478 UV 中心 -> [-1,1]
 float3 sphereN; sphereN.xy = ndc; sphereN.z = max(1.000000016862383526387164645044e-16, sqrt(1.0 - clamp(dot(ndc, ndc), 0.0, 1.0))); // _479 球面法线
-float3 mcRaw = float3(sphereN.xy * (-_MatcapNormalScale), sphereN.z);   // _489 (_MatcapNormalScale=1 -> 原样)
+float3 mcRaw = float3(sphereN.xy * (-_MatcapNormalScale), sphereN.z);   // _489：Scale=1仍翻转xy，非原样
 // 瞳孔盘(_402=0)用弯曲的虹膜法线;外环(_402=1)退化为几何法线(0,0,1)
 float3 matcapNormalWS = normalize(mul(lerp(mcRaw * float3(-0.125, -0.125, 1.0), float3(0.0,0.0,1.0), pupilMask), TBN)); // _494
 float2 pixel = fragCoord.xy;
@@ -152,19 +156,21 @@ float3 L  = lerp(-DirectionalLightDirection.xyz, _CharacterParams11.xyz, _Charac
 float3 Lh = normalize(float3(L.x, 6.103515625e-05, L.z));
 float3 lightColor  = lerp(DirectionalLightCustomData1.rgb, _CharacterParams5.rgb, _CharacterParams12.y);
 float3 lightColorI = lightColor * lerp(DirectionalLightCustomData1.w, 1.0, _CharacterParams12.w);  // 捕获:(1,1,1)*1.624
-float3 Lhws = mul(M_o2w, normalize(mul(L, M_o2w)).xzy0).xyz;  // _1233 水平方向光(物体空间去 y 再回世界)
+float3 Los = mul(L,M_o2w);
+float3 horizontalLos = Los * rsqrt(max(1.1754943508222875e-38,dot(Los,Los))); horizontalLos.y=0;
+float3 Lhws = mul(M_o2w,horizontalLos); // _1233，fragment:665–669：先归一再清y，保持xyz顺序
 float  shadowDir = lerp(lerp(1.0, _ScreenSpaceShadowMask.Load(int3(pixel,0)).x, _DirectionalShadowParams.x), 1.0, _CharacterParams1.z); // 1=受光
 float3 shadowDeep  = shadowDiff * _CharacterParams0.z;        // _1261 (×0.65)
 float3 shadowDeep2 = shadowDeep * 0.64999997615814208984375;  // _1262
 // —— 虹膜核心:HighLight 按瞳孔盘、Scattering 按 alpha ——
 float3 eyeHighLight  = _EyeHighLightColor.xyz * pupilMask;    // _1271
 float3 eyeScattering = _EyeScatteringColor.xyz * alpha;       // _1278
-float3 eyeDiffuse = diffuseColor * (((1.0 - pupilMask).xxx + eyeHighLight)   // 圆心(_402=1)偏 HighLightColor
+float3 eyeDiffuse = diffuseColor * (((1.0 - pupilMask).xxx + eyeHighLight)   // _402=1在UV圆盘外，不是圆心
                                    * ((1.0 - alpha).xxx + eyeScattering));    // alpha 高(_442=1)偏 ScatteringColor
 
 // ===== 8. 漫反射 ramp =====
 float4 ramp  = _DiffRampMap.SampleLevel(sampler_LinearRepeat,
-                  float2((clamp(dot(N, normalize(Lhws)) + _CharacterParams11.w * _CharacterParams12.x, -1.0, 1.0) * 0.5) + 0.5, 0.5), 0); // _1295
+                  float2((clamp(dot(N, Lhws*rsqrt(max(1.1754943508222875e-38,dot(Lhws,Lhws)))) + _CharacterParams11.w * _CharacterParams12.x, -1.0, 1.0) * 0.5) + 0.5, 0.5), 0); // _1295；最终仍有safe-normalize，不能省略
 float  litMask   = min(1.0, ramp.w);                          // _1320 = ramp.a(iris 无 ssmG 门控)
 float  rampChroma = max3(ramp.rgb) - min3(ramp.rgb);          // _1305
 float  rampV = _DiffRampMap.SampleLevel(sampler_LinearRepeat,
@@ -181,7 +187,7 @@ float3 lightTerm = lerp(
        + (ambientGrad * clamp(ambientPeak, 0.0, 1.5))
           * ((1.0 - _CharacterParams12.y) + (lightColor * _CharacterParams12.y))) * _CharacterParams0.y,
     shadowDir);                                               // _1350
-float3 baseSel = lerp(lerp(lerp(dot(shadowDeep2, LUM).xxx, shadowDeep2, 1.2), shadowDeep, clamp(rampV + litMask, 0.0, 1.0)),
+float3 baseSel = lerp(lerp(lerp(dot(shadowDeep2, LUM).xxx, shadowDeep2, 1.2), shadowDeep, clamp(rampV + ramp.w, 0.0, 1.0)),
                       eyeDiffuse, litMask);                   // _1351
 float3 rampTinted = baseSel * ((1.0 - rampChroma) + ramp.rgb * rampChroma);  // _1357
 float3 diffuseTerm = lerp(lerp(shadowDeep, eyeDiffuse, rampV),
@@ -206,7 +212,7 @@ float3 edgeLight = lerp(ambientRGB / max(max3(ambientRGB) * 0.5, 1.0), lightColo
     * smoothstep(0.6, 0.8, 1.0 - abs(NdotV))
     * (shInv + smoothstep(0.1, 0.04, dot(diffuseColor, LUM)) * shadowDir)
     * max(0.15.xxx, diffuseColor);                           // _1479 前半
-float3 eyeSpec = (albedo * _CharacterParams13.x + eyeHighLight * _CharacterParams13.y + eyeScattering * _CharacterParams13.z) * premul; // _1479 后半
+float3 eyeSpec = (albedoB * _CharacterParams13.x + eyeHighLight * _CharacterParams13.y + eyeScattering * _CharacterParams13.z) * premul; // _1479用雪后_1157，不是原始albedo_436
 float3 color2 = lerp(lum.xxx, color, 1.0 + sBoost * sBoost) + edgeLight + eyeSpec;  // _1479
 
 // ===== 12. 点光源(tile 32px × z-bin,_GlobalBinningBuffer)=====
@@ -214,7 +220,7 @@ float3 color2 = lerp(lum.xxx, color, 1.0 + sBoost * sBoost) + edgeLight + eyeSpe
 // diffuseTerm 源 = _1366/_1370.xyz,顶点法线 = Nv,rootToPixelH = _462。
 // 每光:PunctualLightData[i*8+k]。k=5.w 位1 -> 盒形衰减;k=3.w 类型:16 跳过,(k=3.z + CP12.z)<0.5 跳过(角色灯层)。
 //   距离衰减:k=1.w 为 1/range,k=6.w 或 2*k=4.y 为指数(<0 用 (1-(d²r²)²)²/(d²+1));聚光 cone 由 k=2.xy 八面体解码;
-//   管状灯 k=2.z>0 走 LTC;cookie k=7.w>=0。阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, LinearMirrorOnce)。
+//   管状灯 k=2.z>0 走 LTC;cookie k=7.w>=0。阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认）)。
 //   类型 0:diffuse = lightRGB * ((1-k4.y)+k4.y/max(1,max3(lightRGB*atten)*lerp(0.75,0.5,shInv))) * lerp(0.25*k4.x,1,sat(NdotL_p+0.5)),
 //           color += diffuse*atten * lerp(diffuseTerm, diffuseTerm, sat(NdotL_p)) * premul + diffuse*atten * spec_p * sat(NdotL_p)
 //   类型 1:NdotL_p = sat(clamp(NdotL_p + k4.x,-1,1)) * shadow_p;色 = lerp(shadowDiff*k4.y, diffuseColor, NdotL_p)
@@ -292,10 +298,10 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 | 同上 | `_ParallaxScale`(c12.y,默认 0.1,Range 0..0.15) | 瞳孔视差折射强度 |
 | t1 `_MatcapTex`(space1) | matcap 查找 | LinearRepeat + bias |
 | t2 `_DiffRampMap`(space1) | 一维漫反射 ramp | LinearRepeat, v=0.5 |
-| t3 `_BaseMap`(space1) | albedo(rgb)+ 瞳孔深度(a) | **LinearClamp** + bias(注意:hair 用 LinearRepeat) |
+| t3 `_BaseMap`(space1) | albedo(rgb)；a乘BaseColor.a作散射/预乘/条件输出因子，物理语义未认证 | **LinearClamp** + bias(注意:hair 用 LinearRepeat) |
 | t22 `_ScreenSpaceShadowMask` | `.r` 方向光阴影(仅) | Load 像素 |
 | t39 `_CharacterSnowEffectTex` | 雪三平面 | LinearClamp + bias(仅雪分支) |
-| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | LinearMirrorOnce(cmp) |
+| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认）(cmp) |
 | t30-t35 IV clipmap A/B Lod0/1/3 | 环境 SH | A: LinearClamp,B: LinearRepeat |
 | t36 `_IntegratedLightScattering` | 体积雾 froxel | LinearRepeat |
 | t29 `_LightCookie` | 点光源 cookie | LinearRepeat |
@@ -304,10 +310,10 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 ## 6. 未能解析的点
 
 1. **`_BaseMap`/`_MatcapTex`/`_DiffRampMap` 的捕获 bN 序号未给**:已知只提供了 4 个 UnityPerMaterial 色,没有 hair 那样配套的纹理 binding 序号。三者寄存器(t1/t2/t3,space1)确定,具体贴图命中需对照 `tifuluosi-front-20260917` 的纹理 binding 表。
-2. **`_MatcapTex` 采样用 `mcRaw`(原始球面法线)而非 `_494`(TBN+lerp 后的 matcap 法线)**:两者在瞳孔盘处差别明显(前者带 `-0.125` 偏置的弯曲法线,后者外环退化为几何法线)。官方此处特意用未 lerp 的 `mcRaw`,意味着 matcap 贴图始终反映"虹膜球面"视角,与着色法线 `_494` 解耦,原因待确认。
+2. **`_MatcapTex` 用`mcRaw`而非`_494`**：`mcRaw=_489`只把球面法线xy乘`-_MatcapNormalScale`；`_494`才再乘`(-0.125,-0.125,1)`、按圆盘权重向`(0,0,1)`混合并经TBN归一（源码437–439）。Matcap采样在697对`mcRaw`经TBN/View变换后归一取xy；不能把`-0.125`或外环退化归给`mcRaw`。两条法线的用途分离已确认，物理意图仍待证。
 3. **`_CharacterParams5/6/7/12/13` 与 `_DirectionalShadowParams.x` 捕获值未给**:其中 CP6(环境梯度方向)、CP13.xyz(虹膜高光三路强度)、CP12.x(逆光边缘开关)直接影响虹膜亮度与高光,是复现关键未知数。
-4. **`_EyeScatteringColor` 为何乘 `alpha`(`_442`)**:baseMap 的 a 通道在 iris 里被当作"瞳孔深度/透明度"。capture 值 `(1.513, 2.723, 4.287)` 是偏蓝的散射光,在 alpha 高(瞳孔中心)处显现。需确认 baseMap.a 在 tifuluosi 贴图中的实际语义(是瞳孔镂空还是角膜厚度)。
+4. **`_EyeScatteringColor` 为何乘 `alpha`(`_442`)**：源码只证明a乘BaseColor.a后参与散射、预乘与条件输出；视差在采样前计算，未使用a。capture颜色`(1.513, 2.723, 4.287)`不证明a表示瞳孔深度，也不证明alpha高区就是瞳孔中心；贴图实际语义仍待资源核查。
 5. **`pupilMask = step(0.25, d2)` 基于 `frac(uv0)`**:即假设 iris 贴图按 UV cell 平铺、每格中心是瞳孔。若实际贴图不是平铺(单眼一张、瞳孔不在 cell 中心),该圆盘掩码会错位。需对照实际 UV 布局确认。
-6. **雪/雨分支(约 80 行程序化三平面)与点光源 PCF/cookie/LTC** 只给出结构,未逐行还原;捕获帧天气掩码≈0、无点光源命中,不改变结果(同 hair)。
+6. **雪分支与点光源PCF/cookie/LTC**仅给结构，未逐行认证；b28只有高字节雪，没有雨分支。“掩码≈0/无点光源”须以该draw bit pattern和光源bin证据确认，不能自动沿用hair假设。
 7. **`_CharacterParams10.z`(雪三平面 UV 缩放)与 CP10.w**:片元只用了 `CP10.y>>24`(雪)与 `CP10.z`(三平面缩放);CP10.x 选择全局/per-object 天气源,捕获=0(走 per-object `Stripped_208.x`)。具体值未给。
 8. **逆光边缘光没有 hair 的"屏幕法线深度 rim"**:本变体 cbuffer 中确实无 `_CharacterParams8/9` 与 `_ScreenSize`/`_CameraDepthTexture`,确认 iris 不做屏幕空间深度边缘光,与 hair 的结构性差异需在下个 pass(如 GBuffer/Depth)里单独处理。

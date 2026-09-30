@@ -3,9 +3,13 @@
 来源:`_dump_1.5.3/.../characternpr/characternpr_hair/Sub0_Pass0_Fragment_b125.hlsl`(1517 行,SPIR-V-Cross 输出),
 配套顶点 `Sub0_Pass0_Vertex_b125.hlsl`(同一 keyword 行,输出结构 TEXCOORD0..9 与片元输入完全一致),
 属性/关键字来自 `characternpr_hair.shader`(Pass "ForwardLit",LightMode `ForwardCharacterOnly`,`#pragma target 5.0`,dxc)。
-下文中所有数字、swizzle、clamp、pow 指数均按原码保留;`mad`/位运算已改写为普通算式。
+> 2026-09-30 资料核查：本篇是 b125 选定核心公式的说明性转写，不是完整可编译实现。核心干燥路径及天气接口已回源抽查/更正，但天气 hash、完整点光源/PCF/cookie/LTC、雾尾链、捕获精确常量/资源输入及生产端未全部闭合；其他变体未经本篇认证。不能以“同族结构”或当前实现代码替代原 HLSL 证据。
+
+下文保持原临时变量映射；占位符及省略段落必须回查原 HLSL，不承诺逐字完整。
 
 ## 1. 变体识别
+
+分派依据是wrapper `:232–233`（vertex）、`:586–587`（fragment）的完整条件和两份b125头注keyword。不能把b125当所有Hair的默认分支，透明/alpha test/specular-normal等相邻变体必须另行核查。
 
 `characternpr_hair.shader:586` 的条件(片元)/`:232`(顶点)完全相同:
 
@@ -65,11 +69,12 @@ Set0 全局纹理:`_ScreenSpaceShadowMask`(t22,Load 像素),`_CameraDepthTexture
 // ===== 0. 通用量 =====
 float  eyeDepth  = 1.0 / fragCoord.w;                       // SPIRV-Cross 已把 w 变成 1/w,故这里 = 线性视深
 float3 viewVec   = lerp(-positionRWS, ViewMatrix[2].xyz, _unity_OrthoParams.w);
-float  viewDist  = length(viewVec);            // _423,用 rsqrt(max(dot,1e-8)) 实现
-float3 V         = viewVec / viewDist;         // _422
+float viewLen2 = dot(viewVec,viewVec); float viewInvLen = rsqrt(max(viewLen2,1e-8));
+float  viewDist  = viewLen2 * viewInvLen;      // _423；短向量不等于length
+float3 V         = viewVec * viewInvLen;      // _422
 bool   skinned   = (asuint(PerDraw.Stripped_64.w) & 16u) != 0;
 float4 row0,row1,row2;   // objectToWorld 三行:蒙皮时从 _VertexSkinMatrices[Stripped_80.x + {0,1,2}] 读,否则 PerDraw.Stripped_0[0..2]
-float3x3 M_o2w   = float3x3(row0.xyz, row1.xyz, row2.xyz);  // mul(M_o2w, v): OS->WS ; mul(v, M_o2w): WS->OS
+float3x3 M_o2w   = float3x3(row0.xyz, row1.xyz, row2.xyz);  // 保留源mul方向；mul(v,M)不等于一般非正交矩阵的逆变换
 float3 positionWS = positionRWS + _WorldSpaceCameraPos_Internal.xyz;
 float3 rootToPixelH = normalize(float3(positionWS.x - row0.w, 6.103515625e-05, positionWS.z - row2.w)); // 角色根到像素的水平方向
 float3 camAxisZ  = float3(InvViewMatrix[0].z, InvViewMatrix[1].z, InvViewMatrix[2].z); // 相机 +Z(指向观察者)
@@ -99,7 +104,7 @@ float4 lineMap = _LineMap.Sample(sampler_LinearRepeat, uv0 * _LineMap_ST.xy + _L
 float3 T = tangentWS.xyz, B = cross(normalWS, tangentWS.xyz) * tangentWS.w, Nv0 = normalWS;
 float3 nWS = nTS.x * T + nTS.y * B + nTS.z * Nv0;
 float  faceSign = isFront ? 1.0 : (-1.0 + 2.0 * _BackFaceNormalFlip);
-float3 N  = normalize(nWS) * faceSign;         // 贴图法线
+float3 N  = (nWS * rsqrt(max(1.1754943508222875e-38, dot(nWS,nWS)))) * faceSign; // _560：贴图法线，保留归一下限
 float3 Nv = normalize(normalWS) * faceSign;    // 顶点法线(仅点光源分支用)
 // 发丝方向:物体空间 (AnisotropyDirX, 1, 0) 投影到切平面(取反),按 anisoSel 与网格切线混合
 float3 upWS  = normalize(mul(M_o2w, float3(_AnisotropyDirX, 1.0, 0.0)));
@@ -144,9 +149,11 @@ if (_CharacterParams1.y < 0.5) {
 
 // ===== 5. 雨滴(程序化涟漪,三平面)与雪 =====
 // 雨:if (saturate(wm.x + wetWater) - _DisableRainEffectOnMaterial > 0.01)。三平面坐标 restPosOS(蒙皮时 .xzy*(1,1,-1)) * _CharacterParams10.z,
-//   权重 pow(max(|restNormalOS|-0.2,0),10) 归一;每轴两套网格 (×32, ×48.3456) 的 hash 涟漪,时间 _Time.x。输出:
+//   权重 pow(max(|restNormalOS|-0.2,0),10)/max(sum,6.103515625e-05);每轴两套网格 (×32, ×48.3456) 的 hash 涟漪。
+//   非降雨湿润冻结时间：wetOnly=(step(rain,.01)*step(.01,wetWater)!=0); !wetOnly时_Time.x，否则1（fragment:660、678）。输出:
 float3 rainN = N;  float rainSpecBoost = 1.0;  float rippleI = 0, rippleAdd = 0, specScale = 1.0; float3 shadowColorW = shadowColor, albedoW = albedo;
-//   有雨时:rainN = 涟漪法线;rainSpecBoost = 1 + wetness;specScale = lerp(1, 0.8*lerp(0.5,1,s), r);albedoW/shadowColorW *= darken*(1-0.2*wetness)
+//   有雨时:rainN=涟漪法线;rainSpecBoost=(1-wetness)+2*wetness=1+wetness（fragment:676、933）;
+//   specScale=lerp(1,0.8*lerp(0.5,1,s),r);albedoW/shadowColorW *= darken*(1-0.2*wetness)。r/s等占位量尚未逐行认证。
 // 雪:if (wm.w - _DisableRainEffectOnMaterial > 0.01)
 float3 Ns = N; float3 diffuseBase = albedoW, shadowBase = shadowColorW;
 //   coverage = smoothstep(2-c(2-c), 2.35-c(2-c), restNormalOS.y*0.4+0.6 + snowTex.b) * shadowMask² * isFront,
@@ -265,7 +272,7 @@ color += rim + edgeLight;                                                       
 // 每光:PunctualLightData[i*8+k]。k=5.w 位1 -> 盒形衰减 (半精度 3x4 矩阵,(max|p|-(r+0.5))/(0.5-r) 平方);k=3.w 类型:16 跳过,
 //   (k=3.z + _CharacterParams12.z) < 0.5 跳过(角色灯层)。距离衰减:k=1.w 为 1/range,k=6.w 或 2*k=4.y 为指数(<0 用 (1-(d²r²)²)²/(d²+1));
 //   聚光:cone 由 k=2.xy 八面体解码方向,(dot-k2.z)*k2.w 平方;管状灯 k=2.z>0 走 LTC 近似;cookie k=7.w>=0 (2D 或 cube 展开 6 面)。
-//   阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, LinearMirrorOnce)。
+//   阴影:k=3.x 索引 _PunctualLightWorldToShadow,3x3 tent PCF 九次 SampleCmpLevelZero(_PunctualLightShadowTexV2, sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认）)。
 //   类型 4:color = lerp(color, lightRGB, atten * k4.x * ((1-k4.w) + smoothstep(-0.5,0.5,dot(Nv,Ldir))*k4.w))  (体积/环境灯,用顶点法线)
 //   类型 0:diffuse = lightRGB * ((1-k4.y) + k4.y / max(1, max3(lightRGB*atten)*lerp(0.75,0.5,shInv))) * lerp(0.25*k4.x, 1, saturate(NdotL_p+0.5)),
 //           color += diffuse*atten * lerp(diffuseTerm, diffuseTerm, sat(NdotL_p)) * premul + diffuse*atten * spec_p * sat(NdotL_p)
@@ -344,7 +351,7 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 | UnityPerDraw (space2) | `Stripped_0`(O2W),`Stripped_64.w` bit4 蒙皮,`Stripped_80.x` 蒙皮矩阵起点,`Stripped_208.xy` per-object 天气掩码/水位 | |
 | t22 `_ScreenSpaceShadowMask` | `.r` 方向光阴影,`.g` 角色遮挡/自阴影 | Load 像素 |
 | t46 `_CameraDepthTexture` | 深度边缘光、类型 3 点光 | LinearClamp |
-| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | LinearMirrorOnce (cmp) |
+| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认） (cmp) |
 | t30-t35 IV clipmap A/B Lod0/1/3 | 环境 SH | A: LinearRepeat,B: LinearMirror |
 | t36 `_IntegratedLightScattering` | 体积雾 froxel | LinearMirror |
 | t39 `_CharacterSnowEffectTex` | 雪三平面 | LinearRepeat + bias |
@@ -354,9 +361,9 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 ## 6. 未能解析的点
 
 1. **b1 与 b3 哪张是 `_HN`、哪张是 `_P`**:两者同为 2048² BC7_UNORM,寄存器 (t5 `_BumpMap`, t2 `_MetallicGlossMap`) 与捕获 binding 序号不是同一编号体系(t6 `_BaseMap` = b6 成立,但 t5 ≠ b5),只能按内容配对。
-2. `_HN` 若真是 RG/BA 分裂法线,本变体读到的是 `x=(A*R)*2-1, y=G*2-1`;需要用实际贴图像素验证 A 通道是否≈1,否则官方也在"错误"解包。
+2. 本变体真实读法是 `x=(A*R)*2-1,y=G*2-1`；不得依据_HN命名套RG/BA分离法线算法，也不能未经资产语义验证称官方“错误”。纹理通道定义与绑定须由原资源/capture证据确认。
 3. `_CharacterParams5/6/8/12/13/15`、`_DirectionalShadowParams.x`、`PerDraw.Stripped_208.xy` 的捕获值未提供;其中 CP6(环境梯度方向)、CP13.w(高光总乘数)、CP12.w(展示模式)直接影响亮度。
-4. `ScreenSpaceShadowMask.g` 的生产者未确认(推测是角色投影/接触阴影 pass);它同时门控 litMask、边缘光、雪。
+4. `ScreenSpaceShadowMask.g` 的生产者待独立核查；本变体它门控litMask/边缘光，不直接进入雪coverage（fragment:970只用packed.b²与frontface）。不能把推测生产端写成已确定的角色接触阴影。
 5. 雨滴涟漪分支(约 300 行程序化 hash)与点光源 PCF/cookie/LTC 细节只给出结构与输出,没有逐行还原;捕获帧下天气掩码≈0、无点光源命中时它们不改变结果。
-6. `_CharacterParams10.y` 捕获值"~0"若严格非零,低 8 位任何非零值都会打开雨湿分支;需确认精确 bit pattern。
+6. `_CharacterParams10.y` 是asuint重解释掩码而非数值float：必须读取精确bit pattern；CP10.x<=0.5时根本不选它。雨分支门槛为 `clamp(rain+wetWater,0,1)-disable > 0.009999999776482582`，低字节1或2（1/255、2/255）单独不足以触发，不能说“任意非零必开启”。
 7. `_IVParam1.xyz`、`_IVParam2` 未给捕获值;由于 CP1.y=1,本帧不采样辐照度体,对复现无影响,但换场景(CP1.y=0)时需要。

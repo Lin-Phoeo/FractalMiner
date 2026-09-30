@@ -2,7 +2,7 @@
 
 来源:`_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/postprocessing/lutbuilder2d.shader`(47 行)+ `lutbuilder2d\Sub0_Pass0_{Vertex,Fragment}_b{1,2}.hlsl`(全部 2 个变体,**已全文读完**)。
 
-> uberpost 文档(official-postprocess-uberpost.md)已注明"tone 曲线不在本 shader"——**本份补齐那条曲线**。uberpost 只做 `log 编码 → 采样 _LogLut2D → sRGB 解码`,tonemap 算子与全部调色烧在 LutBuilder2D 里。
+> uberpost 文档(official-postprocess-uberpost.md)已注明"tone 曲线不在本 shader"——**本份补齐那条曲线**。uberpost 只做 `log 编码 → 采样 _LogLut2D → 线性→sRGB 编码(OETF)`,tonemap 算子与全部调色烧在 LutBuilder2D 里。
 
 **本文不含任何单元测试或参考实现**(独立 oracle 由验收方另写),仅忠实转写源码。简写:`f_b1` = lutbuilder2d/Sub0_Pass0_Fragment_b1.hlsl,`f_b2` = …b2.hlsl,`v_b1/b2` = 同名 Vertex。
 
@@ -10,14 +10,14 @@
 > 1. **ACEScc toe 的 `0.5×` 是标准 ACEScc(S-2014-003),不是 HG 改动**;复刻**必须保留 0.5×,切勿"还原"成 2×**(原稿的"官方 2×"是猜测且错误,虽已 hedge)。"MODIFIED"指的是 `f_b2:185` 的有理拟合曲线 + 0.93 收敛 + 去饱和,不是 toe。
 > 2. §0-3 "中灰→0.57×":喂进拟合曲线的 0.18 是**调色后 AP1 值**(非场景线性中灰),仅近中性调色下成立,应标"近似"。
 > 3. b1 **不是**"线性 passthrough":它仍跑完整调色链(balance/curves/split-tone/mixer/S-M-H/LGG),只是无 ACES 工作空间 + 无 tonemap,输出未钳制线性。
-> **最大 ⚠(LUT 编码域)是 skin 偏暗的头号嫌疑**:bake 尾部(`f_b2:187`/`f_b1:107`)确无 γ/sRGB 编码指令(源码可判);LUT RT 是 sRGB 还是线性属 C# 侧、dump 不可判,但受"uberpost 对 LUT 采样做 sRGB 解码需自洽"强约束→LUT RT 几乎必为隐式 sRGB。**若我方复刻把 LUT 写进线性 RT 却仍套 uberpost 的 sRGB 解码,则整体被系统性压暗——正合"skin 偏暗"**。RenderDuck 抓 `_LogLut2D` 格式可定案,但 ACE 挡着;改由核我方 CapturedPost 的 LUT 构建/RT 格式闭合。
+> **[方向校正 2026-09-30] 原"LUT RT 必为隐式 sRGB / 线性 RT 会压暗"的推断基于把 uberpost 末步误判为"sRGB 解码",实为"线性→sRGB 编码(OETF)"(阈值 0.0031308 + 指数 1/2.4,见 official-postprocess-uberpost.md §4.4 校正),整条推断反了**:uberpost 对 LUT 采样值做**编码**(而非解码),说明 `_LogLut2D` 采样返回的是**线性**调色结果,uberpost 在输出端把它编码为显示域 sRGB。因此 lutbuilder 尾部**无 γ/sRGB 编码指令**(`f_b2:187`/`f_b1:107`)**恰是自洽的**——LUT 存线性、uberpost 编码,不存在"矛盾"。LUT RT 存线性(UNORM/half)即正确;写 sRGB RT 时硬件写编码+采样读解码相互抵消,采回同一线性值,对均值亮度无系统性影响(仅影响精度/banding)。**"skin 偏暗"不能由此机制解释**;真会压暗的复刻错误是"漏掉 uberpost 末步的线性→sRGB 编码"(输出留在线性域→显示偏暗),而非 LUT RT 格式。RT 格式(线性 vs sRGB vs half)仍属 C# 侧、dump 不可判,但已不再是亮度定案的关键 ⚠。
 
 ## 0. 对复刻管线的关键提示(先读这个)
 
-1. **官方没有独立 tonemap pass**。tonemap 只有两种存在方式:① TONEMAPPING_ACES_MODIFIED 变体把它烘进 LUT(f_b2:185,自定义有理拟合曲线);② TONEMAPPING_NONE 变体完全不 tonemap(LUT 输出未钳制线性 HDR,f_b1:107)。uberpost 侧无 TONEMAPPING keyword(uberpost.shader:20-29 只有 DIRTY_LENS/PERFORM_SHARPEN/USER_LUT/LENS_DISTORTION/VIGNETTE/VIGNETTE_MASK/BLOOM/BLOOM_DIRT/RADIAL_BLUR/RADIAL_BLUR_CHROMATIC_ABERRATION)。
-2. **运行时到底跑哪个变体 dump 内不可知**(两变体都被编译过)。判别方法:RenderDuck 抓 `_LogLut2D` 纹理内容——有肩部压缩(高光压到 ≤1)即 ACES_MODIFIED 在用。
-3. ACES_MODIFIED 对中灰的压缩量(推导值,由逐字常量计算):f(0.18)≈0.1033(线性域),即**中灰被打到约 0.57 倍**——若我们复刻时漏掉这条曲线或漏掉 LUT 链,肤色亮度/对比会整体偏离。skin 偏暗的排查应先对齐这条链,再看 b2:186 的固定 0.93 向亮度收敛与 b2:187 的高光去饱和。
-4. LUT 内容的"显隐式 sRGB 编码"问题见 §8——这是 dump 静态分析无法闭合的一环 ⚠待核,建议截帧确认。
+1. **本 LUT/UberPost 组合没有独立 tonemap pass**：b2 将该拟合曲线烘进 LUT，b1 没有该 tonemap 算子；这不是全游戏所有管线的排他性结论。uberpost 侧无 TONEMAPPING keyword。
+2. **生产端实际 keyword 须由 LUT 生成 draw 的 shader/常量证明**。仅看 LUT 高光 ≤1 不能排他判断 b2：b1 的曲线/调色/资源存储也可能限制值域。帧 6411 已导出消费端 LUT ResourceId19397，但生成端变体绑定仍须追踪。
+3. 拟合算子本身 f(0.18)≈0.1033，即约 0.57 倍；这里的 0.18 是完整调色后 AP1 曲线输出，不等于任意场景输入中灰或肤色。不得直接用该比例校准曝光。
+4. LUT 与 uberpost 的色彩空间衔接见 §8(**方向已校正:LUT 存线性、uberpost 末步做线性→sRGB 编码**);残留仅 LUT RT 精度/格式 ⚠待核,可截帧确认。
 
 ## 1. 变体识别
 
@@ -26,7 +26,7 @@
 | b1 | `TONEMAPPING_NONE`(catch-all,f_b1:2) | **无 tonemap**:log 解码 → 调色 → 曲线,输出未钳制线性 | 8695 B |
 | b2 | `TONEMAPPING_ACES_MODIFIED`(f_b2:2) | ACES 工作空间全链 + **ACES Modified 自定义拟合 tonemap**,输出钳制 [0,1] | 12888 B |
 
-wrapper(lutbuilder2d.shader):单 Pass `Name "LutBuilder2D"`(:9),ZClip On/ZWrite Off/Cull Off(:11-13),`#pragma target 5.0` + `#pragma use_dxc`(:15-16);keyword 是**两个独立 bool**:`multi_compile_local _ TONEMAPPING_NONE`(:20)、`_ TONEMAPPING_ACES_MODIFIED`(:21);派发只判 `!defined(TONEMAPPING_NONE) && defined(TONEMAPPING_ACES_MODIFIED)` → b2(:25/:35),否则 catch-all b1(:29/:39)。即 b1 兼容 {全关, NONE},b2 兼容 {ACES, NONE+ACES}。
+wrapper(lutbuilder2d.shader):单 Pass `Name "LutBuilder2D"`(:9),ZClip On/ZWrite Off/Cull Off(:11-13),`#pragma target 5.0` + `#pragma use_dxc`(:15-16);keyword 是**两个独立 bool**:`multi_compile_local _ TONEMAPPING_NONE`(:20)、`_ TONEMAPPING_ACES_MODIFIED`(:21)。派发只判 `!defined(TONEMAPPING_NONE) && defined(TONEMAPPING_ACES_MODIFIED)` → b2(:25/:35)，否则 b1(:29/:39)：b1={全关,NONE,NONE+ACES}，b2={只开ACES}。不能根据 blob 注释把同时开两者误分到 b2。
 
 ## 2. 顶点与插值器(两变体相同)
 
@@ -195,7 +195,7 @@ toe 条件: c1 < 3.0517570849042385816574096679688e-05 (=2^-15,逐通道)       
       cc < 1.46799647808074951171875:     L = pow(2, cc×17.520000457763671875 - 9.72000026702880859375)                                // :83
       否则:                               L = 65504.0                                                                                   // :88
 ```
-**toe 段被修改**:编码用 `0.5×c`(ACES 官方 S-2014-003 记忆中为 `2×x` ⚠待核以官方文档为准),但配套解码 `(2^(…)−2^-16)×2` 与之**严格互逆**(已验算)——是自洽的"Modified"对,不是 bug。阈值 -0.3013698756694793701171875 = ACEScc(2^-15)(验算 -0.30136984,吻合)、1.46799647808074951171875 ≈ ACEScc(2^16)(公式值 1.468036,差 4e-5,常量预计算舍入级)。
+**必须保留源码 toe 的 `0.5×c`**；与配套解码 `(2^(…)−2^-16)×2` 互逆，原稿“标准应为2×”猜测已撤销，不能据此改源码。阈值 -0.3013698756694793701171875 对应 toe 交界；上界1.46799647808074951171875对应 ACEScc(65504)，不是 ACEScc(2^16) 的舍入差。
 
 ### 7.3 AP0→AP1 + ColorFilter + γ(f_b2:145)
 ```
@@ -234,30 +234,34 @@ _598  = MAP2 × lerp(lumaA, _594, 0.930000007152557373046875)                   
 MAP2 = [ 1.70505154132843017578125   -0.621790707111358642578125   -0.083258680999279022216796875 ]   // f_b2:186(= ACES 官方 AP1→Rec.709,已对上)
        [ -0.13025714457035064697265625   1.140802860260009765625   -0.010548190213739871978759765625 ]
        [ -0.02400326915085315704345703125   -0.128968775272369384765625   1.15297162532806396484375 ]
-hi   = clamp((dot(_583, AP1权重) - 0.5) × 0.666666686534881591796875, 0, 1)    // :187(以 tonemap 前亮度驱动:0.5 起步、1.0 拉满)
+hi   = clamp((dot(_583, AP1权重) - 0.5) × 0.666666686534881591796875, 0, 1)    // :187(以 tonemap 前亮度驱动:0.5 起步、2.0 拉满)
 out  = clamp(lerp(_598, clamp(_598 / max(max3(_598), 9.9999997473787516355514526367188e-06), 0, 1), hi), 0, 1)   // :187(高光向最大通道归一 → 去饱和)
 ```
 **b2 输出:709 域、钳制 [0,1] 的 LDR 色**(:187)。
 
 ## 8. LUT 输出色彩空间与 uberpost 的衔接 ⚠待核(本份最重要的一处未闭合)
 
-uberpost 链(official-postprocess-uberpost.md §4.2-4.4,已验收):场景色 → 曝光 → **log 编码**(与 §6.1 解码严格互逆,已验算)→ 采样 `_LogLut2D`(t2,space3,f_b288:179)→ **sRGB 解码**(0.003130800090730190277099609375 / 12.9200000762939453125 / 0.4166666567325592041015625 / 1.05499994754791259765625 / 0.054999999701976776123046875)→ 抖动。注意 uberpost 的 `_Lut_Params` 是 uberpost 自有 cb0 槽(f_b288:148-176),与本文 `ColorGradingCB.Lut_Params`(b9 c2)**不是同一缓冲**,勿混用。
+uberpost 链(official-postprocess-uberpost.md §4.2-4.4,已验收):场景色 → 曝光 → **log 编码**(与 §6.1 解码严格互逆,已验算)→ 采样 `_LogLut2D`(t2,space3,f_b288:179)→ **线性→sRGB 编码 / OETF**(0.003130800090730190277099609375 / 12.9200000762939453125 / 0.4166666567325592041015625 / 1.05499994754791259765625 / 0.054999999701976776123046875;阈值 0.0031308 + 指数 1/2.4 = OETF,**编码非解码**)→ 抖动。注意 uberpost 的 `_Lut_Params` 是 uberpost 自有 cb0 槽(f_b288:148-176),与本文 `ColorGradingCB.Lut_Params`(b9 c2)**不是同一缓冲**,勿混用。
 
-矛盾点:lutbuilder 两个变体的最后一步都没有显式 γ 编码指令(b1:107 / b2:187),而 uberpost 却对 LUT 采样结果做 sRGB 解码——**要使系统自洽,LUT 纹理内容必须是 sRGB(显示域)编码的**。两种可能机制:
-- (a) LUT RT 为 sRGB 格式,写入时硬件隐式编码(但 §6.9 的 ×1/(1-max) 可产出 >1 值,sRGB8 会截断 → 除非曲线输出恰好都 <1);
-- (b) `_CurveMaster/_CurveRed/_CurveGreen/_CurveBlue` 四张 ramp 纹理的数据本身就是显示域编码,采样返回值即"已编码"。
-dump 内无法看到纹理内容/RT 格式,两说均不能排除 ⚠待核——**建议 RenderDuck 抓 `_LogLut2D` 内容 + 其 RT 格式一举定案**。这一环若搞反,整条 LUT 链会整体偏亮/偏暗,是 skin 偏暗排查的最高优先验证点。
+矛盾点(**[方向校正 2026-09-30] 此"矛盾"实际不存在**):原文认为 lutbuilder 尾部无显式 γ 编码指令(b1:107 / b2:187)、而 uberpost 却对 LUT 采样"解码",故推断"LUT 内容必须是 sRGB 编码的"。但 uberpost 末步是**线性→sRGB 编码(OETF)而非解码**(见 §0 校正框与 official-postprocess-uberpost.md §4.4)——所以正确图景是:**LUT 存线性调色结果,uberpost 在输出端编码为显示 sRGB**,两者本就自洽,lutbuilder 尾部不做 γ 编码正是对的。故 LUT 纹理内容应为**线性**,而非 sRGB。以下原推断的两种"sRGB 机制"已作废,仅保留作历史记录:
+- ~~(a) LUT RT 为 sRGB 格式,写入时硬件隐式编码~~(即便用 sRGB RT,写编码+读解码相互抵消,采回线性值,不改变链路语义);
+- ~~(b) 四张 ramp 纹理数据本身为显示域编码~~(与"uberpost 编码"叠加会双重编码→偏亮,反而不自洽)。
+dump 内无法看到纹理内容/RT 格式 ⚠待核,可截帧确认精度/格式;但**方向已定案(LUT 线性、uberpost 编码)**,RT 格式仅关精度与 banding,不再是亮度定案关键。若复刻整体偏暗,先查是否漏了 uberpost 末步的线性→sRGB 编码,而非 LUT RT 格式。
 
 ## 9. ⚠待核汇总
 
-1. §8 的 LUT 输出色彩空间机制(sRGB RT 隐式编码 vs 曲线纹理数据域)。
+1. 帧6411消费端 LUT 已有 `Validation/Captures/tifuluosi-front-20260917/pipeline-textures-01/grading-lut-manifest.json`：ResourceId19397、1024×32、`R16G16B16A16_FLOAT`；其他时刻/平台与生成端绑定未闭合。不能把这个格式归纳成所有 LUT。
 2. 运行时 TONEMAPPING keyword 实际取值(C# 侧;dump 只见两变体都编译过)。
 3. `Lut_Params` 各分量的 CPU 侧取值(.x 条带数 N、.yz 偏移、.w 缩放)与 LUT RT 尺寸/格式。
 4. M1/M2 矩阵对的出处(严格互逆、M2 非白点保持;为何保留在源码里)。
-5. ACEScc toe 段编码系数 0.5× 与 ACES 官方 S-2014-003(记忆中 2×)的差异——官方值以 ACES 文档为准;HG 编解码对内部自洽(已验算)。
+5. 外部 ACES 规范/矩阵的命名、版本与设计来源不是 GPU 输入契约；本轮以解包逐字常量为依据，不再沿用“记忆中2×”的已撤销猜测。
 6. ColorBalance/ColorFilter 与"白平衡温度/色调"UI 参数的 CPU 侧换算关系。
 7. LUT 烘焙时机(每帧/参数变更时)与曲线纹理(ramp)的来源。
-8. b2:65 的 65504 钳制暗示 LUT RT 为 half 精度——待截帧确认格式。
+8. b2:65 的 65504 钳制本身不是 RT 类型证明；帧6411的 half 格式已由捕获纹理清单确认。
+
+## 10. 封存审核范围（2026-09-30）
+
+wrapper两关键字派发、b1/b2核心log/调色/输出结构已回源；上述公式仍是导读，精确执行以对应HLSL运算顺序为准。`M1×M2`近似互逆不能授权运行时代码删除矩阵，f32舍入也是实际算法的一部分。曲线纹理的内容、采样格式、参数生产及更新时机没有全部恢复，故目前不能以这份文档证明动态官方调色已完整实现；旧“可放心复刻/验收”只指已有静态抽取，不构成全链路认证。
 
 ---
 *仅静态转写,行号指 lutbuilder2d.shader 与 lutbuilder2d\Sub0_Pass0_*.hlsl;无测试/参考实现。*

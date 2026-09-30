@@ -3,11 +3,17 @@
 来源:`_dump_1.5.3/.../characternpr/characternpr/Sub0_Pass0_Fragment_b401.hlsl`(1499 行,SPIR-V-Cross 输出),
 配套顶点 `Sub0_Pass0_Vertex_b401.hlsl`(同一 keyword 行,输出结构 TEXCOORD0..8 与片元输入完全一致),
 属性/关键字来自 `characternpr.shader`(Pass "ForwardLit",`#pragma target 5.0`,dxc)。
-下文中所有数字、swizzle、clamp、pow 指数均按原码保留;`mad`/位运算已改写为普通算式。
+> 2026-09-30 资料核查：本文只描述 b401 的选定核心公式，不是 body 捕获事件的规格，也不是完整可编译实现。已回源修正法线、粗糙度/法线角色、GGX、清漆与环境 BRDF。天气 hash、IV、点光源/PCF/cookie/LTC、雾、资源/常量生产端及其他变体未在本文闭合；捕获表的 body 标签与值为历史误配数据，不得认证为 b401 的运行输入。
+
+下文保留说明性转写及原临时变量编号；未展开段落必须以原 HLSL 为准，不能由“同 hair”认证。
 本变体 **无** `_SpecRampMap`/`_DiffRampMap`/`_LineMap` 采样(无 `_SPEC_RAMP_ON`/`_DIFF_RAMP_ON`/`_SPECULAR_LINE`),
 漫反射 ramp 是**解析平滑阶跃**而非贴图驱动;**无** 视差/流动分支(`_PARALLAX_MAP` 未开,见第 1 节)。
 
+> **旧事件误配撤回**：event786的set1 t1为1024×32 LUT、t2为256×1 ramp，与b401声明的MetallicGlossMap/ClearCoatMask不符。应回查Skin b114/b208的反射/绑定证据；不能以现有仓库代码注释当独立证明。本文仅作b401核心转写，禁止据旧body绑定表或捕获数值认定body使用b401。另：旧批注“ClearCoat power-3”错误，b401原式是五次幂，已更正§13。
+
 ## 1. 变体识别
+
+分派依据是wrapper `characternpr.shader:379–380`（vertex）、`:1705–1706`（fragment）的完整条件，以及b401第2行keyword；并非默认catchall。835/850的实际ramp/emission等变体不能通过本篇b401替代认证。
 
 `characternpr.shader:284-315` 的 `multi_compile_local` 全集里,本变体(vertices/fragment 头注释一致)命中:
 
@@ -78,8 +84,9 @@ Set0 全局纹理(与 hair 同族,本帧 event 875 捕获):`_ScreenSpaceShadowMa
 // ===== 0. 通用量 =====
 float  eyeDepth  = 1.0 / fragCoord.w;                       // _426 = 线性视深
 float3 viewVec   = lerp(-positionRWS, ViewMatrix[2].xyz, _unity_OrthoParams.w);
-float  viewDist  = length(viewVec);                         // _446 (用 rsqrt(max(dot,1e-8)) 实现)
-float3 V         = viewVec / viewDist;                     // _445
+float viewLen2 = dot(viewVec,viewVec); float viewInvLen = rsqrt(max(viewLen2,1e-8));
+float  viewDist  = viewLen2 * viewInvLen;                   // _446；短向量不等于length
+float3 V         = viewVec * viewInvLen;                   // _445
 bool   skinned   = (asuint(PerDraw.Stripped_64.w) & 16u) != 0;
 float4 row0,row2;   // objectToWorld 第0/2行:蒙皮时从 _VertexSkinMatrices[Stripped_80.x + {0,2}] 读,否则 PerDraw.Stripped_0[0]/[2]
 float3x3 M_o2w   = float3x3(row0.xyz, PerDraw.Stripped_0[1].xyz, row2.xyz);
@@ -105,13 +112,13 @@ float3 shadowColor = lerp(dot(sc, LUM).xxx, sc, _ShadowColorSaturation); // _501
 // ===== 2. 法线(本变体 diffuse/specular 共用同一法线)=====
 float4 nm = _BumpMap.SampleBias(sampler_LinearClamp, uv0, _GlobalMipBias);  // _505
 nm.a *= nm.r;                       // BC5 下 A=1,等价于 RG 解包
-float2 nTSxy = (nm.aw * 2.0 - 1.0); // _514 = (A*R*2-1, G*2-1)
-float3 nTS = float3(nTSxy, sqrt(max(1e-16, 1.0 - clamp(dot(nTSxy, nTSxy), 0, 1)))); // _515
+float2 nTSxy = (nm.wy * 2.0 - 1.0); // _514 = (A*R*2-1, G*2-1)，fragment:426
+float3 nTS = float3(nTSxy, max(1e-16, sqrt(1.0 - clamp(dot(nTSxy, nTSxy), 0, 1)))); // _515；max在sqrt之外
 nTS.xy *= _BumpScale;               // _524
 float3 T = tangentWS.xyz, B = cross(normalWS, tangentWS.xyz) * tangentWS.w, Nv0 = normalWS;
 float3 nWS = nTS.x * T + nTS.y * B + nTS.z * Nv0;          // _546
 float  faceSign = isFront ? 1.0 : (-1.0 + 2.0 * _BackFaceNormalFlip);
-float3 N  = normalize(nWS) * faceSign;        // 贴图法线 _556
+float3 N  = (nWS * rsqrt(max(1.1754943508222875e-38, dot(nWS,nWS)))) * faceSign; // _556：贴图法线，保留归一下限
 float3 Nv = normalize(normalWS) * faceSign;   // 顶点法线 _557
 
 // ===== 3. 天气掩码(雨/水位/雪),来自 _CharacterParams10 或 per-object =====
@@ -120,7 +127,7 @@ float4 wm     = float4(wmask & 255, (wmask >> 8) & 255, (wmask >> 16) & 255, (wm
 float rainWet  = wm.x;                 // _592
 float snowW    = wm.w;                 // _595
 float waterLine = lerp(PerDraw.Stripped_208.y, _CharacterParams10.w, _CharacterParams10.x); // CP10.x=0 -> per-object.y
-float wetWater  = max(wm.z, smoothstep(-0.2, 0.15, waterLine - positionWS.y) * wm.y);       // _604
+float wetWater  = smoothstep(-0.2, 0.15, waterLine - positionWS.y) * wm.y; // _604：水线贡献，不预先max常湿
 float wetness   = max(wm.z, wetWater);  // _605
 float ambientScale = lerp(_EnvironmentGlobalParams0.x, 1.0, _CharacterParams12.w) * _ExposureWithMiscParams.x; // _614 = 0.2877*1
 
@@ -153,7 +160,7 @@ float3 Ncc     = lerp(Nv, N, _ClearCoatNormalMode);   // _1147 (Mode=0 -> 顶点
 // } else { _1855=N; _1856=0; _1857=0.01; _1858=0; _1859=sm01; _1860=shadowColor; _1861=albedo; }
 // [branch] if (snowW - _DisableRainEffectOnMaterial > 0.01) { ... 三平面雪覆盖 + 法线扰动 ...
 //   -> _1991(雪法线),_1992(雪 roughness),_1993(雪阴影色),_1994(雪反照率),_1995(雪 metallic)
-// } else { _1991=_1855; _1992=_1859; _1993=_1860; _1994=_1861; _1995=_484; }
+// } else { _1991=N; _1992=_1859; _1993=_1860; _1994=_1861; _1995=_484; } // 源码885：_1991=_556，不是雨法线_1855
 // 本帧天气掩码≈0 -> 两分支均跳过,_1855=N,_1991=N,_1992=sm01,_1993=shadowColor(=0),_1994=albedo,_1995=metallic
 
 // ===== 7. PBR 组合(金属-光滑路径)=====
@@ -200,8 +207,10 @@ float3 lightTerm = lerp(
     (lerp(dot(lightColorI, LUM).xxx, lightColorI, litMask)
        + ambient * clamp(ambientPeak, 0.0, 1.5) * ((1.0 - _CharacterParams12.y) + lightColor * _CharacterParams12.y)) * _CharacterParams0.y,
     shadowDir);                                                                                // _2167
-float3 baseSel = lerp(lerp(lerp(dot(shadowDeep, LUM).xxx, shadowDeep, 1.2), shadowDeep, saturate(occl * litView + t)), diffuseColor, litMask); // _2168
-float3 rampTinted = baseSel * ((1.0 - rampChroma) + baseSel * rampChroma);    // _2174 = baseSel (chroma=0)
+float3 shadowDeep2 = shadowDeep * 0.6499999761581421; // _2090
+float rampViewRaw = smoothstep(0.25,1.0,dot(Nlit,camAxisZ)); // _2128，litView=rampViewRaw*occl
+float3 baseSel = lerp(lerp(lerp(dot(shadowDeep2, LUM).xxx, shadowDeep2, 1.2), shadowDeep, saturate(occl * rampViewRaw + t)), diffuseColor, litMask); // _2168，fragment:927；不能多乘一次occl
+float3 rampTinted = baseSel * ((1.0 - rampChroma) + t.xxx * rampChroma);    // _2174 = baseSel (chroma=0)
 float3 diffuseTerm = lerp(lerp(shadowDeep, lerp(lumDiffuse.xxx, diffuseColor, 1.2), litView),
     rampTinted * clamp(dot(baseSel, LUM) / max(dot(rampTinted, LUM), 0.001), 0.0, 1.5), shadowDir); // _2183
 float  litBlend  = lerp(litView, litMask, shadowDir);                          // _2189
@@ -209,13 +218,14 @@ float  specLightMul = lerp(_CharacterParams0.z, 1.0, litBlend);                /
 
 // ===== 12. 方向光 GGX 高光(基础层)=====
 float3 pseudoL = float3(camAxisZ.x, lerp(0.5, L.y, shadowDir), camAxisZ.z);   // _2200
-float3 H = normalize((L * shadowDir) + (normalize(pseudoL) * 2.0) + (V * (2.0 + shadowDir))); // _2211 (GGX 半程近似)
-float  NdotV = clamp(dot(Nlit, V), 0.0, 1.0);                                  // _2213
-float  NdotH = dot(Nlit, H);                                                   // _2214
+float3 pseudoLNorm = pseudoL * rsqrt(max(1.1754943508222875e-38, dot(pseudoL,pseudoL)));
+float3 H = normalize((L * shadowDir) + (pseudoLNorm * 2.0) + (V * (2.0 + shadowDir))); // _2211 (GGX 半程近似)
+float  NdotV = clamp(dot(_1855, V), 0.0, 1.0);                                // _2213，雨法线，不是雪法线Nlit
+float  NdotH = dot(_1855, H);                                                 // _2214
 float  a4 = roughSq * roughSq;                                                 // _2215
 float  denom = ((NdotH * a4) - NdotH) * NdotH + 1.0;                           // _2219 = NdotH^2*(a4-1)+1 (GGX D 分母)
 float  denom2 = denom * denom;                                                 // _2220
-float  ggxD = ((a4 != denom2) ? (a4 / denom2) : 1.0) * (0.5 / ((2.0 * NdotV) + (roughSq * 1.0) + 1e-5)) - 6.103515625e-05; // _2234
+float  ggxD = ((a4 != denom2) ? (a4 / denom2) : 1.0) * (0.5 / ((2.0 * NdotV) + (roughSq * ((1.0+NdotV)-NdotV)) + 9.9999997473787516e-05)) - 6.103515625e-05; // _2234
 float3 baseSpec = specColor * clamp(ggxD, 0.0, 20.0);                          // 方向光基础层 GGX 高光
 
 // ===== 13. ClearCoat 层(逐像素由 ccMaskV 门控)=====
@@ -226,16 +236,17 @@ if (ccOn) {
     float cNdotH = dot(Ncc, H);                                  // _2240
     float cNdotV = clamp(dot(Ncc, V), 0.0, 1.0);                 // _2242
     float oneMinusVdotH = 1.0 - clamp(dot(V, H), 0.0, 1.0);      // _2243
-    float fSchlick = oneMinusVdotH * oneMinusVdotH * oneMinusVdotH;  // _2246 (清漆 Schlick,指数 3 非 5)
+    float f2 = oneMinusVdotH * oneMinusVdotH;
+    float fSchlick = (oneMinusVdotH * f2) * f2; // _2246：5次幂，fragment:950–953
     float3 ccFres = ((ccF0 * (1.0 - fSchlick)) + fSchlick.xxx) * ccMaskV; // _2251 = 清漆 Fresnel*mask
     ccAtten = lerp(1.0, 1.0 - ccFres, ccMaskV);                  // _2277 = 1 - 清漆反射率*mask
     float  ccA4 = ccRough * ccRough;                             // _2255
     float  ccDenom = ((cNdotH * ccA4) - cNdotH) * cNdotH + 1.0;  // _2259
     float  ccDenom2 = ccDenom * ccDenom;                        // _2260
-    float3 ccGGX = clamp((((ccF0 * (1.0 - (oneMinusVdotH*oneMinusVdotH*oneMinusVdotH*oneMinusVdotH))) + (oneMinusVdotH*oneMinusVdotH*oneMinusVdotH*oneMinusVdotH).xxx) * ccMaskV)
-                    * ((ccA4 != ccDenom2) ? (ccA4 / ccDenom2) : 1.0)) * (0.5 / ((2.0 * cNdotV) + (ccRough * ((1.0 + cNdotV) - cNdotV)) + 1e-5)), 0.0, 20.0); // _2278
+    float3 ccGGX = clamp((ccFres * ((ccA4 != ccDenom2) ? (ccA4 / ccDenom2) : 1.0))
+                    * (0.5 / ((2.0 * cNdotV) + (ccRough * ((1.0 + cNdotV) - cNdotV)) + 9.9999997473787516e-05)), 0.0, 20.0); // _2278，复用同一5次幂Fresnel
     // 注:上式 ccGGX 为清漆层 GGX 高光(基色 ccF0,粗糙度 ccRough);最终:
-    ccSpec = baseSpec * ((1.0 - ccFres) * (1.0 - ccFres)) + ccGGX;   // _2278 = 基础层*清漆Fresnel^2 + 清漆层
+    ccSpec = baseSpec * ((1.0 - ccFres) * (1.0 - ccFres)) + ccGGX;   // _2278 = 基础层*(1-清漆Fresnel)^2 + 清漆层
 } else {
     ccAtten = 1.0; ccSpec = baseSpec;
 }
@@ -258,27 +269,27 @@ float  LhN = dot(Lh, Nlit);
 float  shInv = 1.0 - shadowDir;
 // 深度 rim(CP8=0 -> 黑色,贡献为 0):
 float3 rim = _CharacterParams8.xyz * smoothstep(lerp(0.8, 0.2, _CharacterParams9.w), lerp(0.9, 0.5, _CharacterParams9.w), fresnelRim) * _CharacterParams8.w
-           * min(min(clamp(dot(N, rimDir) + 1.0, 0.0, 1.0), shadowMask), ssmG)
+           * min(min(clamp(dot(rootToPixelH, rimDir) + 1.0, 0.0, 1.0), shadowMask), ssmG)
            * (lerp(0.25.xxx, diffuseColor, _CharacterParams9.z) * clamp(dot(rimDir, Nlit), 0.0, 1.0));
 // 逆光 Fresnel 边缘光(CP12.x=1 -> cp12xInv=0 -> 整项为 0):
-float3 edgeLight = lerp(ambientRGB / max(max(ambientRGB) * 0.5, 1.0), lightColorI, shadowDir)
+float3 edgeLight = lerp(ambientRGB / max(max3(ambientRGB) * 0.5, 1.0), lightColorI, shadowDir)
     * clamp(lerp(dot(shDominant.xyz, Nlit) * shDominant.w, -LhN * (LhN * 0.5 - 1.0) + 0.5, shadowDir), 0.0, 1.0)
     * ((shInv + backlit * shadowDir) * cp12xInv)            // = 0
     * smoothstep(0.6, 0.8, fresnelRim) * min(shadowMask, ssmG)
     * (shInv + smoothstep(0.1, 0.04, lumDiffuse) * shadowDir) * max(0.15.xxx, diffuseColor);
 color += rim + edgeLight;                                   // 本帧 rim=edgeLight=0 -> color 不变
 
-// 紧凑式 Stylized Fresnel(解析环境 BRDF,NdotV 的有理多项式):
-float  nvv = NdotV * NdotV;                                 // _2400
-float  nv3 = nvv * NdotV;                                   // _2401/_2402
-float  fresA = dot(mul(float2(1.0, NdotV), float2x2(float2(0.03654630109667778, 9.06319999694824), float2(3.32706999778748, -9.04755973815918))), float2(1.0, nvv))
-            / dot(mul(float3(1.0, nvv, nv3), float3x3(float3(1.0, 9.04401016235352, 5.56588983535767), float3(3.59684991836548, -16.3173999786377, 19.7886009216309), float3(-1.36772000789642, 9.22949028015137, -20.2122993469238))), float3(1.0, nvv, nvv * nvv)); // _2414
-float  fresB = dot(mul(float2(1.0, NdotV), float2x2(float2(0.990440011024475, 1.29677999019623), float2(-1.28514003753662, -0.755906999111175))), float2(1.0, nvv))
-            / dot(mul(float3(1.0, NdotV, nv3), float3x3(float3(1.0, 20.3225002288818, 121.563003540039), float3(2.92337989807129, -27.0301990509033, 626.130004882812), float3(59.4188003540039, 222.591995239258, 316.627014160156))), float3(1.0, nvv, nvv * nvv)); // _2419
+// 紧凑式环境BRDF是NdotV与envRough两个自变量的有理多项式，fragment:975–983。
+float envRough = lerp(_1992, _1857, _1856); // _2399
+float r2 = envRough*envRough, r6 = (r2*r2)*r2;
+float nvv = NdotV*NdotV, nv3 = nvv*NdotV;
+float fresA = dot(mul(float2(1,NdotV),float2x2(float2(0.03654630109667778,9.06319999694824),float2(3.32706999778748,-9.04755973815918))),float2(1,r2))
+            / dot(mul(float3(1,nvv,nv3),float3x3(float3(1,9.04401016235352,5.56588983535767),float3(3.59684991836548,-16.3173999786377,19.7886009216309),float3(-1.36772000789642,9.22949028015137,-20.2122993469238))),float3(1,r2,r6)); // _2414
+float fresB = dot(mul(float2(1,NdotV),float2x2(float2(0.990440011024475,1.29677999019623),float2(-1.28514003753662,-0.755906999111175))),float2(1,r2))
+            / dot(mul(float3(1,NdotV,nv3),float3x3(float3(1,20.3225002288818,121.563003540039),float3(2.92337989807129,-27.0301990509033,626.130004882812),float3(59.4188003540039,222.591995239258,316.627014160156))),float3(1,r2,r6)); // _2419
 float3 envFres = specColor * fresA + fresB.xxx;            // _2422 Fresnel 加权的环境反射率
 float  envFresSum = fresA + fresB;                         // _2423
-float  envRough = lerp(_1992, _1857, _1856);               // _2399 = 1-smoothness (IBL 模糊度)
-float3 cubeRefl = _CharMaxCubemap.SampleLevel(sampler_LinearRepeat, reflect(-V, Nlit),
+float3 cubeRefl = _CharMaxCubemap.SampleLevel(sampler_LinearRepeat, reflect(-V, _1855),
                     (1.2 * log2(max(envRough, 0.001)) + 5.0).xxx)
                   * (envFres + (specColor * ((1.0 - envFresSum) / envFresSum)) * envFres);  // _2441
 
@@ -286,10 +297,11 @@ float3 cubeRefl = _CharMaxCubemap.SampleLevel(sampler_LinearRepeat, reflect(-V, 
 float3 cubeReflAll = cubeRefl;
 if (ccOn) {
     float  cNdotV2 = clamp(dot(Ncc, V), 0.0, 1.0);
-    float  cfA = dot(mul(float2(1.0, cNdotV2), float2x2(float2(0.03654630109667778, 9.06319999694824), float2(3.32706999778748, -9.04755973815918))), float2(1.0, cNdotV2*cNdotV2))
-              / dot(mul(float3(1.0, cNdotV2*cNdotV2, cNdotV2*cNdotV2*cNdotV2), float3x3(float3(1.0, 9.04401016235352, 5.56588983535767), float3(3.59684991836548, -16.3173999786377, 19.7886009216309), float3(-1.36772000789642, 9.22949028015137, -20.2122993469238))), float3(1.0, cNdotV2*cNdotV2, cNdotV2*cNdotV2*cNdotV2*cNdotV2)); // _2469
-    float  cfB = dot(mul(float2(1.0, cNdotV2), float2x2(float2(0.990440011024475, 1.29677999019623), float2(-1.28514003753662, -0.755906999111175))), float2(1.0, cNdotV2*cNdotV2))
-              / dot(mul(float3(1.0, cNdotV2, cNdotV2*cNdotV2), float3x3(float3(1.0, 20.3225002288818, 121.563003540039), float3(2.92337989807129, -27.0301990509033, 626.130004882812), float3(59.4188003540039, 222.591995239258, 316.627014160156))), float3(1.0, cNdotV2*cNdotV2, cNdotV2*cNdotV2*cNdotV2)); // _2474
+    float cr2 = ccRough0sq, cr6 = (cr2*cr2)*cr2; // _1130、_2464，不能替换成clamp后的ccRough
+    float cfA = dot(mul(float2(1,cNdotV2),float2x2(float2(0.03654630109667778,9.06319999694824),float2(3.32706999778748,-9.04755973815918))),float2(1,cr2))
+              / dot(mul(float3(1,cNdotV2*cNdotV2,cNdotV2*cNdotV2*cNdotV2),float3x3(float3(1,9.04401016235352,5.56588983535767),float3(3.59684991836548,-16.3173999786377,19.7886009216309),float3(-1.36772000789642,9.22949028015137,-20.2122993469238))),float3(1,cr2,cr6)); // _2469
+    float cfB = dot(mul(float2(1,cNdotV2),float2x2(float2(0.990440011024475,1.29677999019623),float2(-1.28514003753662,-0.755906999111175))),float2(1,cr2))
+              / dot(mul(float3(1,cNdotV2,cNdotV2*cNdotV2*cNdotV2),float3x3(float3(1,20.3225002288818,121.563003540039),float3(2.92337989807129,-27.0301990509033,626.130004882812),float3(59.4188003540039,222.591995239258,316.627014160156))),float3(1,cr2,cr6)); // _2474
     float3 ccEnvFres = ccF0 * cfA + cfB.xxx;               // _2477
     float  ccEnvSum = cfA + cfB;                           // _2478
     cubeReflAll = cubeRefl + (_CharMaxCubemap.SampleLevel(sampler_LinearRepeat, reflect(-V, Ncc),
@@ -370,7 +382,7 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 | t2 `_ClearCoatMask`(space1) | 清漆强度 | LinearClamp + bias |
 | t45 `_CharMaxCubemap`(space0) | 角色环境立方体反射 | LinearRepeat,LOD 由 `(1.2*log2(rough)+5)` |
 | t22 `_ScreenSpaceShadowMask` | `.r` 方向光阴影,`.g` 角色遮挡/自阴影 | Load 像素 |
-| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | LinearMirrorOnce (cmp) |
+| t27 `_PunctualLightShadowTexV2` | 点光源 PCF | sampler_LinearMirror（s7；实际寻址/compare由捕获sampler状态确认） (cmp) |
 | t30-t35 IV clipmap A/B Lod0/1/3 | 环境 SH | A: LinearClamp,B: LinearRepeat |
 | t36 `_IntegratedLightScattering` | 体积雾 froxel | LinearMirror |
 | t39/44/41 `_CharacterSnow/Rain/RainStreakEffectTex` | 雪/雨三平面 | LinearClamp + bias |
@@ -382,10 +394,10 @@ SV_Target0 = outColor;   SV_Target1 = target1;
 ## 6. 未解析 / 待确认点
 
 1. **视差/流动不在本变体**:任务所述"cloth 走 `_UseParallax=1` + `_ParallaxTex` 流动"对应的是 **b1005/b1011**(cloth_01/02,相邻变体,其关键字含 `_PARALLAX_MAP`)。b401 的 keyword 列表**不含** `_PARALLAX_MAP`,且片元不声明 `_ParallaxTex`,视差代码已编译剔除。如需视差分支,应另译 b1005/b1011 并注明差异(寄存器/采样会多出 `_ParallaxTex` 流动 UV 偏移)。
-2. **`_ClearCoatMask` 逐像素值未捕获**:set1 b2 绑定 256×1 R8G8B8A8_UNORM,但捕获未给像素级 mask;清漆层(第 13 节)整体由 `ccMaskV>0.001` 门控。body 材质一般应有非零清漆(服装外涂层),但精确反射强度取决于该贴图。
-3. **per-object 天气掩码未知**:CP10.x=0 时取 `PerDraw.Stripped_208.x`;该值未在 event 786 捕获(全局块不含 per-object)。本帧按任务给的"天气掩码≈0"假设雨/雪分支跳过;若 `Stripped_208.x` 低 8 位非零,会打开雨湿分支(改动法线/粗糙度/反照率),但不影响非雨区域主体亮度。
+2. **`_ClearCoatMask` 绑定未认证**：旧表的event786 set1 b2=256×1 ramp属于Skin，不是b401的ClearCoatMask；不能据该事件假定body有清漆。b401门槛 `ccMaskV>0.001`，输入须在实际使用b401的draw独立绑定。
+3. **per-object天气输入未认证**：CP10.x<=0.5时须对实际draw的Stripped_208.x做asuint重解释；“float≈0”不等于掩码为零。雨门槛是 `clamp(rainWet+wetness,0,1)-disable > 0.009999999776482582`（fragment:628，wetness=max常湿与水线），低字节1或2单独不触发；不能用错误归属的event786数据证明b401干燥分支。
 4. **`_DirectionalShadowParams.x` 未捕获**:`shadowDir = lerp(lerp(1, ssm.r, x), 1, CP1.z=0)` 仍依赖它;CP1.z=0 表示方向光屏幕阴影参与。捕获未给该值。
 5. **`_CharacterParams3/4/14`(偏移 1760/1776/1936)与本帧无关**:cbuffer 中 strip,函数体不引用,但与 hair 全局块同地址,已在第 4 节排除。
-6. **Stylized Fresnel 魔数来源**:第 15 节的 `fresA/fresB` 12 个常量(0.0365463/9.0632/3.32707/-9.04756/9.04401/5.56589/3.59685/-16.3174/19.7886/-1.36772/9.22949/-20.2123 与 0.99044/1.29678/-1.28514/-0.755907/20.3225/121.563/2.92338/-27.0302/626.13/59.4188/222.592/316.627)是引擎的**紧凑式解析环境 BRDF(Stylized Fresnel)**仿射逼近(NdotV 的有理多项式,类似 Karis/Filament 环境 BRDF 紧凑拟合),恒开、用于加权 `_CharMaxCubemap` 反射。注意 `_STYLIZED_FRESNEL` 关键字(额外着色 Fresnel 边,见 event 892 overlay 的 `_StylizedFresnelColor/Pow/Amount`)在 b401 为 OFF,与这里的恒开 IBL Fresnel 是两回事。
+6. **环境BRDF常量出处**：§15两组固定矩阵可直接由fragment:982–998核对，输入为NdotV与roughness的幂，不是单变量NdotV。其算法命名/论文出处未由反编译证实，不认证“Karis/Filament来源”。b401的 `_STYLIZED_FRESNEL` keyword为OFF，不妨碍源码实际存在环境反射多项式。
 7. **雨滴涟漪/雪三平面/点光源 PCF-cookie-LTC 细节**:仅给出结构与输出(同 hair 第 13 节),未逐行还原;捕获帧天气掩码≈0、无点光源命中时它们不改变结果。
-8. **`_MetallicGlossMap` 为 BC7_SRGB**:光滑/AO 数据图本应为线性,但捕获显示为 sRGB 编码;采样走 `LinearClamp` 会做 sRGB->线性解码。若原美术以 sRGB 导出该图,则 metallic/gloss/AO 数值会偏高,需与实际贴图确认。
+8. **旧 packed mask 格式推论撤回**：event786的BC7_SRGB资源实际是Skin ShadowLutTex，不能证明b401 mask格式。sRGB解码由资源/view格式决定，`LinearClamp`仅表示采样/寻址方式；实际mask的格式与导入规则待核。
