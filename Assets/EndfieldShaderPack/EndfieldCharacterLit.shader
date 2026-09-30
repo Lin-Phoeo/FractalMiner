@@ -34,6 +34,10 @@ Shader "Endfield/CharacterLit"
         [MainTexture] _BaseMap ("Albedo", 2D) = "white" {}
         _BaseColor ("Color", Color) = (1,1,1,1)
         [Enum(Cloth,0,Skin,1,Hair,2,Eye,3)] _MaterialFamily ("Material Family", Float) = 0
+        [HideInInspector] _EndfieldSkinBasisEnabled ("Explicit Skin Root Basis", Float) = 0
+        [HideInInspector] _EndfieldSkinBasisRow0 ("Skin Root Row 0", Vector) = (1,0,0,0)
+        [HideInInspector] _EndfieldSkinBasisRow1 ("Skin Root Row 1", Vector) = (0,1,0,0)
+        [HideInInspector] _EndfieldSkinBasisRow2 ("Skin Root Row 2", Vector) = (0,0,1,0)
         [Enum(Final,0,Albedo,1,Normal,2,MetalOrTangentBlend,3,SpecularMask,4,ShadowMask,5,Smoothness,6)] _DebugView ("Diagnostic View", Float) = 0
         [Enum(Opaque, 0, Transparent, 1)] _SurfaceType ("Surface Type", Float) = 0
         [Enum(Alpha, 0, Additive, 1, Premultiply, 4)] _BlendMode ("Blend Type", Float) = 0
@@ -226,6 +230,8 @@ Shader "Endfield/CharacterLit"
         CBUFFER_START(UnityPerMaterial)
             float4 _BaseMap_ST;          float4 _BaseColor;
             float _MaterialFamily;      float _DebugView;
+            float _EndfieldSkinBasisEnabled;
+            float4 _EndfieldSkinBasisRow0, _EndfieldSkinBasisRow1, _EndfieldSkinBasisRow2;
             float  _SurfaceType;         float  _BlendMode;          float _Cull;
             float  _BackFaceNormalFlip;  float  _EnableAlphaTest;    float _AlphaClipThreshold;
             float  _UseBumpMap;          float  _BumpScale;          float4 _BumpMap_ST;

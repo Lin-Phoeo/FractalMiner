@@ -331,6 +331,7 @@ namespace EndfieldShaderPack.EditorTools
             if (!clavCaptured && rm != null) CaptureClavicles();
             if (clavFollow) ApplyClavicleFollow();
             foreach (var c in chains) Solve(c);
+            Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
             SceneView.RepaintAll();
         }
 

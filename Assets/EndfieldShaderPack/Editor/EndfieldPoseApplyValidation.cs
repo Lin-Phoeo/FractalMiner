@@ -198,6 +198,13 @@ namespace EndfieldShaderPack.EditorTools
             // rootFix = inverse(armature.localToWorldMatrix) to land upright in world.
             // (First attempt without rootFix rendered a face-down heap; probes passed
             // because they were also armature-relative — gates now probe WORLD frame.)
+            // Normalize BEFORE inversion: the on-disk scene already carries
+            // +45.5 yaw. Inverting that and reassigning the same final rotation
+            // cancels the official instance transform. Start in the native
+            // upright frame, apply capture model-space bones, THEN apply yaw.
+            // Only this temporary diagnostic scene is changed; never save it.
+            Transform pivotParent = armature.parent != null ? armature.parent : armature;
+            pivotParent.localRotation = Quaternion.Euler(-90f, 0f, 0f);
             Matrix4x4 rootFix = armature.localToWorldMatrix.inverse;
             var newWorld = new Dictionary<Transform, Matrix4x4>();
             int applied = 0, keptBind = 0;
@@ -253,10 +260,9 @@ namespace EndfieldShaderPack.EditorTools
             // M5: now pivot the whole character about the origin to match the
             // capture's instance transform (see comment at M5InstanceYawDeg).
             // The pivot is applied by rotating armature's PARENT (chr root, which
-            // carries the -90degX upright correction). Verified final result
-            // (run 2026-09-25 14:48): bone worlds AND real-pipeline viewport
-            // probes match capture truth at L1 = 0.00000 with the composition
-            // below (yaw +45.5 composed onto -90X).
+            // carries the normalized -90degX upright correction). The previous
+            // zero-error claim used model-space probes and did not independently
+            // check the instance transform; see Tools/compare_skin_world.py.
             // CRITICAL: the pivot must go on armature's PARENT — writing armature
             // itself does nothing (its own transform write is skipped).
             // Compose: new chr rotation = yaw * original(-90degX). REPLACING the
@@ -268,7 +274,6 @@ namespace EndfieldShaderPack.EditorTools
             // (0.0142, 0.8149, -0.0608) = form2 instead of (-0.0611, ...)).
             Quaternion pivotRot = Quaternion.Euler(0f, M5InstanceYawDeg, 0f)
                                   * Quaternion.Euler(-90f, 0f, 0f);
-            Transform pivotParent = armature.parent != null ? armature.parent : armature;
             pivotParent.localRotation = pivotRot;
             // The upright pose-apply loop above already wrote bone locals that
             // render the character upright under the ORIGINAL chr rotation.
@@ -422,6 +427,14 @@ namespace EndfieldShaderPack.EditorTools
             Debug.Log($"_CharacterLightDir forced: ({lightDirFinal.x:F6}, {lightDirFinal.y:F6}, {lightDirFinal.z:F6}, {lightDirFinal.w:F6})");
 
             report.Add("character light aimed: forward=" + charLight.transform.forward.ToString("F6"));
+            EndfieldCapturedSkinBasis.ApplyIfRequested(charRoot, report);
+            if (Environment.GetEnvironmentVariable("ENDFIELD_LIVE_SKIN_BASIS") == "1")
+            {
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ENDFIELD_CAPTURED_SKIN_BASIS")))
+                    throw new InvalidOperationException("Choose live OR captured basis, not both.");
+                Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
+                report.Add("dynamic Typhoeus skin roots applied after pose/instance transform");
+            }
 
             // B of the A/B: the same pose/camera with the captured lighting branch live.
             RenderPng(camera, Path.Combine(OutDir, "pose-applied-lit.png"));

@@ -103,6 +103,7 @@ namespace EndfieldShaderPack
             player.Reset();
             player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
             if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
+            Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
             if (camDrive && camDriver.HasKeys)
                 camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
             SceneView.RepaintAll();

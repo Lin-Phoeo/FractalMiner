@@ -70,6 +70,39 @@ namespace EndfieldShaderPack.EditorTools
             if (official == null || !official.isReadable)
                 throw new InvalidOperationException("Readable captured post-input is required.");
             SavePixels(official, "official-prepost");
+            var boneMatrices = new System.Collections.Generic.List<object>();
+            foreach (var bone in root.GetComponentsInChildren<Transform>())
+            {
+                Matrix4x4 matrix = bone.localToWorldMatrix;
+                boneMatrices.Add(new { name = bone.name, rows = new[] {
+                    new[] { matrix.m00, matrix.m01, matrix.m02, matrix.m03 },
+                    new[] { matrix.m10, matrix.m11, matrix.m12, matrix.m13 },
+                    new[] { matrix.m20, matrix.m21, matrix.m22, matrix.m23 },
+                } });
+            }
+            File.WriteAllText(Path.Combine(outputDirectory, "bone-world-matrices.json"),
+                Newtonsoft.Json.JsonConvert.SerializeObject(boneMatrices, Newtonsoft.Json.Formatting.Indented));
+            var skinWorld = new System.Collections.Generic.List<object>();
+            foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                if (!renderer.name.EndsWith("_face_01_lod0", StringComparison.Ordinal)
+                    && !renderer.name.EndsWith("_body_01_lod0", StringComparison.Ordinal)) continue;
+                var baked = new Mesh();
+                try
+                {
+                    renderer.BakeMesh(baked);
+                    var points = new System.Collections.Generic.List<float[]>();
+                    foreach (Vector3 point in baked.vertices)
+                    {
+                        Vector3 world = renderer.localToWorldMatrix.MultiplyPoint3x4(point);
+                        points.Add(new[] { world.x, world.y, world.z });
+                    }
+                    skinWorld.Add(new { name = renderer.name, vertices = points });
+                }
+                finally { UnityEngine.Object.DestroyImmediate(baked); }
+            }
+            File.WriteAllText(Path.Combine(outputDirectory, "skin-world-vertices.json"),
+                Newtonsoft.Json.JsonConvert.SerializeObject(skinWorld));
             var text = new StringBuilder();
             text.AppendLine("utc=" + DateTime.UtcNow.ToString("O"));
             text.AppendLine("officialSource=" + AssetDatabase.GetAssetPath(official));
@@ -92,6 +125,13 @@ namespace EndfieldShaderPack.EditorTools
                     text.AppendLine("shader=" + material.shader.name + "; enabled=" + renderer.enabled
                         + "; propertyBlock=" + renderer.HasPropertyBlock());
                     text.AppendLine("objectToWorld=" + renderer.localToWorldMatrix.ToString("R"));
+                    text.AppendLine("rootBone=" + (renderer.rootBone != null ? renderer.rootBone.name : "NULL"));
+                    var propertyBlock = new MaterialPropertyBlock();
+                    int slot = Array.IndexOf(renderer.sharedMaterials, material);
+                    renderer.GetPropertyBlock(propertyBlock, slot);
+                    text.AppendLine("propertyBlock.skinBasisEnabled=" + propertyBlock.GetFloat("_EndfieldSkinBasisEnabled"));
+                    for (int row = 0; row < 3; row++) text.AppendLine("propertyBlock.skinBasisRow" + row + "="
+                        + propertyBlock.GetVector("_EndfieldSkinBasisRow" + row).ToString("R"));
                     bool sourceShading = Shader.GetGlobalFloat("_EndfieldOfficialFrameEnabled") > .5f
                         && Shader.GetGlobalFloat("_EndfieldOfficialShadingEnabled") > .5f
                         && Shader.GetGlobalVector("_CharacterParams1").y >= .5f

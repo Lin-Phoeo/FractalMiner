@@ -31,13 +31,16 @@ namespace EndfieldShaderPack
             public string Name;
             public float NormalWeight, SdfGradient, BaseAlpha, ConstantRampAlpha;
             public bool GradientRamp, UseSdf;
+            public bool OverrideBasis;
+            public float BasisYaw;
 
             public Case(string name, float normalWeight, float sdfGradient, float baseAlpha,
-                        bool gradientRamp = true, float constantRampAlpha = 1f, bool useSdf = true)
+                        bool gradientRamp = true, float constantRampAlpha = 1f, bool useSdf = true, float? basisYaw = null)
             {
                 Name = name; NormalWeight = normalWeight; SdfGradient = sdfGradient;
                 BaseAlpha = baseAlpha; GradientRamp = gradientRamp; ConstantRampAlpha = constantRampAlpha;
                 UseSdf = useSdf;
+                OverrideBasis = basisYaw.HasValue; BasisYaw = basisYaw ?? 0f;
             }
         }
 
@@ -98,8 +101,9 @@ namespace EndfieldShaderPack
         static Vector3 Expected(Case item, out float rampX, out float rampAlpha)
         {
             const float horizontalEpsilon = 1f / 16384f;
-            float horizontalZ = LightDirection.z / Mathf.Sqrt(
-                LightDirection.x * LightDirection.x + LightDirection.z * LightDirection.z
+            Vector3 localLight = Quaternion.Inverse(Quaternion.Euler(0, item.BasisYaw, 0)) * LightDirection;
+            float horizontalZ = localLight.z / Mathf.Sqrt(
+                localLight.x * localLight.x + localLight.z * localLight.z
                 + horizontalEpsilon * horizontalEpsilon);
             float back = horizontalZ * .5f;
             float center = Mathf.Clamp(.5f - back, .001f, .999f);
@@ -145,6 +149,8 @@ namespace EndfieldShaderPack
             result.Add(new Case("body-no-sdf/full-alpha", 1f, .05f, 1f, useSdf: false));
             result.Add(new Case("body-no-sdf/base-alpha=.25", 1f, .14f, .25f, useSdf: false));
             result.Add(new Case("body-no-sdf/ramp-alpha=.35", 1f, .05f, 1f, false, .35f, false));
+            foreach (float yaw in new[] { -90f, 0f, 90f, 180f })
+                result.Add(new Case("explicit-shading-basis-yaw=" + yaw, 0f, .05f, 1f, basisYaw: yaw));
             return result;
         }
 
@@ -290,6 +296,11 @@ namespace EndfieldShaderPack
                     Fill(sdf, new Color(item.SdfGradient, item.SdfGradient, .5f, 1));
                     Fill(constantRamp, new Color(1, 1, 1, item.ConstantRampAlpha));
                     material.SetFloat("_UseSDFLightmap", item.UseSdf ? 1 : 0);
+                    if (item.OverrideBasis && !material.HasProperty("_EndfieldSkinBasisEnabled"))
+                        throw new InvalidOperationException("Shader has no explicit skin-root shading basis input.");
+                    material.SetFloat("_EndfieldSkinBasisEnabled", item.OverrideBasis ? 1 : 0);
+                    Matrix4x4 basis = Matrix4x4.Rotate(Quaternion.Euler(0, item.BasisYaw, 0));
+                    for (int row = 0; row < 3; row++) material.SetVector("_EndfieldSkinBasisRow" + row, basis.GetRow(row));
                     material.SetTexture("_DiffRampMap", item.GradientRamp ? gradientRamp : constantRamp);
                     camera.Render(); RenderTexture.active = target;
                     readback.ReadPixels(new Rect(0, 0, Resolution, Resolution), 0, 0); readback.Apply(false, false);

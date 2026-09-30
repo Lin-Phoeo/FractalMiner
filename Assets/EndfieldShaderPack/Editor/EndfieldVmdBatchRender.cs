@@ -691,6 +691,7 @@ namespace EndfieldShaderPack
                 player.Reset();
                 player.ApplyFrame(t, scale, inPlace, heightOffset);
                 if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
+                Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root);
                 if (driveCamera && camDriver.HasKeys)
                     camDriver.Apply(t, scale, root, player.bindRootWorld);
                 SaveFrame(cam, Path.Combine(dir, "frame_" + outputFrame.ToString("D4") + ".png"), w, h, flipY);
