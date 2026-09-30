@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "date": "2026-09-30",
+  "scope": "native storage and read-only Python/C# transfer; no Unity/GPU rendering certification",
+  "rendering_certified": false,
+  "mesh_mapping_ready": false,
+  "record_parent": "c8d270fdd54cb98b8bf461d51340d55e816301fe",
+  "local_bundle": "Validation/native-draw-bundle-20260930-01",
+  "manifest_sha256": "3822497b8775fc18cdcebbf12a227b14aec8230a3ac886e990f037d6508e8db6",
+  "source_manifest_sha256": "963e6212669586d21833a3b1bc7c4791b5a3ce7398a3288d6214ff08312f7779",
+  "contract_sha256": "ba28e78d991d7ee550ad59ccad18903dab89bc22c7cfcc0335e3e66a1e2f8793",
+  "actual_read": { "draws": 6, "vertices": 52820, "attribute_streams": 56, "index_streams": 6, "python_verified": true, "csharp_executed": true },
+  "tests": { "new_passed": 44, "new_python": 20, "new_csharp": 24, "combined_passed": 269, "combined_legacy_skipped": 3, "subtests_passed": 3, "legacy_pillow_warnings": 2 },
+  "python_coverage": { "covered_lines": 144, "lines": 155, "covered_branches": 53, "branches": 64, "combined_percent": 89.95433789954338, "report": "D:/EndfieldTechLib/notes/native-input-bridge-20260930-01/python-final.json", "report_sha256": "3921045746905feaa257818407cb85e34ac61d605855d5d5c023e303042c8b1e" },
+  "csharp_coverage": { "covered_lines": 222, "lines": 223, "covered_branches": 139, "branches": 162, "excluded": "Program.cs test harness", "tool": "Microsoft dotnet-coverage 18.11.0", "report": "D:/EndfieldTechLib/notes/native-input-bridge-20260930-01/csharp-final.cobertura.xml", "report_sha256": "d52dbf7eaec5bbf262faa0915cd9fa6b35279bbb9f49ff3700e0fe53b7ba274f" },
+  "verification": { "ruff": "pass", "pyright_errors": 0, "pyright_warnings": 0, "csharp_language": "9.0", "compile_targets": ["net10.0", "netstandard2.1"], "compile_warnings": 0, "pip_audit": "isolated tools environment only; no known vulnerabilities", "v1_integrity": true, "v2_integrity": true },
+  "not_run": ["Unity project compilation", "Shader/GPU compilation", "GPU binding or native skinning validation", "game launch", "pixel matching"],
+  "unchanged": ["existing render files", "existing meshes/scenes/settings", "published v1/v2", "legacy pose exports", "main HEAD and 9557 staged index entries"],
+  "next": ["Hair RG/BA source-path helper and binding", "cloth_02 emission selector and part roots", "independent native GPU adapter and rebuild lifecycle", "current/previous producers before animation/MMD certification"]
+}
