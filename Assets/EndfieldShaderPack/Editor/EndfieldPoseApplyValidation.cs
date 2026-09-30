@@ -32,7 +32,7 @@ namespace EndfieldShaderPack.EditorTools
     {
         const string ScenePath = "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity";
         const string PosePath = "Validation/Captures/tifuluosi-front-20260917/pose-full-01/pose_apply.txt";
-        const string OutDir = "Validation/pose-apply-01";
+        static string OutDir => Environment.GetEnvironmentVariable("ENDFIELD_POSE_OUTPUT") ?? "Validation/pose-apply-01";
         const int Width = 1280;
         const int Height = 800;
         const float ExpectedFov = 35f;
@@ -91,6 +91,9 @@ namespace EndfieldShaderPack.EditorTools
 
         public static void RunPoseApply()
         {
+            if (Environment.GetEnvironmentVariable("ENDFIELD_POSE_OUTPUT") != null
+                && Directory.Exists(OutDir) && Directory.GetFileSystemEntries(OutDir).Length != 0)
+                throw new IOException("Use a fresh pose output directory: " + OutDir);
             Directory.CreateDirectory(OutDir);
             var report = new List<string>();
             // The M5 color gates need the M3 character self-shadow chain actually
@@ -404,6 +407,20 @@ namespace EndfieldShaderPack.EditorTools
             // forward points TOWARD the light = negative travel direction.
             charLight.transform.rotation = Quaternion.LookRotation(-LightTravelDir.normalized, Vector3.up);
             charLight.ApplyLight();
+
+            // 确认参数已设置（调试）
+            var lightDirCheck = Shader.GetGlobalVector("_CharacterLightDir");
+            Debug.Log($"_CharacterLightDir after ApplyLight: ({lightDirCheck.x:F6}, {lightDirCheck.y:F6}, {lightDirCheck.z:F6}, {lightDirCheck.w:F6})");
+
+            // CRITICAL FIX: 在 batchmode 下，EndfieldCharacterLight.Update() 可能不执行
+            // 直接在渲染前强制设置 _CharacterLightDir 确保 shader 能读到正确的值
+            Vector3 lightDir = charLight.transform.forward.normalized;
+            Shader.SetGlobalVector("_CharacterLightDir", new Vector4(lightDir.x, lightDir.y, lightDir.z, 1f));
+            Shader.SetGlobalVector("_CharacterLightColor", new Vector4(1f, 1f, 1f, 1f));
+
+            var lightDirFinal = Shader.GetGlobalVector("_CharacterLightDir");
+            Debug.Log($"_CharacterLightDir forced: ({lightDirFinal.x:F6}, {lightDirFinal.y:F6}, {lightDirFinal.z:F6}, {lightDirFinal.w:F6})");
+
             report.Add("character light aimed: forward=" + charLight.transform.forward.ToString("F6"));
 
             // B of the A/B: the same pose/camera with the captured lighting branch live.
@@ -467,6 +484,7 @@ namespace EndfieldShaderPack.EditorTools
                 {
                     camera.targetTexture = litTarget;
                     camera.Render();
+                    EndfieldSkinInputDiagnostics.Record(camera, charRoot, litTarget);
                     // Preserve the former black-Bloom output as an A/B artifact.
                     // It is not used as the current M5 colour target.
                     Graphics.Blit(litTarget, postTarget, postMaterial, 1);

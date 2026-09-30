@@ -26,8 +26,41 @@ namespace EndfieldShaderPack
         static readonly HashSet<string> DataTextureSlots = new HashSet<string>
         {
             "_BumpMap", "_SplitNormalMap", "_MetallicGlossMap", "_SDFLightmap",
-            "_SDFMask", "_OutlineMask", "_LineMap", "_HairBrowMask", "_ClearCoatMask"
+            "_SDFMask", "_OutlineMask", "_LineMap", "_HairBrowMask", "_ClearCoatMask",
+            "_DiffRampMap", "_HighlightMap"
         };
+
+        // Reviewed descriptor formats: skin b138 set1/b6 ramp = UNORM,
+        // set1/b4 highlight = BC7_UNORM. Neither receives hardware sRGB decode.
+        // This narrow repair deliberately leaves the other textures unchanged.
+        [MenuItem("Endfield/Repair Captured Skin Data Texture Imports")]
+        public static void RepairCapturedSkinDataTextureImports()
+        {
+            string[] paths = {
+                ModelDir + "/T_actor_common_face_01_RD.png",
+                ModelDir + "/T_actor_common_face_01_hl_M.png",
+            };
+            var importers = paths.Select(path => AssetImporter.GetAtPath(path) as TextureImporter
+                ?? throw new FileNotFoundException("Missing reviewed skin data texture", path)).ToArray();
+            string backup = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Logs",
+                "skin-data-texture-backup-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff")));
+            Directory.CreateDirectory(backup);
+            foreach (string path in paths)
+                File.Copy(Full(path + ".meta"), Path.Combine(backup, Path.GetFileName(path) + ".meta"));
+            for (int i = 0; i < importers.Length; i++)
+            {
+                var importer = importers[i];
+                importer.textureType = TextureImporterType.Default;
+                importer.sRGBTexture = false;
+                importer.alphaIsTransparency = false;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SaveAndReimport();
+                var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(paths[i]);
+                if (texture == null || UnityEngine.Experimental.Rendering.GraphicsFormatUtility.IsSRGBFormat(texture.graphicsFormat))
+                    throw new InvalidOperationException("Skin data texture still decodes sRGB: " + paths[i]);
+                Debug.Log("[SkinDataImport] VERIFIED " + paths[i] + ": " + texture.graphicsFormat + "; backup=" + backup);
+            }
+        }
 
         [MenuItem("Endfield/Repair Packed Texture Imports")]
         public static void RepairPackedTextureImports()

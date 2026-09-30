@@ -212,6 +212,22 @@ namespace EndfieldShaderPack.EditorTools.Mmd
                 throw new InvalidOperationException("empty camera fallback is not a safe perspective key");
         }
 
+        static void ValidateIkRadianLimits()
+        {
+            const float limit = .2f;
+            foreach (int order in new[] { MmdIk.EulerZXY, MmdIk.EulerXYZ, MmdIk.EulerYZX })
+            foreach (float sign in new[] { -1f, 1f })
+            {
+                var input = Quaternion.AngleAxis(sign * .6f * Mathf.Rad2Deg, Vector3.right);
+                var actual = MmdIk.LimitTotal(input, new Vector3(-limit, 0, 0),
+                    new Vector3(limit, 0, 0), order, false);
+                var expected = Quaternion.AngleAxis(sign * limit * Mathf.Rad2Deg, Vector3.right);
+                Near(Quaternion.Angle(actual, expected), 0f, "IK radian clamp/order " + order, .05f);
+                Near(Quaternion.Angle(Quaternion.identity, actual), limit * Mathf.Rad2Deg,
+                    "IK radian magnitude/order " + order, .001f);
+            }
+        }
+
         public static void Run()
         {
             ValidateBoneInterpolation();
@@ -220,7 +236,8 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             ValidateStableDuplicateKeys();
             ValidateRootOffsetSpace();
             ValidateIkAndCameraDefaults();
-            Debug.Log("[MmdFormatRegression] PASS format, duplicates, root space, IK/camera defaults");
+            ValidateIkRadianLimits();
+            Debug.Log("[MmdFormatRegression] PASS format, duplicates, root space, IK/camera defaults, six radian-limit cases");
         }
     }
 }

@@ -69,10 +69,14 @@ class MmdRuntimeContractTests(unittest.TestCase):
         self.assertNotIn("output.worldRot[i] * b.localPos", text)
         self.assertNotIn("output.localRot[i] * b.localPos", text)
 
-    def test_iterative_ik_converts_radian_limits_to_unity_degrees(self):
+    def test_iterative_ik_converts_radians_at_the_unity_angleaxis_boundary(self):
         text = RIG.read_text("utf-8")
-        self.assertIn("controller.angleLimit * Mathf.Rad2Deg", text)
-        self.assertIn("Mathf.DeltaAngle(0f, eul.x) * Mathf.Deg2Rad", text)
+        self.assertIn("Mathf.Min(Mathf.Acos(dot), controller.angleLimit)", text)
+        self.assertIn("controller.angleLimit * (linkIndex + 1)", text)
+        self.assertEqual(text.count("Quaternion.AngleAxis(angle * Mathf.Rad2Deg, localAxis)"), 2)
+        self.assertIn("MmdIk.LimitTotal(next, lo, hi, order", text)
+        for axis in ("x", "y", "z"):
+            self.assertIn(f"e.{axis} * Mathf.Rad2Deg", text)
 
     def test_calibration_uses_world_up_expressed_in_character_local_space(self):
         text = RETARGET.read_text("utf-8")
