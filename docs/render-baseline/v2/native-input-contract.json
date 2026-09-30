@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "scope": "Exact native input storage for six draws in frame6411, not generalized semantic or rendering certification.",
+  "frame": 6411,
+  "api": "GraphicsAPI.Vulkan",
+  "raw_manifest_sha256": "963e6212669586d21833a3b1bc7c4791b5a3ce7398a3288d6214ff08312f7779",
+  "events": {
+    "776": {
+      "part": "iris",
+      "vertices": 162,
+      "indices": 618,
+      "shader": "ResourceId::22258",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32_FLOAT",
+        "3": "R8G8B8A8_UNORM",
+        "4": "R32G32_FLOAT",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32_FLOAT",
+        "8": "R8G8B8A8_UNORM",
+        "9": "R8G8B8A8_UINT"
+      }
+    },
+    "786": {
+      "part": "body",
+      "vertices": 917,
+      "indices": 4248,
+      "shader": "ResourceId::22249",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32_FLOAT",
+        "3": "R8G8B8A8_UNORM",
+        "4": "R8G8B8A8_SNORM",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32_FLOAT",
+        "7": "R32_FLOAT",
+        "8": "R16G16B16A16_UNORM",
+        "9": "R8G8B8A8_UINT"
+      }
+    },
+    "835": {
+      "part": "cloth_01",
+      "vertices": 23758,
+      "indices": 94791,
+      "shader": "ResourceId::22254",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32G32B32_FLOAT",
+        "3": "R32G32B32A32_FLOAT",
+        "4": "R32G32_FLOAT",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32G32B32_FLOAT",
+        "8": "R32G32B32A32_FLOAT",
+        "9": "R32G32B32A32_UINT"
+      }
+    },
+    "850": {
+      "part": "cloth_02",
+      "vertices": 10568,
+      "indices": 36852,
+      "shader": "ResourceId::37668",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32_FLOAT",
+        "3": "R8G8B8A8_UNORM",
+        "4": "R8G8B8A8_SNORM",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32_FLOAT",
+        "8": "R16G16B16A16_UNORM",
+        "9": "R8G8B8A8_UINT"
+      }
+    },
+    "860": {
+      "part": "face",
+      "vertices": 2109,
+      "indices": 10686,
+      "shader": "ResourceId::37670",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32_FLOAT",
+        "3": "R8G8B8A8_UNORM",
+        "4": "R8G8B8A8_SNORM",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32_FLOAT",
+        "8": "R16G16B16A16_UNORM",
+        "9": "R8G8B8A8_UINT"
+      }
+    },
+    "875": {
+      "part": "hair",
+      "vertices": 15306,
+      "indices": 54816,
+      "shader": "ResourceId::22256",
+      "formats": {
+        "0": "R32G32B32_FLOAT",
+        "1": "R32G32_FLOAT",
+        "2": "R32_FLOAT",
+        "3": "R8G8B8A8_UNORM",
+        "4": "R8G8B8A8_SNORM",
+        "5": "R32G32B32_FLOAT",
+        "6": "R32_FLOAT",
+        "7": "R32_FLOAT",
+        "8": "R16G16B16A16_UNORM",
+        "9": "R8G8B8A8_UINT"
+      }
+    }
+  }
+}

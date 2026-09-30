@@ -1,0 +1,99 @@
+{
+  "ok": true,
+  "rendering_certified": false,
+  "scope": "native bytes, input locations, index span and storage statistics only",
+  "frame": 6411,
+  "files_checked": 56,
+  "events": {
+    "776": {
+      "part": "iris",
+      "vertices": 162,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R8G8B8A8_UNORM",
+        "slot_storage": "R8G8B8A8_UINT",
+        "maximum_slot": 7,
+        "active_maximum_slot": 7,
+        "weight_sum_min": 1,
+        "weight_sum_max": 1,
+        "u16_quantization_changed_components": 0,
+        "u16_quantization_max_added_error": 0
+      }
+    },
+    "786": {
+      "part": "body",
+      "vertices": 917,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R16G16B16A16_UNORM",
+        "slot_storage": "R8G8B8A8_UINT",
+        "maximum_slot": 34,
+        "active_maximum_slot": 34,
+        "weight_sum_min": 0.9999847409781033,
+        "weight_sum_max": 1.0000152590218967,
+        "u16_quantization_changed_components": 0,
+        "u16_quantization_max_added_error": 0
+      }
+    },
+    "835": {
+      "part": "cloth_01",
+      "vertices": 23758,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R32G32B32A32_FLOAT",
+        "slot_storage": "R32G32B32A32_UINT",
+        "maximum_slot": 119,
+        "active_maximum_slot": 119,
+        "weight_sum_min": 0.9999998584389687,
+        "weight_sum_max": 1.0000001303851604,
+        "u16_quantization_changed_components": 70373,
+        "u16_quantization_max_added_error": 0.000007628500484302414
+      }
+    },
+    "850": {
+      "part": "cloth_02",
+      "vertices": 10568,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R16G16B16A16_UNORM",
+        "slot_storage": "R8G8B8A8_UINT",
+        "maximum_slot": 125,
+        "active_maximum_slot": 125,
+        "weight_sum_min": 0.9999847409781032,
+        "weight_sum_max": 1.0000152590218967,
+        "u16_quantization_changed_components": 0,
+        "u16_quantization_max_added_error": 0
+      }
+    },
+    "860": {
+      "part": "face",
+      "vertices": 2109,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R16G16B16A16_UNORM",
+        "slot_storage": "R8G8B8A8_UINT",
+        "maximum_slot": 53,
+        "active_maximum_slot": 53,
+        "weight_sum_min": 0.9999847409781032,
+        "weight_sum_max": 1.0000152590218967,
+        "u16_quantization_changed_components": 0,
+        "u16_quantization_max_added_error": 0
+      }
+    },
+    "875": {
+      "part": "hair",
+      "vertices": 15306,
+      "position_rest_same_bytes": true,
+      "skin": {
+        "weight_storage": "R16G16B16A16_UNORM",
+        "slot_storage": "R8G8B8A8_UINT",
+        "maximum_slot": 31,
+        "active_maximum_slot": 31,
+        "weight_sum_min": 0.9999847409781032,
+        "weight_sum_max": 1.0000152590218967,
+        "u16_quantization_changed_components": 0,
+        "u16_quantization_max_added_error": 0
+      }
+    }
+  }
+}

@@ -1,0 +1,1657 @@
+{
+  "schema": 1,
+  "baseline": "official-render-six-draw-evidence-20260930-v2",
+  "scope": "Incremental native frame6411 program/input evidence with explicit corrections to v1 interpretation. No full official pipeline or runtime rendering certification.",
+  "parent_baseline": {
+    "path": "docs/render-baseline/v1/manifest.json",
+    "digest": "b318c7a4624e4b8ab3a73ba4bf4617e24f3a07df6689dafa83d4094688fb049b",
+    "git_commit": "b26d86efece511b728e29e586d3510c88c001e9b",
+    "policy": "Append only. Verify both versions; full v1 source hashes are not replaced by this delta."
+  },
+  "groups": [
+    {
+      "id": "parent-identity",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v1/manifest.json",
+        "docs/render-baseline/v1/plan.json",
+        "Tools/render_spec_baseline.py"
+      ],
+      "role": "Immutable parent metadata and existing provenance validator; run parent verification separately.",
+      "files": [
+        "Tools/render_spec_baseline.py",
+        "docs/render-baseline/v1/manifest.json",
+        "docs/render-baseline/v1/plan.json"
+      ]
+    },
+    {
+      "id": "v2-policy-and-tools",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v2/foundation.md",
+        "docs/render-baseline/v2/plan.json",
+        "docs/render-baseline/v2/.gitattributes",
+        "docs/render-baseline/v2/tools/**/*.py",
+        "docs/render-baseline/README.md",
+        "docs/render-baseline/.gitattributes"
+      ],
+      "role": "Scoped evidence interpretations, independent failure-path tests and byte-preservation policy",
+      "files": [
+        "docs/render-baseline/.gitattributes",
+        "docs/render-baseline/README.md",
+        "docs/render-baseline/v2/.gitattributes",
+        "docs/render-baseline/v2/foundation.md",
+        "docs/render-baseline/v2/plan.json",
+        "docs/render-baseline/v2/tools/raw_draw_inputs.py",
+        "docs/render-baseline/v2/tools/tests/test_raw_draw_inputs.py"
+      ]
+    },
+    {
+      "id": "v2-metadata",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v2/native-input-contract.json",
+        "docs/render-baseline/v2/export-provenance.json",
+        "docs/render-baseline/v2/raw-input-checks.json"
+      ],
+      "role": "Versioned metadata/report copies, no official source/game assets",
+      "files": [
+        "docs/render-baseline/v2/export-provenance.json",
+        "docs/render-baseline/v2/native-input-contract.json",
+        "docs/render-baseline/v2/raw-input-checks.json"
+      ]
+    },
+    {
+      "id": "native-input-evidence",
+      "root": "project",
+      "patterns": [
+        "Validation/vertex-input-export-20260929-183059/*.json",
+        "Validation/vertex-input-export-20260929-183059/*.bin"
+      ],
+      "role": "Native format-preserving local capture data; hash only, never upload binary assets",
+      "files": [
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input2-decoded.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/776-iris-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input2-decoded.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input7.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/786-body-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/835-cloth_01-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input2-decoded.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/850-cloth_02-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input2-decoded.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/860-face-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input0.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input1.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input2-decoded.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input2.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input3.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input4.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input5.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input6.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input7.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input8.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-_input9.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-ib.bin",
+        "Validation/vertex-input-export-20260929-183059/875-hair-inputs.json",
+        "Validation/vertex-input-export-20260929-183059/asset-safety-check.json",
+        "Validation/vertex-input-export-20260929-183059/complete.json",
+        "Validation/vertex-input-export-20260929-183059/manifest.json",
+        "Validation/vertex-input-export-20260929-183059/started.json",
+        "Validation/vertex-input-export-20260929-183059/verification.json"
+      ]
+    },
+    {
+      "id": "captured-programs",
+      "root": "project",
+      "patterns": [
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/draw-details.json",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22258.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22259.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22249.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22250.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22254.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22255.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37668.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37669.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37670.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37671.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22256.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22257.spv",
+        "Validation/draw-program-audit-20260930-01/event-776-vertex-22258.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-776-fragment-22259.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-fragment-22250.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-vertex-22254.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-fragment-22255.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-vertex-37668.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-vertex-37670.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-fragment-37671.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-vertex-22256.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+        "Validation/draw-program-audit-20260930-01/export-provenance.json",
+        "Validation/draw-program-audit-20260930-01/raw-input-checks.json"
+      ],
+      "role": "Actual draw/program identity and SM51 output with descriptor spaces; source hashes only",
+      "files": [
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/draw-details.json",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22249.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22250.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22254.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22255.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22256.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22257.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22258.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22259.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37668.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37669.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37670.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37671.spv",
+        "Validation/draw-program-audit-20260930-01/event-776-fragment-22259.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-776-vertex-22258.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-fragment-22250.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-fragment-22255.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-vertex-22254.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-vertex-37668.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-fragment-37671.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-vertex-37670.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-vertex-22256.hlsl",
+        "Validation/draw-program-audit-20260930-01/export-provenance.json",
+        "Validation/draw-program-audit-20260930-01/raw-input-checks.json"
+      ]
+    },
+    {
+      "id": "dump-name-recovery-candidates",
+      "root": "project",
+      "patterns": [
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b52.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b114.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b208.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b232.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b471.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b474.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b472.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b475.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b911.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b914.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b912.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b915.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b1011.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b125.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b126.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b129.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b242.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b245.hlsl"
+      ],
+      "role": "Candidate interpretations, exact non-comment fragment classes do not prove unique original keyword identity",
+      "files": [
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b1011.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b471.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b472.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b474.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b475.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b911.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b912.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b914.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b915.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b52.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b125.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b126.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b129.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b242.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b245.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b114.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b208.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b232.hlsl"
+      ]
+    },
+    {
+      "id": "input-and-runtime-audit-snapshot",
+      "root": "project",
+      "patterns": [
+        "Validation/face-input-capture-20260930-01/basis.json",
+        "Validation/eye-hair-inputs-20260930-01/bone-world-matrices.json",
+        "Tools/export_pose_full.py",
+        "Tools/extract_front_frame_constants.py",
+        "Tools/export_all_vertex_attrs.py",
+        "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl",
+        "Assets/EndfieldShaderPack/EndfieldSkinBasisDriver.cs",
+        "Assets/EndfieldShaderPack/Editor/TyphoeusModelBuilder.cs",
+        "Assets/EndfieldShaderPack/Editor/ImportCapturedVertexAttrsV2.cs",
+        "Assets/Scripts/SmoothNormals.cs"
+      ],
+      "role": "Evidence for current implementation gaps, not a source of official algorithms",
+      "files": [
+        "Assets/EndfieldShaderPack/Editor/ImportCapturedVertexAttrsV2.cs",
+        "Assets/EndfieldShaderPack/Editor/TyphoeusModelBuilder.cs",
+        "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl",
+        "Assets/EndfieldShaderPack/EndfieldSkinBasisDriver.cs",
+        "Assets/Scripts/SmoothNormals.cs",
+        "Tools/export_all_vertex_attrs.py",
+        "Tools/export_pose_full.py",
+        "Tools/extract_front_frame_constants.py",
+        "Validation/eye-hair-inputs-20260930-01/bone-world-matrices.json",
+        "Validation/face-input-capture-20260930-01/basis.json"
+      ]
+    }
+  ],
+  "contracts": [
+    {
+      "id": "native-six-draw-storage",
+      "dimensions": {
+        "formula": "not-applicable",
+        "variant": "pending",
+        "input": "verified",
+        "producer": "pending",
+        "render_state": "not-applicable",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified only native bytes/location/format/index spans for six frame6411 inputs. Does not establish all importer semantics, palette transforms, producers or runtime binding after reinitialization."
+      ]
+    },
+    {
+      "id": "captured-program-identity",
+      "dimensions": {
+        "formula": "pending",
+        "variant": "pending",
+        "input": "verified",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "12 raw SPV hashes match original draw-details shader records. Unique dump keyword provenance, initializer and typed-load control-flow equivalence, full vertex matching and all other draw variants remain open."
+      ]
+    },
+    {
+      "id": "hair-rg-ba-normal-core",
+      "dimensions": {
+        "formula": "verified",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified scoped two-normal reconstruction/roles in actual PS22257, not complete Hair/weather/IV/punctual/fog. Fix official source caller/helper normal roles and preserve actual texture/sampler/bias inputs before runtime approval."
+      ]
+    },
+    {
+      "id": "cloth02-emission-consumer",
+      "dimensions": {
+        "formula": "verified",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified exact sampled RGB/color/brightness/premultiply factor for PS37669. Resource production, UV/bias, full compositing order and runtime branch remain unapproved."
+      ]
+    },
+    {
+      "id": "rest-root-previous-lifecycle",
+      "dimensions": {
+        "formula": "pending",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Keep rest streams independent; current/previous palette and cloth part-root producers unresolved. Existing reconstruction can overwrite recovered frames; generated smooth normals are not raw outline evidence."
+      ]
+    }
+  ],
+  "anchors": [
+    {
+      "id": "hair-rg-path",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float2 _504 = (_499.xy * 2.0f) - 1.0f.xx;"
+    },
+    {
+      "id": "hair-ba-path",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float2 _563 = (_499.zw * 2.0f) - 1.0f.xx;"
+    },
+    {
+      "id": "hair-spec-normal-not-face-flipped",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float3 _576 = normalize(mul(float3(_573.x, _573.y, _564.z), _546));"
+    },
+    {
+      "id": "cloth02-premultiply",
+      "contract": "cloth02-emission-consumer",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "literal": "float _2265 = (1.0f - _48_m6) + (_491 * _48_m6);"
+    },
+    {
+      "id": "cloth02-emission-all-factors",
+      "contract": "cloth02-emission-consumer",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "literal": "((_528.xyz * _48_m25.xyz) * _48_m7) * _2265"
+    },
+    {
+      "id": "body-rest-tangent-separate",
+      "contract": "rest-root-previous-lifecycle",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+      "literal": "float4 _21 : TEXCOORD7;"
+    },
+    {
+      "id": "lossy-pose-export-must-not-be-oracle",
+      "contract": "native-six-draw-storage",
+      "root": "project",
+      "path": "Tools/export_pose_full.py",
+      "literal": "ws = tuple(int(round(w * 65535.0)) for w in vals[:4])"
+    }
+  ],
+  "files": [
+    {
+      "root": "project",
+      "path": "Assets/EndfieldShaderPack/Editor/ImportCapturedVertexAttrsV2.cs",
+      "bytes": 14933,
+      "sha256": "9a29f76770294ed820759bccf5b92ddbb7a41864b771663cdf809ab8202d7cf3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Assets/EndfieldShaderPack/Editor/TyphoeusModelBuilder.cs",
+      "bytes": 13113,
+      "sha256": "1601bb98a6461e8a8831c6b74eeedf54a94a40104e66e29955804ba889ffb518",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "bytes": 76742,
+      "sha256": "aed32e75dd8cde4c4208d2cb15e2bcf55cead5e461db121e44cbd3c9e6bcec96",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl",
+      "bytes": 12496,
+      "sha256": "794590e4362bcd9c031e7deaa3c260113a3e80ba8eb23c7020f97814d91a6eab",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Assets/EndfieldShaderPack/EndfieldSkinBasisDriver.cs",
+      "bytes": 3820,
+      "sha256": "760340aa7088c5d10d1745f728f4194abad51e125a2144ba383aef7d1b0b20b7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Assets/Scripts/SmoothNormals.cs",
+      "bytes": 4056,
+      "sha256": "d265b561b3f0104fe542dbdc96c1e99c2bb98f589a4da89447070d2f2f13ce23",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Tools/export_all_vertex_attrs.py",
+      "bytes": 8074,
+      "sha256": "30770e4dbdc90baef9c29af76511ec5dea44a2c91e9d0301d6ea65f12313e1b2",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Tools/export_pose_full.py",
+      "bytes": 7061,
+      "sha256": "0bfc96ba1640471a582dd086a60f1e51b08c111c1655cda3d3b93ea1b6b85381",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Tools/extract_front_frame_constants.py",
+      "bytes": 30553,
+      "sha256": "02521f5fa5238b726cb5fcc73861acbc6e8ca74f4b46db1d06f91057b3e0cb1b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Tools/render_spec_baseline.py",
+      "bytes": 8504,
+      "sha256": "5b32aeeb32636a950fa8f3c049966d429ae54a52627c08c4d7ae0dba6d6e9279",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/draw-details.json",
+      "bytes": 89304134,
+      "sha256": "620402a0aef880fc684621e3f90bc35f7862e9d60587bf537a90a957af2bc297",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22249.spv",
+      "bytes": 19196,
+      "sha256": "0aa6ca19fab1ebf5a8a295f7ee4670ec3f56c524866db3bcc32526b3516124f3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22250.spv",
+      "bytes": 89208,
+      "sha256": "2d19733e44f3586b5e1be4749a277af9d4b198c91a92a16ffe41af14e1ab96d2",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22254.spv",
+      "bytes": 18072,
+      "sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22255.spv",
+      "bytes": 89056,
+      "sha256": "e2c3d5f19c14e12689d1c98424d94f514e5c06f3c5feee01e5c385360e7fe6a4",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22256.spv",
+      "bytes": 19604,
+      "sha256": "65e14d0dcb9b33ae03812c311b7e3fec171286388bb645551b28225a5ba5cf39",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22257.spv",
+      "bytes": 94468,
+      "sha256": "f2ea7b62f4e23e356908690084b0bed5f5e2562cfa3be2969420ad58abb7a052",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22258.spv",
+      "bytes": 18240,
+      "sha256": "cdba2e8ee0ae9ab6e333840892b58ffbafd7faa0b05dab4b4da088c1531206c0",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22259.spv",
+      "bytes": 67228,
+      "sha256": "0b34a60305f47c9e8ff32e79f16e5804fc3df1d08261128cb1465097f5a95d9b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37668.spv",
+      "bytes": 18072,
+      "sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37669.spv",
+      "bytes": 89416,
+      "sha256": "2817e9a7979169efec513d2f19e7f0c3740fbff5eb48bcfee49978c1b25143d1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37670.spv",
+      "bytes": 18216,
+      "sha256": "14b2b24e50c42cd3ee5ad7a37adcf23be2877d2ee3c0e970bb3c6fb4a87753c9",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37671.spv",
+      "bytes": 77692,
+      "sha256": "5c86693267a23337ad756f9ca02e14ef7c533aa521778095ad44051704908ea8",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-776-fragment-22259.hlsl",
+      "bytes": 58903,
+      "sha256": "c372e6c7708333952f52e77a17bb3c2ba300d87543cd91cd1f944adeeaa2c2b3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-776-vertex-22258.hlsl",
+      "bytes": 19205,
+      "sha256": "076bff89870b2cbbcf6bf938e84135b84b223e61363fbb1b54e23bd1a1748f38",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-786-fragment-22250.hlsl",
+      "bytes": 82401,
+      "sha256": "43d4d92caddb38bfdfbd6a022ebb2d9c4920ed9b578548305191886a1a3d4168",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+      "bytes": 20344,
+      "sha256": "8e77cfd20bcb00a3f161cf5b846f2cf138e38947e56dcc65e01584cccc5f9b52",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-835-fragment-22255.hlsl",
+      "bytes": 81737,
+      "sha256": "b2d68a56bc8fa136502b2ae2b08f0e56705f078808a413fbfa8657afa287f1f8",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-835-vertex-22254.hlsl",
+      "bytes": 18930,
+      "sha256": "5af0f001288615221c58a05307073b4a1ad7673312b1f9b1f0abb95d2b09a205",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "bytes": 81891,
+      "sha256": "d47f4f5dbffcfd2d67c57bc42bbd070448fe0c3ce6413df63037acede06fd87a",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-vertex-37668.hlsl",
+      "bytes": 18930,
+      "sha256": "5af0f001288615221c58a05307073b4a1ad7673312b1f9b1f0abb95d2b09a205",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-860-fragment-37671.hlsl",
+      "bytes": 68593,
+      "sha256": "49a1db74953ef3878d74c448af3113585fdb22e6a28af859b9db7aea8362468b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-860-vertex-37670.hlsl",
+      "bytes": 19166,
+      "sha256": "06f32c542376d3c3c0435dafaf80134e963d9b4b4087ecb86de1a1d4c5b6287a",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "bytes": 83992,
+      "sha256": "e2394790fca96e29a67f4a8925f4a04bdc977a493847fe284d128bfbfeca37b9",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-vertex-22256.hlsl",
+      "bytes": 21015,
+      "sha256": "d9522da48a2ae06e77d7d46f925a98328fcd5c545fe08e3e87c4b8ca93794a9f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/export-provenance.json",
+      "bytes": 7096,
+      "sha256": "a6f177b4cfc56a24abd4f4560efe083bee50291181fda27be331e76f43c1a2ec",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/raw-input-checks.json",
+      "bytes": 3026,
+      "sha256": "5f03c4641abfa02214442ff40ccc32072e98804a2b3a971dee121de0514b8b42",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/eye-hair-inputs-20260930-01/bone-world-matrices.json",
+      "bytes": 189004,
+      "sha256": "2461193f6760ce58df72d231ffcb349ad649fdbbcc32398d7f9da4b0db9b7630",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/face-input-capture-20260930-01/basis.json",
+      "bytes": 7076,
+      "sha256": "1bc1c6751b55b9966f8a254423bd3ef7513ba178259b582864e70c27d3b1469c",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input0.bin",
+      "bytes": 1944,
+      "sha256": "6152523f12cbc127f372b3dc995fc8b3e6a11d1c59887b7c7dbe7564d9a0cfe7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input1.bin",
+      "bytes": 1296,
+      "sha256": "e07fd57d8e5f1a603216f552fa145ef6c613291fe4fe98121e7422a9aca580e1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input2-decoded.bin",
+      "bytes": 1944,
+      "sha256": "5f8064631803e283c09bd55e00ee7fedd392ad42de59b30361a4d89eb792ec43",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input2.bin",
+      "bytes": 648,
+      "sha256": "940ded8819edb9fa721aaf11040852a20643b099d4953468b978480ce0eb19ae",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input3.bin",
+      "bytes": 648,
+      "sha256": "67c37e626fd2b37c78e5dd54ef9f8ecd0fe420ea9d91cdfecd532e6ac395d32f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input4.bin",
+      "bytes": 1296,
+      "sha256": "e07fd57d8e5f1a603216f552fa145ef6c613291fe4fe98121e7422a9aca580e1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input5.bin",
+      "bytes": 1944,
+      "sha256": "6152523f12cbc127f372b3dc995fc8b3e6a11d1c59887b7c7dbe7564d9a0cfe7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input6.bin",
+      "bytes": 648,
+      "sha256": "940ded8819edb9fa721aaf11040852a20643b099d4953468b978480ce0eb19ae",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input8.bin",
+      "bytes": 648,
+      "sha256": "debc395bb417ba227573fac0264a3f660cc7717486705c11259d51d488823650",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-_input9.bin",
+      "bytes": 648,
+      "sha256": "5ff0efd3b3d896e68d0cff720794b436be8a4d8d4122111cec55860d800de91a",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-ib.bin",
+      "bytes": 1236,
+      "sha256": "874f0f60ff145a77e51f9454da86018295acb736500c2f8ad6571e61e66f12b4",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/776-iris-inputs.json",
+      "bytes": 4866,
+      "sha256": "f104ecafaec55cebaa4534cea7b8a601328e62ec051fdd81ecce12273bf17a81",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input0.bin",
+      "bytes": 11004,
+      "sha256": "65cc89e52d44ad5d2fd6b75f71254bacfc5d1bc39d893711084b3f7f4ae4b87e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input1.bin",
+      "bytes": 7336,
+      "sha256": "2e0217dc2c02cb32fec2cc4f1d97d9834a1460fd73b36741a33598142d06ead2",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input2-decoded.bin",
+      "bytes": 11004,
+      "sha256": "5eec5dbdbf7454d0d7e38a15bbcf21cb113ba91a2224a035ca81e66b6ee26a03",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input2.bin",
+      "bytes": 3668,
+      "sha256": "3dcd2d1a2d7ec720b8ec1e443751ce92e16ffcdd5b0022c001d3a701b4bd4186",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input3.bin",
+      "bytes": 3668,
+      "sha256": "981196122454794b3e28814618ed1a7e85bca0c634062c5a31c88207a20e37b7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input4.bin",
+      "bytes": 3668,
+      "sha256": "951142a756c601c1771e8b319810893a22a682bb0dd8b26a9650124a1c4e20f3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input5.bin",
+      "bytes": 11004,
+      "sha256": "65cc89e52d44ad5d2fd6b75f71254bacfc5d1bc39d893711084b3f7f4ae4b87e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input6.bin",
+      "bytes": 3668,
+      "sha256": "3dcd2d1a2d7ec720b8ec1e443751ce92e16ffcdd5b0022c001d3a701b4bd4186",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input7.bin",
+      "bytes": 3668,
+      "sha256": "3dcd2d1a2d7ec720b8ec1e443751ce92e16ffcdd5b0022c001d3a701b4bd4186",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input8.bin",
+      "bytes": 7336,
+      "sha256": "7372628d6a4464023e7380491ec2619d8d5a009d4bdcdd897683373c7ca061d9",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-_input9.bin",
+      "bytes": 3668,
+      "sha256": "66e1724f424cb7f25cdefa8eda3cc22860c000a89d879b2c6aa3caa6ce5b944b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-ib.bin",
+      "bytes": 8496,
+      "sha256": "2200cc099029dfc1c6e418f246bac5d9e6b81ab1c9faea140a74a3cc778a6f1f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/786-body-inputs.json",
+      "bytes": 5387,
+      "sha256": "3b178419b9fc223d8156cbcd25714af790bbcde5600424d54da52f2ad8af9bbb",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input0.bin",
+      "bytes": 285096,
+      "sha256": "e009d15656031af97372a85e1d160c759cc996f0d4e18719c1689e93c61fdc86",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input1.bin",
+      "bytes": 190064,
+      "sha256": "b8588389d9734e87a7fdca1f58b5565772760c704c1efc68acceda57f3830cff",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input2.bin",
+      "bytes": 285096,
+      "sha256": "b4bc1bfb48583985f6a5ef5dbdb4509186912605058332c534cdac0bb15a55cd",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input3.bin",
+      "bytes": 380128,
+      "sha256": "46df7ea8ba017a4fc148210b98caa34178f907b4cd07815865b19a83e7b1f9b5",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input4.bin",
+      "bytes": 190064,
+      "sha256": "7fbccf5140a018b71f56b4696d68137d1c059824d6a24cbeb03def02b6fe3b0d",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input5.bin",
+      "bytes": 285096,
+      "sha256": "e009d15656031af97372a85e1d160c759cc996f0d4e18719c1689e93c61fdc86",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input6.bin",
+      "bytes": 285096,
+      "sha256": "b4bc1bfb48583985f6a5ef5dbdb4509186912605058332c534cdac0bb15a55cd",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input8.bin",
+      "bytes": 380128,
+      "sha256": "2719d9ba1226255c10a041de35fc12dbe8fb2074845ec12f330383cdf3a3b69b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-_input9.bin",
+      "bytes": 380128,
+      "sha256": "a96f17dd73cca5f22a69af7a14a818819a950009c53f64621925db281bd6ab66",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-ib.bin",
+      "bytes": 189582,
+      "sha256": "6ad87cef2862ecaa96ec2d63cef04681c97312241c57713b0ea934c0c7af81e0",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/835-cloth_01-inputs.json",
+      "bytes": 4967,
+      "sha256": "baba397a2431e25e41bae59b60548ffe528e4ff2fc25a0e020430e09d61753f0",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input0.bin",
+      "bytes": 126816,
+      "sha256": "a71c457a1640b4fc38b2eb4452caef14349a5492b4b03a9cb202c69565359c87",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input1.bin",
+      "bytes": 84544,
+      "sha256": "a0812f934dd33795c3ea75b574ab3b8935502083c7bcbd14f374f8129dda086a",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input2-decoded.bin",
+      "bytes": 126816,
+      "sha256": "dd3e21c6318f596f5cd7f0629407e179c1b5b071452b3414df6689ac5ba6d00e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input2.bin",
+      "bytes": 42272,
+      "sha256": "ed3e7b435d3b57f46616bba1da24ca8396dd8dabbceb9464a7074567c96b83f1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input3.bin",
+      "bytes": 42272,
+      "sha256": "eabf000b23ab145e4aead54f991de4913f8883bbbdd8332dc2ffec82493307b2",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input4.bin",
+      "bytes": 42272,
+      "sha256": "5770803463fe9f93e3025329566f75f42fc442224976d9a0a3ba03f2281573b7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input5.bin",
+      "bytes": 126816,
+      "sha256": "a71c457a1640b4fc38b2eb4452caef14349a5492b4b03a9cb202c69565359c87",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input6.bin",
+      "bytes": 42272,
+      "sha256": "ed3e7b435d3b57f46616bba1da24ca8396dd8dabbceb9464a7074567c96b83f1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input8.bin",
+      "bytes": 84544,
+      "sha256": "3fcd1346c0e449bd75acef2553f29e22c9901f9e88df4dd9e5242042aca55176",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-_input9.bin",
+      "bytes": 42272,
+      "sha256": "585e1f6548e30ffbe4aa644e14ad9659922d806eb3b8c4dcc32c83f531aee0e9",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-ib.bin",
+      "bytes": 73704,
+      "sha256": "34be237516ec88e63976def97f55fd4913404a832d685287cab6f4b986ac7432",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/850-cloth_02-inputs.json",
+      "bytes": 4939,
+      "sha256": "a27ba8176b9ddc8fed6827b5344200b908704b08723d191b890fda42f7c4bbfc",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input0.bin",
+      "bytes": 25308,
+      "sha256": "fa06fa5baff4172ca24bbbd36e05b58fd18718f6d18100017dc4ff0b1a8532b1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input1.bin",
+      "bytes": 16872,
+      "sha256": "0864b182f37c695debc9c0b845d5e01de1c7af73ea25978fbbc2400091a9afde",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input2-decoded.bin",
+      "bytes": 25308,
+      "sha256": "d606d17f10a12c2b6f408a34a6deec18679f8ad60363f18ae7432a0112a81f9d",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input2.bin",
+      "bytes": 8436,
+      "sha256": "bcfa8f6c9d9d99c3f107ce75fdd5062ece2adac2e19ff84fe0259cc1e44d9016",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input3.bin",
+      "bytes": 8436,
+      "sha256": "196a9587df62a0af52dfcbe8c841109745cf616b0f42f5a1bb037487a031062e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input4.bin",
+      "bytes": 8436,
+      "sha256": "6184f175a9808b0cfd1d0fb70116545a90268d592d8dc413d71aa8b319a8aefb",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input5.bin",
+      "bytes": 25308,
+      "sha256": "fa06fa5baff4172ca24bbbd36e05b58fd18718f6d18100017dc4ff0b1a8532b1",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input6.bin",
+      "bytes": 8436,
+      "sha256": "bcfa8f6c9d9d99c3f107ce75fdd5062ece2adac2e19ff84fe0259cc1e44d9016",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input8.bin",
+      "bytes": 16872,
+      "sha256": "6ba43647a52059f0e49390d7dce73cf583ec21cdc383b63c91ee2e6723934dcb",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-_input9.bin",
+      "bytes": 8436,
+      "sha256": "baf56f2a4a9dcef25915b8538f46be68d575c13bebade7b93ac961574893408f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-ib.bin",
+      "bytes": 21372,
+      "sha256": "b4a492aad41740c29225b50eedb0e3082b898e6d7a0002fb0edcbf04a9e90eec",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/860-face-inputs.json",
+      "bytes": 4894,
+      "sha256": "655a36f20fcc43726c1ed83eb4d05ad360b44022c1adfc2a7fd73ffd86cc04f7",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input0.bin",
+      "bytes": 183672,
+      "sha256": "e376bfb37a3ac8bfebe57aa7571eead5183cb5f6faeed6af98c4ee69f83acb9f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input1.bin",
+      "bytes": 122448,
+      "sha256": "0a200b88605171e1030379ba9f6be81b876b7b2384f92678f01fa4ce111770b6",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input2-decoded.bin",
+      "bytes": 183672,
+      "sha256": "8a23dddfd4a5452ce512e18dfe5333db131124b8e927edc81a4bb22304c99d59",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input2.bin",
+      "bytes": 61224,
+      "sha256": "4e199a62087f60b1cc187d0a0ce067c5a3c76fd0bfff0c72e3f5d3515f97604e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input3.bin",
+      "bytes": 61224,
+      "sha256": "160f8938b7911e62b9b4fcb7009736818d88a188bdce1adaf9eb24e2d9f6cd89",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input4.bin",
+      "bytes": 61224,
+      "sha256": "67a5b793c8bcd96d4b146ffc86f3109c62d567bf8ab0c02870c322ea6814d3b3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input5.bin",
+      "bytes": 183672,
+      "sha256": "e376bfb37a3ac8bfebe57aa7571eead5183cb5f6faeed6af98c4ee69f83acb9f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input6.bin",
+      "bytes": 61224,
+      "sha256": "4e199a62087f60b1cc187d0a0ce067c5a3c76fd0bfff0c72e3f5d3515f97604e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input7.bin",
+      "bytes": 61224,
+      "sha256": "4e199a62087f60b1cc187d0a0ce067c5a3c76fd0bfff0c72e3f5d3515f97604e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input8.bin",
+      "bytes": 122448,
+      "sha256": "dd4f36bf2d2142908a9556b22d11cd5808c5ae0369f51f3769f59c97d82ffb1f",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-_input9.bin",
+      "bytes": 61224,
+      "sha256": "902512910edb9e861a6709bf8bb12cc9d416dfac6e6c9bdae74e02247a4651bb",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-ib.bin",
+      "bytes": 109632,
+      "sha256": "ff45ce4a8f9748870569a4f45f698e39355a3af56575ed563a7d5804e1bca1d3",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/875-hair-inputs.json",
+      "bytes": 5382,
+      "sha256": "317f46f9eb86b7a12dbcfa86ef03e434ca118f56c2bf11db282a03f48cd09fe0",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/asset-safety-check.json",
+      "bytes": 1974,
+      "sha256": "4d4c95fdc804f3d73a1246c91863f243e62b2e672a795a35151eab92c6455d3d",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/complete.json",
+      "bytes": 77,
+      "sha256": "f4cc64f51c0005e5a273b3db4af05bd583764b45071531e38f23fba44aff3523",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/manifest.json",
+      "bytes": 30721,
+      "sha256": "963e6212669586d21833a3b1bc7c4791b5a3ce7398a3288d6214ff08312f7779",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/started.json",
+      "bytes": 159,
+      "sha256": "552662340fd2eac4d64ca57cb59ea4204645d519690950fa40eb177083b48e4e",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "Validation/vertex-input-export-20260929-183059/verification.json",
+      "bytes": 4436,
+      "sha256": "3f32c4fec12a3b0d4b08b5896617e2218be53ac466d5102f9005dfd79a7bc0bd",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b1011.hlsl",
+      "bytes": 94859,
+      "sha256": "3d7cea0b271f30110e4ab45e5ea07f14d7d0a604c966bfe0bbb0dc72a4474361",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SHADOW_LUT_TEX",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b471.hlsl",
+      "bytes": 93932,
+      "sha256": "0f449421ac189205b40978788a25dde7709e74a27d17756087a437497d48b19d",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b472.hlsl",
+      "bytes": 94155,
+      "sha256": "9079206b4a5da702773a0c789452c0f48c4e8538e522a00167180dccb5d72521",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EMISSION",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b474.hlsl",
+      "bytes": 93946,
+      "sha256": "5bb002b4e2c645e67fb28c329961308adb4e7781f0bd51e64b8721447d865a2a",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b475.hlsl",
+      "bytes": 94169,
+      "sha256": "d5e2dd827538c73cc19f6ba874a93d18b7192d2b50e81439ac1d9fc110384897",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_EMISSION",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b911.hlsl",
+      "bytes": 94038,
+      "sha256": "f6d169fcfb82465a3887efabf12acd8c05a129a29b0029d090cd7c0bed085bf6",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b912.hlsl",
+      "bytes": 94261,
+      "sha256": "959e0cb72c2f33da434f010661bed057a16e3b9c33b1ee3b05cfbd03dd0e633a",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EMISSION",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b914.hlsl",
+      "bytes": 94052,
+      "sha256": "aac5ecee8933518c68f9b8132cc66ad88e290f00def2b819573f8e3a35c53bfe",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b915.hlsl",
+      "bytes": 94275,
+      "sha256": "24c14dc89ec6634dbdfd39fc72e48bf2090b89cd013429f5554603843d4d57b4",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_EMISSION",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl",
+      "bytes": 70678,
+      "sha256": "8496d455a64622f87ebbc1649de32a35946e52662679db6205349a9149b53671",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EYE_HIGHLIGHT",
+        "_MATCAP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b52.hlsl",
+      "bytes": 70926,
+      "sha256": "3a8b7ea67130bbb54245024257d817f227aa56c55fefae94ba8a1afd2cfe41de",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EYE_HIGHLIGHT",
+        "_MATCAP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b125.hlsl",
+      "bytes": 95948,
+      "sha256": "790741f74b737b4b5e23ad05b3e8fc92ce6b25b475c7b1ed96f4f3ffa988ad3c",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPECULAR_LINE",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b126.hlsl",
+      "bytes": 96359,
+      "sha256": "abc21b605de1fe108bed9473c69056abc996ce553357eecfbc467ea4500b7e43",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPECULAR_LINE",
+        "_SPECULAR_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b129.hlsl",
+      "bytes": 96373,
+      "sha256": "6c6406894a6ed393e3b0c57bf06da43c6515c1197048082f1bbb86c61a847a99",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPECULAR_LINE",
+        "_SPECULAR_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b242.hlsl",
+      "bytes": 96436,
+      "sha256": "b2fda370a6e75e2beb97fd9c1e41282ca9433b6a3ecf67448e587c3d69a994cb",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPECULAR_LINE",
+        "_SPECULAR_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b245.hlsl",
+      "bytes": 96450,
+      "sha256": "cef95555b84cb855d462045a12a3b64fd6c4d9b4cb0ab5508c6dccadece7bc62",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_ALPHATEST_ON",
+        "_DIFF_RAMP_ON",
+        "_METALLICSPECGLOSSMAP",
+        "_NORMALMAP",
+        "_SPECULAR_LINE",
+        "_SPECULAR_NORMALMAP",
+        "_SPEC_RAMP_ON"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b114.hlsl",
+      "bytes": 94162,
+      "sha256": "f6d39cd116f95eaa35a129e9da84a8258efa0502ef39479461b46ecb371012e0",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_NORMALMAP",
+        "_SHADOW_LUT_TEX"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl",
+      "bytes": 81210,
+      "sha256": "8485341ac6de9e45e2ef25791f2d17bf975b8b567913fe740950307376cade7d",
+      "keywords": [
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EMOTION_MAP",
+        "_HIGHLIGHT_MAP",
+        "_NORMALMAP",
+        "_SDFLIGHTMAP",
+        "_SHADOW_LUT_TEX"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b208.hlsl",
+      "bytes": 94239,
+      "sha256": "53905283428d159943717aaf51041da67b8373978a4b2881c8784a31f684748f",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_NORMALMAP",
+        "_SHADOW_LUT_TEX"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b232.hlsl",
+      "bytes": 81458,
+      "sha256": "46079fbc2e30c7fd05ec24b65665f705da2e650dd8b0ea9e77dfa840f2719d87",
+      "keywords": [
+        "DITHER",
+        "HG_ENABLE_PER_OBJECT_MV",
+        "HG_ENABLE_SCREEN_SPACE_SHADOW_MASK",
+        "SRP_INSTANCING_ON",
+        "_DIFF_RAMP_ON",
+        "_EMOTION_MAP",
+        "_HIGHLIGHT_MAP",
+        "_NORMALMAP",
+        "_SDFLIGHTMAP",
+        "_SHADOW_LUT_TEX"
+      ]
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/.gitattributes",
+      "bytes": 108,
+      "sha256": "088a23d064d4df2e176971a92d3bf50aff7b1cfba27c5776d8d7b5b5a0d8e39c",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/README.md",
+      "bytes": 704,
+      "sha256": "b696858173021878b1b2ae08b83640a01ed843f9df3cf02e91bafdb007bb7c83",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v1/manifest.json",
+      "bytes": 4384444,
+      "sha256": "9f79a53dadd5ecafb8f5f0484f3af8721f4ca2384ab96f416ae68d58b23629b2",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v1/plan.json",
+      "bytes": 15562,
+      "sha256": "44f8e0ce869a0cb6394180b1b6daf427de210aaed9470db98344b700a0bba1cf",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/.gitattributes",
+      "bytes": 89,
+      "sha256": "6c6da3d6559659d5b3e47cb7b934b1ea82c98964042b261f15681fee8ded0470",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/export-provenance.json",
+      "bytes": 7096,
+      "sha256": "a6f177b4cfc56a24abd4f4560efe083bee50291181fda27be331e76f43c1a2ec",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/foundation.md",
+      "bytes": 13323,
+      "sha256": "bd6e3824599a69a8348d14c877c56f6be709949c08ca73f848d36e92b1a1487b",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/native-input-contract.json",
+      "bytes": 2919,
+      "sha256": "ba28e78d991d7ee550ad59ccad18903dab89bc22c7cfcc0335e3e66a1e2f8793",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/plan.json",
+      "bytes": 13548,
+      "sha256": "923e31917101d2e7f4c19cdfb841174e1a61a59825ecdba1175511606b652642",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/raw-input-checks.json",
+      "bytes": 3014,
+      "sha256": "ee3ef175aa2ace9112cdb66837ce0c118ceec638f0cea6362cf9665771fb3373",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/tools/raw_draw_inputs.py",
+      "bytes": 8067,
+      "sha256": "f8c3784a9f462b5973bcd738d79e9346da0cf52b632e787c7ce7570590ef02cf",
+      "keywords": []
+    },
+    {
+      "root": "project",
+      "path": "docs/render-baseline/v2/tools/tests/test_raw_draw_inputs.py",
+      "bytes": 7061,
+      "sha256": "fe7349f6c36d6d4a423dba36cc06ac91b8adfba85fe761a6c6a802a3c8c6e369",
+      "keywords": []
+    }
+  ],
+  "approval": "evidence-only",
+  "digest": "724961994e7997060620a1158f7804841968b9fb71c94d5c866c0b5ce80dd92a"
+}

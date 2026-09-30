@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "baseline": "official-render-six-draw-evidence-20260930-v2",
+  "scope": "Incremental native frame6411 program/input evidence with explicit corrections to v1 interpretation. No full official pipeline or runtime rendering certification.",
+  "parent_baseline": {
+    "path": "docs/render-baseline/v1/manifest.json",
+    "digest": "b318c7a4624e4b8ab3a73ba4bf4617e24f3a07df6689dafa83d4094688fb049b",
+    "git_commit": "b26d86efece511b728e29e586d3510c88c001e9b",
+    "policy": "Append only. Verify both versions; full v1 source hashes are not replaced by this delta."
+  },
+  "groups": [
+    {
+      "id": "parent-identity",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v1/manifest.json",
+        "docs/render-baseline/v1/plan.json",
+        "Tools/render_spec_baseline.py"
+      ],
+      "role": "Immutable parent metadata and existing provenance validator; run parent verification separately."
+    },
+    {
+      "id": "v2-policy-and-tools",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v2/foundation.md",
+        "docs/render-baseline/v2/plan.json",
+        "docs/render-baseline/v2/.gitattributes",
+        "docs/render-baseline/v2/tools/**/*.py",
+        "docs/render-baseline/README.md",
+        "docs/render-baseline/.gitattributes"
+      ],
+      "role": "Scoped evidence interpretations, independent failure-path tests and byte-preservation policy"
+    },
+    {
+      "id": "v2-metadata",
+      "root": "project",
+      "patterns": [
+        "docs/render-baseline/v2/native-input-contract.json",
+        "docs/render-baseline/v2/export-provenance.json",
+        "docs/render-baseline/v2/raw-input-checks.json"
+      ],
+      "role": "Versioned metadata/report copies, no official source/game assets"
+    },
+    {
+      "id": "native-input-evidence",
+      "root": "project",
+      "patterns": [
+        "Validation/vertex-input-export-20260929-183059/*.json",
+        "Validation/vertex-input-export-20260929-183059/*.bin"
+      ],
+      "role": "Native format-preserving local capture data; hash only, never upload binary assets"
+    },
+    {
+      "id": "captured-programs",
+      "root": "project",
+      "patterns": [
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/draw-details.json",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22258.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22259.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22249.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22250.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22254.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22255.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37668.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37669.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37670.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37671.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22256.spv",
+        "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22257.spv",
+        "Validation/draw-program-audit-20260930-01/event-776-vertex-22258.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-776-fragment-22259.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-786-fragment-22250.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-vertex-22254.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-835-fragment-22255.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-vertex-37668.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-vertex-37670.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-860-fragment-37671.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-vertex-22256.hlsl",
+        "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+        "Validation/draw-program-audit-20260930-01/export-provenance.json",
+        "Validation/draw-program-audit-20260930-01/raw-input-checks.json"
+      ],
+      "role": "Actual draw/program identity and SM51 output with descriptor spaces; source hashes only"
+    },
+    {
+      "id": "dump-name-recovery-candidates",
+      "root": "project",
+      "patterns": [
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b52.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b114.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b208.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b232.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b471.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b474.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b472.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b475.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b911.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b914.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b912.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b915.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b1011.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b125.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b126.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b129.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b242.hlsl",
+        "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b245.hlsl"
+      ],
+      "role": "Candidate interpretations, exact non-comment fragment classes do not prove unique original keyword identity"
+    },
+    {
+      "id": "input-and-runtime-audit-snapshot",
+      "root": "project",
+      "patterns": [
+        "Validation/face-input-capture-20260930-01/basis.json",
+        "Validation/eye-hair-inputs-20260930-01/bone-world-matrices.json",
+        "Tools/export_pose_full.py",
+        "Tools/extract_front_frame_constants.py",
+        "Tools/export_all_vertex_attrs.py",
+        "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl",
+        "Assets/EndfieldShaderPack/EndfieldSkinBasisDriver.cs",
+        "Assets/EndfieldShaderPack/Editor/TyphoeusModelBuilder.cs",
+        "Assets/EndfieldShaderPack/Editor/ImportCapturedVertexAttrsV2.cs",
+        "Assets/Scripts/SmoothNormals.cs"
+      ],
+      "role": "Evidence for current implementation gaps, not a source of official algorithms"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "native-six-draw-storage",
+      "dimensions": {
+        "formula": "not-applicable",
+        "variant": "pending",
+        "input": "verified",
+        "producer": "pending",
+        "render_state": "not-applicable",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified only native bytes/location/format/index spans for six frame6411 inputs. Does not establish all importer semantics, palette transforms, producers or runtime binding after reinitialization."
+      ]
+    },
+    {
+      "id": "captured-program-identity",
+      "dimensions": {
+        "formula": "pending",
+        "variant": "pending",
+        "input": "verified",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "12 raw SPV hashes match original draw-details shader records. Unique dump keyword provenance, initializer and typed-load control-flow equivalence, full vertex matching and all other draw variants remain open."
+      ]
+    },
+    {
+      "id": "hair-rg-ba-normal-core",
+      "dimensions": {
+        "formula": "verified",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified scoped two-normal reconstruction/roles in actual PS22257, not complete Hair/weather/IV/punctual/fog. Fix official source caller/helper normal roles and preserve actual texture/sampler/bias inputs before runtime approval."
+      ]
+    },
+    {
+      "id": "cloth02-emission-consumer",
+      "dimensions": {
+        "formula": "verified",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Verified exact sampled RGB/color/brightness/premultiply factor for PS37669. Resource production, UV/bias, full compositing order and runtime branch remain unapproved."
+      ]
+    },
+    {
+      "id": "rest-root-previous-lifecycle",
+      "dimensions": {
+        "formula": "pending",
+        "variant": "pending",
+        "input": "pending",
+        "producer": "pending",
+        "render_state": "pending",
+        "runtime_binding": "pending"
+      },
+      "remaining": [
+        "Keep rest streams independent; current/previous palette and cloth part-root producers unresolved. Existing reconstruction can overwrite recovered frames; generated smooth normals are not raw outline evidence."
+      ]
+    }
+  ],
+  "anchors": [
+    {
+      "id": "hair-rg-path",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float2 _504 = (_499.xy * 2.0f) - 1.0f.xx;"
+    },
+    {
+      "id": "hair-ba-path",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float2 _563 = (_499.zw * 2.0f) - 1.0f.xx;"
+    },
+    {
+      "id": "hair-spec-normal-not-face-flipped",
+      "contract": "hair-rg-ba-normal-core",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "literal": "float3 _576 = normalize(mul(float3(_573.x, _573.y, _564.z), _546));"
+    },
+    {
+      "id": "cloth02-premultiply",
+      "contract": "cloth02-emission-consumer",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "literal": "float _2265 = (1.0f - _48_m6) + (_491 * _48_m6);"
+    },
+    {
+      "id": "cloth02-emission-all-factors",
+      "contract": "cloth02-emission-consumer",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "literal": "((_528.xyz * _48_m25.xyz) * _48_m7) * _2265"
+    },
+    {
+      "id": "body-rest-tangent-separate",
+      "contract": "rest-root-previous-lifecycle",
+      "root": "project",
+      "path": "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+      "literal": "float4 _21 : TEXCOORD7;"
+    },
+    {
+      "id": "lossy-pose-export-must-not-be-oracle",
+      "contract": "native-six-draw-storage",
+      "root": "project",
+      "path": "Tools/export_pose_full.py",
+      "literal": "ws = tuple(int(round(w * 65535.0)) for w in vals[:4])"
+    }
+  ]
+}

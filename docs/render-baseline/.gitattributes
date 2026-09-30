@@ -1,0 +1,3 @@
+# Limit this ancestor policy to the version index and policy itself.
+/.gitattributes -text
+/README.md -text

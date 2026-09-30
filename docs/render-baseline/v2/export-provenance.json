@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "frame": 6411,
+  "tool_relative_to_workspace": "EndfieldUnpacker/_tools/renderdoc/1.46/RenderDoc_1.46_64/plugins/spirv/spirv-cross.exe",
+  "tool_sha256": "e5b4db9356bb0de3f6b66ccfa2370750e29d8a66b9d4527880c77d2e0325022d",
+  "args": [
+    "{spv}",
+    "--hlsl",
+    "--shader-model",
+    "51",
+    "--output",
+    "{hlsl}"
+  ],
+  "draw_details_sha256": "620402a0aef880fc684621e3f90bc35f7862e9d60587bf537a90a957af2bc297",
+  "programs": [
+    {
+      "event": 776,
+      "stage": "vertex",
+      "shader": "ResourceId::22258",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22258.spv",
+      "spv_sha256": "cdba2e8ee0ae9ab6e333840892b58ffbafd7faa0b05dab4b4da088c1531206c0",
+      "recorded_spv_sha256": "cdba2e8ee0ae9ab6e333840892b58ffbafd7faa0b05dab4b4da088c1531206c0",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-776-vertex-22258.hlsl",
+      "hlsl_sha256": "076bff89870b2cbbcf6bf938e84135b84b223e61363fbb1b54e23bd1a1748f38"
+    },
+    {
+      "event": 776,
+      "stage": "fragment",
+      "shader": "ResourceId::22259",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22259.spv",
+      "spv_sha256": "0b34a60305f47c9e8ff32e79f16e5804fc3df1d08261128cb1465097f5a95d9b",
+      "recorded_spv_sha256": "0b34a60305f47c9e8ff32e79f16e5804fc3df1d08261128cb1465097f5a95d9b",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-776-fragment-22259.hlsl",
+      "hlsl_sha256": "c372e6c7708333952f52e77a17bb3c2ba300d87543cd91cd1f944adeeaa2c2b3"
+    },
+    {
+      "event": 786,
+      "stage": "vertex",
+      "shader": "ResourceId::22249",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22249.spv",
+      "spv_sha256": "0aa6ca19fab1ebf5a8a295f7ee4670ec3f56c524866db3bcc32526b3516124f3",
+      "recorded_spv_sha256": "0aa6ca19fab1ebf5a8a295f7ee4670ec3f56c524866db3bcc32526b3516124f3",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-786-vertex-22249.hlsl",
+      "hlsl_sha256": "8e77cfd20bcb00a3f161cf5b846f2cf138e38947e56dcc65e01584cccc5f9b52"
+    },
+    {
+      "event": 786,
+      "stage": "fragment",
+      "shader": "ResourceId::22250",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22250.spv",
+      "spv_sha256": "2d19733e44f3586b5e1be4749a277af9d4b198c91a92a16ffe41af14e1ab96d2",
+      "recorded_spv_sha256": "2d19733e44f3586b5e1be4749a277af9d4b198c91a92a16ffe41af14e1ab96d2",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-786-fragment-22250.hlsl",
+      "hlsl_sha256": "43d4d92caddb38bfdfbd6a022ebb2d9c4920ed9b578548305191886a1a3d4168"
+    },
+    {
+      "event": 835,
+      "stage": "vertex",
+      "shader": "ResourceId::22254",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22254.spv",
+      "spv_sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "recorded_spv_sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-835-vertex-22254.hlsl",
+      "hlsl_sha256": "5af0f001288615221c58a05307073b4a1ad7673312b1f9b1f0abb95d2b09a205"
+    },
+    {
+      "event": 835,
+      "stage": "fragment",
+      "shader": "ResourceId::22255",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22255.spv",
+      "spv_sha256": "e2c3d5f19c14e12689d1c98424d94f514e5c06f3c5feee01e5c385360e7fe6a4",
+      "recorded_spv_sha256": "e2c3d5f19c14e12689d1c98424d94f514e5c06f3c5feee01e5c385360e7fe6a4",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-835-fragment-22255.hlsl",
+      "hlsl_sha256": "b2d68a56bc8fa136502b2ae2b08f0e56705f078808a413fbfa8657afa287f1f8"
+    },
+    {
+      "event": 850,
+      "stage": "vertex",
+      "shader": "ResourceId::37668",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37668.spv",
+      "spv_sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "recorded_spv_sha256": "269bf0a21c95da72035a927d3da64fd28470a689fa7d07bb8f482570854a66cd",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-850-vertex-37668.hlsl",
+      "hlsl_sha256": "5af0f001288615221c58a05307073b4a1ad7673312b1f9b1f0abb95d2b09a205"
+    },
+    {
+      "event": 850,
+      "stage": "fragment",
+      "shader": "ResourceId::37669",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37669.spv",
+      "spv_sha256": "2817e9a7979169efec513d2f19e7f0c3740fbff5eb48bcfee49978c1b25143d1",
+      "recorded_spv_sha256": "2817e9a7979169efec513d2f19e7f0c3740fbff5eb48bcfee49978c1b25143d1",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-850-fragment-37669.hlsl",
+      "hlsl_sha256": "d47f4f5dbffcfd2d67c57bc42bbd070448fe0c3ce6413df63037acede06fd87a"
+    },
+    {
+      "event": 860,
+      "stage": "vertex",
+      "shader": "ResourceId::37670",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37670.spv",
+      "spv_sha256": "14b2b24e50c42cd3ee5ad7a37adcf23be2877d2ee3c0e970bb3c6fb4a87753c9",
+      "recorded_spv_sha256": "14b2b24e50c42cd3ee5ad7a37adcf23be2877d2ee3c0e970bb3c6fb4a87753c9",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-860-vertex-37670.hlsl",
+      "hlsl_sha256": "06f32c542376d3c3c0435dafaf80134e963d9b4b4087ecb86de1a1d4c5b6287a"
+    },
+    {
+      "event": 860,
+      "stage": "fragment",
+      "shader": "ResourceId::37671",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-37671.spv",
+      "spv_sha256": "5c86693267a23337ad756f9ca02e14ef7c533aa521778095ad44051704908ea8",
+      "recorded_spv_sha256": "5c86693267a23337ad756f9ca02e14ef7c533aa521778095ad44051704908ea8",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-860-fragment-37671.hlsl",
+      "hlsl_sha256": "49a1db74953ef3878d74c448af3113585fdb22e6a28af859b9db7aea8362468b"
+    },
+    {
+      "event": 875,
+      "stage": "vertex",
+      "shader": "ResourceId::22256",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22256.spv",
+      "spv_sha256": "65e14d0dcb9b33ae03812c311b7e3fec171286388bb645551b28225a5ba5cf39",
+      "recorded_spv_sha256": "65e14d0dcb9b33ae03812c311b7e3fec171286388bb645551b28225a5ba5cf39",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-875-vertex-22256.hlsl",
+      "hlsl_sha256": "d9522da48a2ae06e77d7d46f925a98328fcd5c545fe08e3e87c4b8ca93794a9f"
+    },
+    {
+      "event": 875,
+      "stage": "fragment",
+      "shader": "ResourceId::22257",
+      "spv": "Validation/Captures/tifuluosi-front-20260917/replay-details-01/shader-22257.spv",
+      "spv_sha256": "f2ea7b62f4e23e356908690084b0bed5f5e2562cfa3be2969420ad58abb7a052",
+      "recorded_spv_sha256": "f2ea7b62f4e23e356908690084b0bed5f5e2562cfa3be2969420ad58abb7a052",
+      "hlsl": "Validation/draw-program-audit-20260930-01/event-875-fragment-22257.hlsl",
+      "hlsl_sha256": "e2394790fca96e29a67f4a8925f4a04bdc977a493847fe284d128bfbfeca37b9"
+    }
+  ]
+}

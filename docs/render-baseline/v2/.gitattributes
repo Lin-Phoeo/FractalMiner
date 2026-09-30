@@ -1,0 +1,2 @@
+# This version's evidence, policy and validators must round-trip byte-for-byte.
+** -text
