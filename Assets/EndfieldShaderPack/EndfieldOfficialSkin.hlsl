@@ -61,13 +61,7 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
     float4 mask = hasSDF ? SAMPLE_TEXTURE2D(_SDFMask, sampler_Endfield_LinearRepeat, uv)
                         : float4(1.0, 1.0, 1.0, 0.0);
     float normalWeight = mask.y; // 0 selects SDF; 1 selects normal-based light.
-    float4x4 objectToWorld = GetObjectToWorldMatrix();
-    // Actual captured fragment37671:407-418 selects skin ROOT rows when bit16
-    // is set, not the mesh's ObjectToWorld or its weighted skinning palette.
-    // Opt-in per-renderer input; default keeps non-capture scenes unchanged.
-    if (_EndfieldSkinBasisEnabled > 0.5)
-        objectToWorld = float4x4(_EndfieldSkinBasisRow0, _EndfieldSkinBasisRow1,
-                                _EndfieldSkinBasisRow2, float4(0, 0, 0, 1));
+    float4x4 objectToWorld = EndfieldCharacterRootToWorld();
     float3x3 objectBasis = (float3x3)objectToWorld;
     float3 rootToPixel = positionWS - float3(objectToWorld[0].w, 0, objectToWorld[2].w);
     rootToPixel.y = horizontalEpsilon;

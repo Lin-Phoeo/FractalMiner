@@ -14,14 +14,38 @@ namespace EndfieldShaderPack.EditorTools
         // accuracy verdict, image comparison or completed dance-video gate.
         public static void RunAnimationInputs()
         {
+            RunAnimationInputsCore(false);
+        }
+
+        // Live pass/input integration, not an image-matching or MMD fidelity gate.
+        public static void RunRenderedAnimationInputs()
+        {
+            if (!Application.isBatchMode) throw new InvalidOperationException("Run rendered input validation in batch mode.");
+            RunAnimationInputsCore(true);
+        }
+
+        static void RunAnimationInputsCore(bool render)
+        {
             string motionPath = Environment.GetEnvironmentVariable("ENDFIELD_BASIS_TEST_VMD");
             string output = Environment.GetEnvironmentVariable("ENDFIELD_BASIS_TEST_REPORT");
             if (!File.Exists(motionPath) || string.IsNullOrEmpty(output) || File.Exists(output))
                 throw new InvalidOperationException("Provide an existing VMD and a fresh report path.");
+            string renderDirectory = null;
+            if (render)
+            {
+                renderDirectory = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(output)),
+                    Path.GetFileNameWithoutExtension(output) + "-frames");
+                if (Directory.Exists(renderDirectory)) throw new IOException("Use a fresh frame directory: " + renderDirectory);
+                Directory.CreateDirectory(renderDirectory);
+            }
             var samples = new List<object>();
+            bool pipelineWasActivated = EndfieldCapturedPipelineActivation.IsActivated;
+            int renderedFrames = 0;
             try
             {
+                if (render && !pipelineWasActivated) EndfieldCapturedPipelineActivation.Activate();
                 Transform root = OpenDanceRoot();
+                if (render) ConfigureRender(root);
                 var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(
                     "Assets/Typhoeus/AnimationsDecoded/A_actor_typhoea_battle_attack_01.anim");
                 if (clip == null || clip.length <= 0 || AnimationUtility.GetCurveBindings(clip).Length == 0)
@@ -31,9 +55,11 @@ namespace EndfieldShaderPack.EditorTools
                     clip.SampleAnimation(root.gameObject, clip.length * fraction);
                     Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root);
                     CheckRealBindings(root);
+                    if (render) RenderAndCheck(root, renderDirectory, "native-" + renderedFrames++);
                     samples.Add(new { source = "decoded-native-clip", fraction, basis = "live" });
                 }
                 root = OpenDanceRoot(); // Calibration must not inherit native animated pose.
+                if (render) ConfigureRender(root);
                 var motion = Vmd.ReadFile(motionPath);
                 string rigPath = Environment.GetEnvironmentVariable("ENDFIELD_BASIS_TEST_RIG");
                 var rig = string.IsNullOrEmpty(rigPath) ? null : MmdRigDefinition.FromFile(rigPath);
@@ -45,16 +71,67 @@ namespace EndfieldShaderPack.EditorTools
                     player.ApplyFrame((float)motion.Duration * fraction, player.suggestedScale, true, 0);
                     Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root);
                     CheckRealBindings(root);
+                    if (render) RenderAndCheck(root, renderDirectory, "vmd-" + renderedFrames++);
                     samples.Add(new { source = "VMD-MmdPlayer", fraction, basis = "live" });
                 }
                 File.WriteAllText(output, Newtonsoft.Json.JsonConvert.SerializeObject(new {
                     status = "pass", scope = "loader -> pose -> dynamic skin basis, NOT MMD fidelity/complete video",
                     nativeClip = AssetDatabase.GetAssetPath(clip), nativeCurves = AnimationUtility.GetCurveBindings(clip).Length,
-                    motionPath, sourceRig = player.sourceRig.name, samples
+                    motionPath, sourceRig = player.sourceRig.name, renderedFrames, renderDirectory,
+                    dynamicBloomAndShadowChecked = render, samples
                 }, Newtonsoft.Json.Formatting.Indented));
                 Debug.Log("[SkinBasisAnimationInputs] PASS: decoded native clip + VMD, six post-pose shader binding checks; " + output);
             }
-            finally { EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single); }
+            finally
+            {
+                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                EndfieldCharacterShadowCaster.Refresh();
+                if (render && !pipelineWasActivated && EndfieldCapturedPipelineActivation.IsActivated)
+                    EndfieldCapturedPipelineActivation.Restore();
+            }
+        }
+
+        static void ConfigureRender(Transform root)
+        {
+            var caster = root.GetComponent<EndfieldCharacterShadowCaster>();
+            if (caster == null) caster = root.gameObject.AddComponent<EndfieldCharacterShadowCaster>();
+            caster.slot = 0;
+            EndfieldCharacterShadowCaster.Refresh();
+            Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(true, EndfieldCaptureAssets.EnvironmentCube);
+            var light = UnityEngine.Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
+            if (light == null) throw new InvalidOperationException("Dance character light missing.");
+            light.useSeparatedLight = true;
+            light.transform.rotation = Quaternion.LookRotation(
+                -new Vector3(.0213893f, -.642788f, -.765746f).normalized, Vector3.up);
+            light.ApplyLight();
+        }
+
+        static void RenderAndCheck(Transform root, string frameDirectory, string frameName)
+        {
+            var camera = Camera.main;
+            var profile = camera != null ? camera.GetComponent<EndfieldCapturedPostProfile>() : null;
+            if (profile == null || !profile.IsConfigured) throw new InvalidOperationException("Dance post profile missing/unconfigured.");
+            int previousFrames = profile.executedFrames;
+            string framePath = Path.Combine(frameDirectory, frameName + ".png");
+            EndfieldVmdBatchRender.SaveFrame(camera, framePath, 640, 400, false);
+            if (profile.executedFrames <= previousFrames || !profile.lastFrameUsedDynamicBloom)
+                throw new InvalidOperationException("Captured post/dynamic Bloom did not execute for " + frameName);
+            if (!string.IsNullOrEmpty(EndfieldCharacterShadowFeature.LastSkipReason)
+                || CharacterShadowPass.LastResolved == null || CharacterShadowPass.LastAtlas == null
+                || Shader.GetGlobalFloat(CharacterShadowPass.SelfShadowGateName) < .5f)
+                throw new InvalidOperationException("Live self-shadow did not execute: " + EndfieldCharacterShadowFeature.LastSkipReason);
+            CheckRealBindings(root); // Rendering must not erase the post-pose root data.
+            foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
+            for (int slot = 0; slot < renderer.sharedMaterials.Length; slot++)
+            {
+                var block = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(block, slot);
+                if (block.GetFloat("_EndfieldSkinBasisEnabled") != 1) continue;
+                if ((block.GetVector(CharacterShadowPass.IndexEncodeName) - CharacterShadowPass.IndexEncode(0)).sqrMagnitude > 1e-10f
+                    || block.GetMatrix(CharacterShadowPass.AtlasClipMatrixName) == Matrix4x4.zero)
+                    throw new InvalidOperationException("Root slot masks live shadow data: " + renderer.name);
+            }
+            Debug.Log("[RenderedAnimationInputs] PASS " + frameName + ": live roots + shadow + dynamic Bloom + captured post");
         }
 
         static Transform OpenDanceRoot()
@@ -71,7 +148,9 @@ namespace EndfieldShaderPack.EditorTools
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 if (!renderer.name.EndsWith("_typhoea_face_01_lod0", StringComparison.Ordinal)
-                    && !renderer.name.EndsWith("_typhoea_body_01_lod0", StringComparison.Ordinal)) continue;
+                    && !renderer.name.EndsWith("_typhoea_body_01_lod0", StringComparison.Ordinal)
+                    && !renderer.name.EndsWith("_typhoea_iris_01_lod0", StringComparison.Ordinal)
+                    && !renderer.name.EndsWith("_typhoea_hair_01_lod0", StringComparison.Ordinal)) continue;
                 for (int slot = 0; slot < renderer.sharedMaterials.Length; slot++)
                 {
                     var block = new MaterialPropertyBlock();
@@ -80,13 +159,15 @@ namespace EndfieldShaderPack.EditorTools
                     checkedSlots++;
                 }
             }
-            if (checkedSlots != 2) throw new Exception("Expected face and body skin slots, got " + checkedSlots);
+            if (checkedSlots != 4) throw new Exception("Expected face/body/iris/hair root slots, got " + checkedSlots);
         }
 
         public static void Run()
         {
             var root = new GameObject("SkinBasisValidation");
             var material = new Material(Shader.Find("Endfield/CharacterLit"));
+            var irisMaterial = new Material(material);
+            var hairMaterial = new Material(material);
             try
             {
                 material.SetFloat("_MaterialFamily", 1);
@@ -99,6 +180,14 @@ namespace EndfieldShaderPack.EditorTools
                 face.transform.SetParent(root.transform, false);
                 body.transform.SetParent(root.transform, false);
                 face.sharedMaterial = body.sharedMaterial = material;
+                irisMaterial.SetFloat("_MaterialFamily", 3);
+                hairMaterial.SetFloat("_MaterialFamily", 2);
+                var iris = new GameObject("S_actor_typhoea_iris_01_lod0").AddComponent<SkinnedMeshRenderer>();
+                var hair = new GameObject("S_actor_typhoea_hair_01_lod0").AddComponent<SkinnedMeshRenderer>();
+                iris.transform.SetParent(root.transform, false);
+                hair.transform.SetParent(root.transform, false);
+                iris.sharedMaterial = irisMaterial;
+                hair.sharedMaterial = hairMaterial;
                 var block = new MaterialPropertyBlock();
                 block.SetFloat("_BasisValidationPreserved", 7);
                 face.SetPropertyBlock(block, 0);
@@ -109,14 +198,14 @@ namespace EndfieldShaderPack.EditorTools
                     spine.localPosition = new Vector3(-pose, .8f, pose * .5f);
                     spine.localRotation = Quaternion.Euler(pose * -17, pose * 19, pose * 29);
                     Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root.transform);
-                    foreach (var renderer in new[] { face, body })
+                    foreach (var renderer in new[] { face, body, iris, hair })
                     {
                         renderer.GetPropertyBlock(block, 0);
                         if (block.GetFloat("_EndfieldSkinBasisEnabled") != 1) throw new Exception("Basis not enabled");
-                        var source = (renderer == face ? head : spine).localToWorldMatrix;
+                        var source = (renderer != body ? head : spine).localToWorldMatrix;
                         for (int row = 0; row < 3; row++)
                         {
-                            Vector4 expected = renderer == face
+                            Vector4 expected = renderer != body
                                 ? new Vector4(-source[row, 2], -source[row, 0], source[row, 1], source[row, 3])
                                 : source.GetRow(row);
                             if ((block.GetVector("_EndfieldSkinBasisRow" + row) - expected).sqrMagnitude > 1e-10f)
@@ -131,12 +220,14 @@ namespace EndfieldShaderPack.EditorTools
                 try { Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root.transform); }
                 catch (InvalidOperationException) { rejected = true; }
                 if (!rejected) throw new Exception("Missing source bone was accepted");
-                Debug.Log("[SkinBasisValidation] PASS: three dynamic poses, head axis permutation, spine basis, translation, MPB preservation, missing-bone rejection");
+                Debug.Log("[SkinBasisValidation] PASS: three dynamic poses x four parts, head axis permutation, spine basis, translation, MPB preservation, missing-bone rejection");
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(root);
                 UnityEngine.Object.DestroyImmediate(material);
+                UnityEngine.Object.DestroyImmediate(irisMaterial);
+                UnityEngine.Object.DestroyImmediate(hairMaterial);
             }
         }
     }

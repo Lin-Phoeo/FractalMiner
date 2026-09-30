@@ -391,6 +391,7 @@ namespace EndfieldShaderPack
                     player.ApplyFrame(timeSec, player.suggestedScale, true, 0f);
                     sourceEvaluator.Sample(timeSec * 30.0);
                     float groundCorrection = player.KeepFeetAboveBindFloor(0.05f);
+                    Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(root);
                     cameraDriver.Apply(timeSec, player.suggestedScale, root, player.bindRootWorld);
                     float leftFootY = Find(root, "Bip001_L_Foot").position.y;
                     float rightFootY = Find(root, "Bip001_R_Foot").position.y;

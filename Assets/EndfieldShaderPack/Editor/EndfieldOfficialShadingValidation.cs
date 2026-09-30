@@ -30,12 +30,12 @@ namespace EndfieldShaderPack
 
         // b125: _2174.._2296, b471: _2063.._2179. N=(0,0,1), no spec,
         // white RGB ramp with variable alpha, selfShadow=directionalShadow=1.
-        static Vector3 Expected(float rampAlpha, Vector3 matcap = default)
+        static Vector3 Expected(float rampAlpha, Vector3 matcap = default, float? viewAlpha = null)
         {
             var albedo = new Vector3(.2f,.3f,.4f);
             Vector3 diffuse = albedo * .96f;
             Vector3 deep = Sat(albedo * .55f, 1.1f) * (.96f * .65f);
-            Vector3 baseSel = Vector3.Lerp(Vector3.Lerp(Sat(deep*.65f,1.2f), deep, Mathf.Clamp01(2*rampAlpha)), diffuse, rampAlpha);
+            Vector3 baseSel = Vector3.Lerp(Vector3.Lerp(Sat(deep*.65f,1.2f), deep, Mathf.Clamp01((viewAlpha ?? rampAlpha)+rampAlpha)), diffuse, rampAlpha);
             Vector3 ambient = .725f * Vector3.Lerp(new Vector3(.8490771055f,.8957685828f,1.1509230137f), Vector3.one, rampAlpha);
             Vector3 lightTerm = Vector3.one * 1.6243867874f + ambient * .287722f;
             Vector3 color = Mul(baseSel, lightTerm) + Mul(matcap, lightTerm)
@@ -114,6 +114,55 @@ namespace EndfieldShaderPack
                     if(float.IsNaN(error) || error>.004f || p.a<.9f) failures++;
                 }
                 finally { Object.DestroyImmediate(eyeRamp); Object.DestroyImmediate(eyeMatcap); }
+                // Actual b28 _1226 -> _1231 -> _1233: normalize in root
+                // space, remove Y, transform back WITHOUT renormalizing.
+                // A gradient-alpha ramp exposes any accidental energy boost.
+                var gradientRamp = new Texture2D(128, 1, TextureFormat.RGBAFloat, false, true);
+                var originalQuadMesh = quad.GetComponent<MeshFilter>().sharedMesh;
+                var eyeMesh = Object.Instantiate(originalQuadMesh);
+                try
+                {
+                    var normals = new Vector3[eyeMesh.vertexCount];
+                    for (int i = 0; i < normals.Length; i++) normals[i] = Vector3.forward;
+                    eyeMesh.normals = normals;
+                    quad.GetComponent<MeshFilter>().sharedMesh = eyeMesh;
+                    for (int x = 0; x < 128; x++) gradientRamp.SetPixel(x, 0, new Color(1,1,1,(x+.5f)/128));
+                    gradientRamp.filterMode = FilterMode.Bilinear;
+                    gradientRamp.wrapMode = TextureWrapMode.Repeat;
+                    gradientRamp.Apply();
+                    mat.SetFloat("_MaterialFamily", 3);
+                    mat.SetFloat("_MatcapNormalScale", 0);
+                    mat.SetColor("_MatcapColor", Color.clear);
+                    mat.SetTexture("_DiffRampMap", gradientRamp);
+                    Shader.SetGlobalVector("_CharacterParams11", new Vector4(0,.6f,.8f,0));
+                    foreach (Vector3 angles in new[] { Vector3.zero, new Vector3(30,0,0), new Vector3(45,37,0) })
+                    {
+                        Quaternion rotation = Quaternion.Euler(angles);
+                        Matrix4x4 basis = Matrix4x4.Rotate(rotation);
+                        mat.SetFloat("_EndfieldSkinBasisEnabled", 1);
+                        for (int row = 0; row < 3; row++) mat.SetVector("_EndfieldSkinBasisRow"+row, basis.GetRow(row));
+                        Vector3 lightLocal = (Quaternion.Inverse(rotation) * new Vector3(0,.6f,.8f)).normalized;
+                        lightLocal.y = 0;
+                        Vector3 projected = rotation * lightLocal;
+                        float rampAlpha = Mathf.Clamp01(projected.z*.5f+.5f);
+                        camera.Render(); RenderTexture.active = rt;
+                        readback.ReadPixels(new Rect(0,0,16,16),0,0); readback.Apply();
+                        Color p = readback.GetPixel(8,8);
+                        Vector3 gpu = new Vector3(p.r,p.g,p.b), expected = Expected(rampAlpha, viewAlpha:.5f);
+                        float error = (gpu-expected).magnitude;
+                        cases++;
+                        report.AppendLine($"eye root-projected light angles={angles} rampAlpha={rampAlpha:G7} gpu={gpu} expected={expected} error={error:G6}");
+                        if (!float.IsNaN(error) && error<=.004f && p.a>=.9f) continue;
+                        failures++;
+                    }
+                }
+                finally
+                {
+                    quad.GetComponent<MeshFilter>().sharedMesh = originalQuadMesh;
+                    mat.SetFloat("_EndfieldSkinBasisEnabled", 0);
+                    Shader.SetGlobalVector("_CharacterParams11", new Vector4(.1763191968f,.5299192667f,.8295161724f,-.1f));
+                    Object.DestroyImmediate(gradientRamp); Object.DestroyImmediate(eyeMesh);
+                }
                 var emissionRamp=Constant(Color.white);
                 var emission=Constant(new Color(.1f,.2f,.3f,1));
                 try

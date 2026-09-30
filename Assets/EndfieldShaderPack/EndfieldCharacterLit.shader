@@ -494,6 +494,7 @@ Shader "Endfield/CharacterLit"
             n.xy *= scale;
             return n;
         }
+        #include "EndfieldCharacterBasis.hlsl"
         #include "EndfieldOfficialHair.hlsl"
         #include "EndfieldOfficialSkin.hlsl"
         #include "EndfieldOfficialCloth.hlsl"
@@ -1091,6 +1092,9 @@ Shader "Endfield/CharacterLit"
 
             half4 frag(Vary input) : SV_Target
             {
+                // CharacterNPR_Eye has no inverted-hull outline pass. Reject
+                // even stale materials imported with generic _EnableOutline=1.
+                clip(2.5 - _MaterialFamily);
                 clip(_EnableOutline - 0.5);
                 if (_EndfieldLabelMode > 1.5)
                     return half4(0.0, 0.0, 0.0, 1.0);

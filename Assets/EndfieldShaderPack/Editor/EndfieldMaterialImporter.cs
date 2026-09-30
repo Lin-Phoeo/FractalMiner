@@ -308,7 +308,10 @@ namespace EndfieldShaderPack
             mat.renderQueue = transparent ? (int)RenderQueue.Transparent
                 : mat.GetFloat("_EnableAlphaTest") > 0.5f ? (int)RenderQueue.AlphaTest : (int)RenderQueue.Geometry;
             mat.SetOverrideTag("RenderType", transparent ? "Transparent" : "Opaque");
-            mat.SetShaderPassEnabled("SRPDefaultUnlit", mat.GetFloat("_EnableOutline") > 0.5f);
+            // The official Eye shader has no Outline pass; inherited generic
+            // material defaults must not invent one for the iris.
+            mat.SetShaderPassEnabled("SRPDefaultUnlit", mat.GetFloat("_EnableOutline") > 0.5f
+                && mat.GetFloat("_MaterialFamily") < 2.5f);
             EditorUtility.SetDirty(mat);
         }
 

@@ -80,10 +80,12 @@ float3 EndfieldShadeOfficialEye(
     // _1206.._1233: the ramp projects the light onto the character's XZ
     // plane, whereas backlighting uses the world's horizontal light.
     float3 horizontalLightWS = EFEyeNormalize(float3(L.x, 6.103515625e-5, L.z));
-    float3x3 objectToWorld = (float3x3)unity_ObjectToWorld;
+    float3x3 objectToWorld = (float3x3)EndfieldCharacterRootToWorld();
     float3 objectLight = EFEyeNormalize(mul(L, objectToWorld));
     objectLight.y = 0.0;
-    float3 rampLightWS = EFEyeNormalize(mul(objectToWorld, objectLight));
+    // Source _1233 deliberately retains the projected length. Renormalizing
+    // here changes ramp lighting, especially for lights near the root Y axis.
+    float3 rampLightWS = mul(objectToWorld, objectLight);
     // lightColorI already contains the caller's directional intensity and
     // CP5 override; source _1216 is needed separately by the ambient term.
     float intensity = lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);

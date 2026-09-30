@@ -6,7 +6,7 @@ namespace Endfield
 {
     // Typhoeus adapter, not a generic inference from SMR.rootBone (the builder
     // assigns bones[1] there). Official bit16 fragment input is a PART root.
-    // Frame6411: body root = Spine2; face root = Head with native-to-source
+    // Frame6411: body root = Spine2; face/iris/hair root = Head with native-to-source
     // axis columns [-Z,-X,+Y]. Keep translation/scale; do not invert the matrix
     // or freeze capture rows. Invoke AFTER the complete animation/IK pose and
     // BEFORE rendering, also for synchronous Camera.Render batch workflows.
@@ -21,8 +21,11 @@ namespace Endfield
             {
                 bool face = renderer.name.EndsWith("_typhoea_face_01_lod0", StringComparison.Ordinal);
                 bool body = renderer.name.EndsWith("_typhoea_body_01_lod0", StringComparison.Ordinal);
-                if (!face && !body) continue;
-                string boneName = face ? "Bip001_Head" : "Bip001_Spine2";
+                bool iris = renderer.name.EndsWith("_typhoea_iris_01_lod0", StringComparison.Ordinal);
+                bool hair = renderer.name.EndsWith("_typhoea_hair_01_lod0", StringComparison.Ordinal);
+                if (!face && !body && !iris && !hair) continue;
+                float family = iris ? 3 : hair ? 2 : 1;
+                string boneName = body ? "Bip001_Spine2" : "Bip001_Head";
                 Transform source = null;
                 foreach (var bone in bones)
                     if (bone.name == boneName)
@@ -32,7 +35,7 @@ namespace Endfield
                     }
                 if (source == null) throw new InvalidOperationException("Missing skin basis bone: " + boneName);
                 Matrix4x4 basis = source.localToWorldMatrix;
-                if (face)
+                if (!body)
                 {
                     Matrix4x4 native = basis;
                     basis.SetColumn(0, -native.GetColumn(2));
@@ -49,7 +52,7 @@ namespace Endfield
                     var material = materials[slot];
                     // Do not change foreign/debug/label shaders on the same renderer.
                     if (material == null || !material.HasProperty("_EndfieldSkinBasisEnabled")
-                        || !material.HasProperty("_MaterialFamily") || material.GetFloat("_MaterialFamily") != 1) continue;
+                        || !material.HasProperty("_MaterialFamily") || material.GetFloat("_MaterialFamily") != family) continue;
                     prepared.Add((renderer, slot, basis));
                 }
             }

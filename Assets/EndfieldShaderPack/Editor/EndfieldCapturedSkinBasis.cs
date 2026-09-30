@@ -18,7 +18,7 @@ namespace EndfieldShaderPack.EditorTools
             var capture = JObject.Parse(File.ReadAllText(path));
             if ((int?)capture["frame"] != 6411) throw new InvalidDataException("Skin basis is reviewed only for frame6411.");
             var prepared = new List<(SkinnedMeshRenderer renderer, int slot, Vector4[] rows)>();
-            foreach (string part in new[] { "face", "body" })
+            foreach (string part in new[] { "face", "body", "iris", "hair" })
             {
                 var basis = capture["parts"]?[part] as JObject;
                 if ((string)basis?["source"] != "skin-root-buffer" || (((int?)basis?["flags"] ?? 0) & 16) == 0)
@@ -46,7 +46,7 @@ namespace EndfieldShaderPack.EditorTools
                     {
                         var material = renderer.sharedMaterials[slot];
                         if (material == null || !material.HasProperty("_EndfieldSkinBasisEnabled")
-                            || material.GetFloat("_MaterialFamily") != 1)
+                            || material.GetFloat("_MaterialFamily") != (part == "iris" ? 3 : part == "hair" ? 2 : 1))
                             throw new InvalidDataException("Skin basis renderer has unexpected material: " + renderer.name);
                         prepared.Add((renderer, slot, rows));
                     }

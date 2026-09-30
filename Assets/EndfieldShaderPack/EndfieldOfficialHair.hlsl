@@ -17,7 +17,7 @@
 // Explicitly unsupported: irradiance clipmaps/SH (CP1.y < .5), rain/wetness/
 // water/snow, screen-depth rim, punctual lights/cookies/shadows, motion vectors,
 // transparent premultiplication, and the original HGRP fog composition.
-// Skinned per-draw matrices are supplied here by Unity's object transform.
+// Skinned per-part root rows are supplied by EndfieldCharacterRootToWorld.
 // Source uv0 already has BaseMap_ST applied; this port deliberately accepts RAW
 // mesh UVs and applies each texture's own ST, preserving independent imported
 // texture orientation. Ramp STs default to identity, as in source b125.
@@ -166,7 +166,7 @@ float3 EndfieldShadeOfficialHair(
 
     // b125 _568.._592: source uses the transpose of object-to-world for N/V,
     // not world-to-object. Preserve it (including non-uniform scale behavior).
-    float3x3 objectToWorld = (float3x3)GetObjectToWorldMatrix();
+    float3x3 objectToWorld = (float3x3)EndfieldCharacterRootToWorld();
     float3 objectUp = EFHairNormalize(mul(objectToWorld, float3(_AnisotropyDirX, 1.0, 0.0)));
     float3 strandDirection = cross(N,
         lerp(cross(N, objectUp), tangentWS.xyz, anisotropySelector))

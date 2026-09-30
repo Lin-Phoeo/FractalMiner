@@ -86,7 +86,9 @@ namespace EndfieldShaderPack.EditorTools
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
                 if (!renderer.name.EndsWith("_face_01_lod0", StringComparison.Ordinal)
-                    && !renderer.name.EndsWith("_body_01_lod0", StringComparison.Ordinal)) continue;
+                    && !renderer.name.EndsWith("_body_01_lod0", StringComparison.Ordinal)
+                    && !renderer.name.EndsWith("_iris_01_lod0", StringComparison.Ordinal)
+                    && !renderer.name.EndsWith("_hair_01_lod0", StringComparison.Ordinal)) continue;
                 var baked = new Mesh();
                 try
                 {
@@ -108,6 +110,8 @@ namespace EndfieldShaderPack.EditorTools
             text.AppendLine("officialSource=" + AssetDatabase.GetAssetPath(official));
             text.AppendLine("colorSpace=" + QualitySettings.activeColorSpace);
             text.AppendLine("cameraToWorld=" + camera.cameraToWorldMatrix.ToString("R"));
+            text.AppendLine("shadowSkipReason=" + EndfieldCharacterShadowFeature.LastSkipReason);
+            text.AppendLine("shadowGate=" + Shader.GetGlobalFloat("_EndfieldCharacterSelfShadow"));
             foreach (string name in new[] { "_EndfieldOfficialFrameEnabled", "_EndfieldOfficialShadingEnabled",
                 "_EndfieldCapturedLightIntensity" })
                 text.AppendLine(name + "=" + Shader.GetGlobalFloat(name).ToString("R", Invariant));
@@ -117,31 +121,35 @@ namespace EndfieldShaderPack.EditorTools
                 "_CharacterLightDir", "_CharacterLightColor", "_CharacterAmbient" })
                 text.AppendLine(name + "=" + Shader.GetGlobalVector(name).ToString("R"));
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
-                foreach (var material in renderer.sharedMaterials)
+                for (int slot = 0; slot < renderer.sharedMaterials.Length; slot++)
                 {
-                    if (material == null || !material.HasProperty("_MaterialFamily")
-                        || material.GetFloat("_MaterialFamily") <= .5f || material.GetFloat("_MaterialFamily") >= 1.5f) continue;
-                    text.AppendLine("\nrenderer=" + renderer.name + "; material=" + AssetDatabase.GetAssetPath(material));
+                    var material = renderer.sharedMaterials[slot];
+                    if (material == null || !material.HasProperty("_MaterialFamily")) continue;
+                    float family = material.GetFloat("_MaterialFamily");
+                    if (family <= .5f || family > 3.5f) continue;
+                    text.AppendLine("\nrenderer=" + renderer.name + "; slot=" + slot + "; material=" + AssetDatabase.GetAssetPath(material));
                     text.AppendLine("shader=" + material.shader.name + "; enabled=" + renderer.enabled
                         + "; propertyBlock=" + renderer.HasPropertyBlock());
                     text.AppendLine("objectToWorld=" + renderer.localToWorldMatrix.ToString("R"));
                     text.AppendLine("rootBone=" + (renderer.rootBone != null ? renderer.rootBone.name : "NULL"));
                     var propertyBlock = new MaterialPropertyBlock();
-                    int slot = Array.IndexOf(renderer.sharedMaterials, material);
                     renderer.GetPropertyBlock(propertyBlock, slot);
                     text.AppendLine("propertyBlock.skinBasisEnabled=" + propertyBlock.GetFloat("_EndfieldSkinBasisEnabled"));
                     for (int row = 0; row < 3; row++) text.AppendLine("propertyBlock.skinBasisRow" + row + "="
                         + propertyBlock.GetVector("_EndfieldSkinBasisRow" + row).ToString("R"));
+                    text.AppendLine("propertyBlock.shadowIndex=" + propertyBlock.GetVector(CharacterShadowPass.IndexEncodeName).ToString("R"));
+                    text.AppendLine("propertyBlock.shadowClip=" + propertyBlock.GetMatrix(CharacterShadowPass.AtlasClipMatrixName).ToString("R"));
                     bool sourceShading = Shader.GetGlobalFloat("_EndfieldOfficialFrameEnabled") > .5f
                         && Shader.GetGlobalFloat("_EndfieldOfficialShadingEnabled") > .5f
                         && Shader.GetGlobalVector("_CharacterParams1").y >= .5f
                         && material.GetFloat("_SurfaceType") < .5f && material.GetFloat("_DebugView") < .5f
-                        && material.GetFloat("_UseParallax") < .5f;
+                        && (material.GetFloat("_UseParallax") < .5f || family > 2.5f);
                     text.AppendLine("sourceShading=" + sourceShading + " (material/global gate; property blocks reported separately)");
                     foreach (string name in new[] { "_MaterialFamily", "_SurfaceType", "_DebugView", "_UseParallax",
                         "_UseBumpMap", "_BumpScale", "_UseSDFLightmap", "_UseDiffRampMap", "_UseShadowLutTex",
                         "_UseEmotionMap", "_EmotionIndex", "_EmotionBlend", "_SkinRimOffScale", "_FaceRimOffScale",
-                        "_Smoothness", "_Metallic", "_Specular", "_BackFaceNormalFlip", "_EnableVFXColorAdjustment" })
+                        "_Smoothness", "_Metallic", "_Specular", "_BackFaceNormalFlip", "_EnableVFXColorAdjustment",
+                        "_ParallaxScale", "_MatcapNormalScale", "_Anisotropy" })
                         if (material.HasProperty(name)) text.AppendLine(name + "=" + material.GetFloat(name).ToString("R", Invariant));
                     foreach (string name in new[] { "_BaseColor", "_SDFRimColor", "_HighlightMapVector" })
                         if (material.HasProperty(name)) text.AppendLine(name + "=" + material.GetVector(name).ToString("R"));

@@ -289,6 +289,7 @@ namespace EndfieldShaderPack
         // instead of the globals a manual DrawCasters loop could set between draws.
         readonly Dictionary<Renderer, MaterialPropertyBlock> shadowBlocks =
             new Dictionary<Renderer, MaterialPropertyBlock>();
+        readonly MaterialPropertyBlock shadowSlotBlock = new MaterialPropertyBlock();
 
         void ApplyPerRendererShadowState(IReadOnlyList<EndfieldCharacterShadowCaster> casters, Vector3 travel)
         {
@@ -306,9 +307,21 @@ namespace EndfieldShaderPack
                         block = new MaterialPropertyBlock();
                         shadowBlocks[renderer] = block;
                     }
+                    // A material-index block completely masks the renderer-wide
+                    // block in Unity. Dynamic root inputs use material slots, so
+                    // both layers must receive shadow data without erasing theirs.
+                    renderer.GetPropertyBlock(block);
                     block.SetMatrix(AtlasClipMatrixName, clip);
                     block.SetVector(IndexEncodeName, encode);
                     renderer.SetPropertyBlock(block);
+                    for (int slot = 0; slot < renderer.sharedMaterials.Length; slot++)
+                    {
+                        renderer.GetPropertyBlock(shadowSlotBlock, slot);
+                        if (shadowSlotBlock.isEmpty) continue; // Inherits renderer-wide data.
+                        shadowSlotBlock.SetMatrix(AtlasClipMatrixName, clip);
+                        shadowSlotBlock.SetVector(IndexEncodeName, encode);
+                        renderer.SetPropertyBlock(shadowSlotBlock, slot);
+                    }
                 }
             }
         }
