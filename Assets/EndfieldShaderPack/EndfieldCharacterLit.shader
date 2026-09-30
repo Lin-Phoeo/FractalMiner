@@ -294,6 +294,7 @@ Shader "Endfield/CharacterLit"
         float _EndfieldOfficialShadingEnabled;
         float _EndfieldCapturedCubemapAvailable;
         float _EndfieldCapturedLightIntensity;
+        float _EndfieldCapturedGlobalMipBias;
 
         // WP1.1 part-label render (EndfieldPoseApplyValidation only): 0 = off, 1 = flat label, 2 = vertex colour.
         float _EndfieldLabelMode;
@@ -504,6 +505,7 @@ Shader "Endfield/CharacterLit"
             return n;
         }
         #include "EndfieldCharacterBasis.hlsl"
+        #include "EndfieldOfficialHairNormals.hlsl"
         #include "EndfieldOfficialHair.hlsl"
         #include "EndfieldOfficialSkin.hlsl"
         #include "EndfieldOfficialCloth.hlsl"
@@ -556,7 +558,14 @@ Shader "Endfield/CharacterLit"
                 }
 
                 bool sourceClamp = sourceShading && (_MaterialFamily < 1.5 || _MaterialFamily > 2.5);
-                half4 baseMap = sourceClamp
+                bool sourceHair = sourceShading && _MaterialFamily > 1.5 && _MaterialFamily < 2.5;
+                // Actual VS22256 outputs BaseMap_ST UV once; base/P/HN share it.
+                float2 sourceUV = TRANSFORM_TEX(uv, _BaseMap);
+                float4 hairBaseMap = 0;
+                if (sourceHair)
+                    hairBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearRepeat,
+                        sourceUV, _EndfieldCapturedGlobalMipBias);
+                half4 baseMap = sourceHair ? hairBaseMap : sourceClamp
                     ? SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BaseMap))
                     : SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
@@ -589,7 +598,7 @@ Shader "Endfield/CharacterLit"
                     half3 normalTS = half3(xy * _BumpScale, sqrt(saturate(1.0 - dot(xy, xy))));
                     N = SafeNormalize(mul(normalTS, CharTBN(input, N)));
                 }
-                else if (_UseBumpMap > 0.5)
+                else if (_UseBumpMap > 0.5 && !(sourceHair && _UseSpecBumpMap > 0.5))
                 {
                     half4 normalSample = sourceClamp
                         ? SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BumpMap))
@@ -636,12 +645,32 @@ Shader "Endfield/CharacterLit"
                     }
 
                     float3 sourceColor;
+                    float3 sourceVFXN = N;
+                    float3 sourceVFXV = V;
                     if (_MaterialFamily > 2.5)
                         sourceColor = EndfieldShadeOfficialEye(input.uv, input.normalWS, V, input.tangentWS,
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     else if (_MaterialFamily > 1.5)
-                        sourceColor = EndfieldShadeOfficialHair(uv, albedo, N, V, input.tangentWS,
+                    {
+                        // Single-normal legacy variant remains explicit, not treated as b126.
+                        EFHairNormals hairNormals;
+                        hairNormals.diffuse = N;
+                        hairNormals.specular = N;
+                        if (_UseSpecBumpMap > 0.5)
+                        {
+                            float4 splitNormal = SAMPLE_TEXTURE2D_BIAS(_SplitNormalMap,
+                                sampler_Endfield_LinearRepeat, sourceUV, _EndfieldCapturedGlobalMipBias);
+                            hairNormals = EFHairDecodeSplitNormals(splitNormal, _BumpScale, _SpecBumpScale,
+                                input.normalWS, input.tangentWS,
+                                IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip));
+                        }
+                        float3 sourceV = normalize(input.viewDirWS);
+                        sourceVFXN = hairNormals.diffuse;
+                        sourceVFXV = sourceV;
+                        sourceColor = EndfieldShadeOfficialHair(sourceUV, hairBaseMap.rgb * _BaseColor.rgb,
+                            hairNormals.diffuse, hairNormals.specular, sourceV, input.tangentWS,
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                    }
                     else if (sourceSkin)
                         sourceColor = EndfieldShadeOfficialSkin(uv, albedo, N, V,
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
@@ -665,7 +694,7 @@ Shader "Endfield/CharacterLit"
                             _ColorAdjustmentContrast) * _ColorAdjustmentBrightness;
                         sourceColor = lerp(sourceColor, _ColorAdjustmentColorBlend.rgb, _ColorAdjustmentColorBlend.a);
                         sourceColor += _ColorAdjustmentRimColor.rgb * smoothstep(1.0 - _ColorAdjustmentRimWidth, 1.0,
-                            1.0 - saturate(dot(V, N))) * _ColorAdjustmentRimIntensity;
+                            1.0 - saturate(dot(sourceVFXV, sourceVFXN))) * _ColorAdjustmentRimIntensity;
                     }
                     return half4(sourceColor * _ExposureWithMiscParams.y, alpha);
                 }

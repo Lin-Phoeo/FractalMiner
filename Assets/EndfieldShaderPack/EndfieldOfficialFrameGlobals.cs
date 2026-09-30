@@ -37,6 +37,9 @@ namespace Endfield
             Shader.SetGlobalVector("_ExposureWithMiscParams", new Vector4(1, 1, 1.6f, .100001f));
             Shader.SetGlobalFloat("_EndfieldOfficialFrameEnabled", 1);
             Shader.SetGlobalFloat("_EndfieldCapturedLightIntensity", 1.6243867874f);
+            // Event 875: ShaderVariablesGlobal set0/b16, offset416 (_child16).
+            // Private scalar avoids overwriting URP's unrelated _GlobalMipBias.
+            Shader.SetGlobalFloat("_EndfieldCapturedGlobalMipBias", -1f);
             Shader.SetGlobalFloat("_EndfieldOfficialShadingEnabled", useSourceShading ? 1 : 0);
             Shader.SetGlobalFloat("_EndfieldCapturedCubemapAvailable", capturedEnvironment != null ? 1 : 0);
             if (capturedEnvironment != null) Shader.SetGlobalTexture("_CharMaxCubemap", capturedEnvironment);

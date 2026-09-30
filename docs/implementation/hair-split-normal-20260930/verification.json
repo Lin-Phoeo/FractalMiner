@@ -1,0 +1,51 @@
+{
+  "scope": "event875 PS22257 split normal core and dry-flat CharacterLit wiring",
+  "official_hair_full_certified": false,
+  "official_render_full_certified": false,
+  "pixel_fitting": false,
+  "prior_worktree_snapshot_commit": "d540f22af1f40413590ed87d363993c2604aa434",
+  "original_record_tip": "05cd5b2c8ba5f605897a8abc9aaa3caaa72b930d",
+  "actual_hlsl_sha256": "e2394790fca96e29a67f4a8925f4a04bdc977a493847fe284d128bfbfeca37b9",
+  "global_mip_bias": {"value": -1, "set": 0, "binding": 16, "offset_bytes": 416, "anonymous_name": "_child16"},
+  "gpu": {
+    "unity": "2022.3.30f1",
+    "pipeline": "UnityEngine.Rendering.Universal.UniversalRenderPipeline",
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "normal_probes": 18,
+    "normal_max_component_error": 4.059186498039935e-8,
+    "normal_error_limit": 2e-5,
+    "production_invariants": 3,
+    "ba_diffuse_only_difference": 0,
+    "rg_diffuse_response": 0.108597,
+    "ba_specular_response": 0.356039,
+    "character_lit_compiled_passes": 5,
+    "compiled_keyword_scope": "default keywords only",
+    "csharp_compile_errors": 0,
+    "shader_compile_errors": 0,
+    "mip_lod_numerical_validation": false,
+    "report_path": "D:/EndfieldTechLib/notes/hair-split-normal-20260930-01/gpu-probes-04.txt",
+    "report_sha256": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"
+  },
+  "tests": {"new_structure_guards": 6, "regression_passed": 275, "historical_skipped": 3, "subtests_passed": 3, "historical_warnings": 2},
+  "ruff": "pass",
+  "pyright_errors": 0,
+  "python_isolated_tool_environment_pip_audit": "no known vulnerabilities",
+  "hlsl_instrumented_coverage": null,
+  "v1": {"files": 6771, "anchors": 18, "integrity_ok": true, "approval": "evidence-only"},
+  "v2": {
+    "files": 149, "anchors": 7, "full_snapshot_integrity_ok": false,
+    "source_integrity_ok": true, "approval": "evidence-only",
+    "original_verify_errors": [
+      "changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+    ],
+    "remaining_unexpected_errors": [],
+    "seal_modified": false
+  },
+  "pre_edit_backups_match_v2_bytes": true,
+  "main_head_unchanged": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_entries": 9557,
+  "main_index_entry_differences": 0,
+  "scene_quality_graphics_hashes_unchanged": true
+}
