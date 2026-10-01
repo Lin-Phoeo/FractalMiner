@@ -1,0 +1,75 @@
+{
+  "scope": "frame6411 event850 PS37669 cloth emission / linked direct-diffuse alpha selection and shared UV/bias wiring",
+  "date": "2026-10-01",
+  "official_cloth_full_certified": false,
+  "official_render_full_certified": false,
+  "pixel_fitting": false,
+  "record_parent": "138c2eac519efb826001cf03018270d421d8add1",
+  "actual_ps_hlsl_sha256": "d47f4f5dbffcfd2d67c57bc42bbd070448fe0c3ce6413df63037acede06fd87a",
+  "actual_vs_hlsl_sha256": "5af0f001288615221c58a05307073b4a1ad7673312b1f9b1f0abb95d2b09a205",
+  "capture": {"AlphaPremultiply": 0, "EmissionBrightness": 8, "GlobalMipBias": -1},
+  "original_material_modified": false,
+  "gpu": {
+    "unity": "2022.3.30f1",
+    "pipeline": "UnityEngine.Rendering.Universal.UniversalRenderPipeline",
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "kernel_cases": 32,
+    "kernel_max_error": 5.9604644775390625e-8,
+    "kernel_error_limit": 3e-6,
+    "production_cases": 16,
+    "production_alpha_max_error": 5.21540641784668e-8,
+    "production_shared_uv_error": 2.6226043559063328e-8,
+    "production_error_limit": 2e-5,
+    "production_vfx_error": 6.3240900738392725e-8,
+    "production_vfx_error_limit": 3e-5,
+    "diffuse_quarter_factor_error": 0,
+    "specular_factor_isolation_difference": 0,
+    "ibl_factor_isolation_difference": 0,
+    "ibl_scope": "synthetic constant cube only, not full IBL algorithm/data certification",
+    "character_lit_compiled_passes": 5,
+    "compiled_keyword_scope": "default keywords only",
+    "csharp_compile_errors": 0,
+    "shader_compile_errors": 0,
+    "real_mip_view_sampler_certified": false,
+    "report_path": "D:/EndfieldTechLib/notes/cloth-emission-20261001-01/gpu-probes-04.txt",
+    "report_sha256": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13",
+    "failed_attempts": [
+      {"batch": "01", "reason": "linear fixture passed as Color authoring value, GPU sRGB conversion", "max_error": 1.0685266852378845},
+      {"batch": "02", "reason": "SetVector did not bypass Color-property upload conversion", "max_error": 1.0685266852378845}
+    ],
+    "fixture_fix": "SetColor(linearFixture.gamma); no runtime gamma addition; thresholds unchanged"
+  },
+  "hair_regression": {
+    "normal_cases": 18,
+    "production_invariants": 3,
+    "max_error": 4.059186498039935e-8,
+    "report_path": "D:/EndfieldTechLib/notes/cloth-emission-20261001-01/hair-regression-01.txt",
+    "report_sha256": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"
+  },
+  "tests": {"new_structure_guards": 6, "regression_passed": 281, "historical_skipped": 3, "subtests_passed": 3, "historical_warnings": 2},
+  "ruff": "pass",
+  "pyright_errors": 0,
+  "python_isolated_tool_environment_pip_audit": "no known vulnerabilities",
+  "hlsl_instrumented_coverage": null,
+  "v1": {"files": 6771, "anchors": 18, "integrity_ok": true, "approval": "evidence-only", "pending_count": 79},
+  "v2": {
+    "files": 149, "anchors": 7, "full_snapshot_integrity_ok": false,
+    "source_integrity_ok": true, "approval": "evidence-only", "pending_count": 24,
+    "original_verify_errors": [
+      "changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+    ],
+    "remaining_unexpected_errors": [], "seal_modified": false,
+    "official_cloth_runtime_in_v2_manifest": false
+  },
+  "pre_edit_backups": {
+    "directory": "D:/EndfieldTechLib/notes/cloth-emission-20261001-01",
+    "CharacterLit_sha256": "e628f8541f809a96429d8fd5e16bd569ed874bed533629362eef9ad4893645df",
+    "OfficialCloth_sha256": "9f86fb8ab0434e1e0014cd9d172c1d703cd136c021dd566417b9af480f5df9bd"
+  },
+  "main_head_unchanged": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_entries": 9557,
+  "main_index_entry_differences": 0,
+  "scene_quality_graphics_hashes_unchanged": true
+}

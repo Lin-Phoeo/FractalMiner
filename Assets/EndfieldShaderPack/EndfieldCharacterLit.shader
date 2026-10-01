@@ -70,6 +70,7 @@ Shader "Endfield/CharacterLit"
         [Toggle(_EMISSION)] _UseEmission ("Use Emission", Float) = 0
         _EmissionColor ("Emission Color", Color) = (0,0,0,1)
         _EmissionBrightness ("Emission Brightness", Float) = 1
+        [ToggleUI] _AlphaPremultiply ("Source Alpha Premultiply Selector", Float) = 0
         _EmissionMap ("Emission", 2D) = "black" {}
 
         // ---- NPR ramp ----
@@ -238,6 +239,7 @@ Shader "Endfield/CharacterLit"
             float  _UseMetallicGlossMap; float  _Metallic;           float _Specular;          float _Smoothness;
             float4 _MetallicGlossMap_ST; float  _OcclusionStrength;
             float  _UseEmission;         float4 _EmissionColor;      float _EmissionBrightness; float4 _EmissionMap_ST;
+            float  _AlphaPremultiply;
             float  _UseDiffRampMap;      float4 _DiffRampMap_ST;
             float  _UseSpecRampMap;      float4 _SpecRampMap_ST;     float _SpecRampIridescentMode;
             float  _SceneShadowCenter;   float  _SceneShadowSharpness;
@@ -507,6 +509,7 @@ Shader "Endfield/CharacterLit"
         #include "EndfieldCharacterBasis.hlsl"
         #include "EndfieldOfficialHairNormals.hlsl"
         #include "EndfieldOfficialHair.hlsl"
+        #include "EndfieldOfficialClothEmission.hlsl"
         #include "EndfieldOfficialSkin.hlsl"
         #include "EndfieldOfficialCloth.hlsl"
         #include "EndfieldOfficialEye.hlsl"
@@ -559,13 +562,19 @@ Shader "Endfield/CharacterLit"
 
                 bool sourceClamp = sourceShading && (_MaterialFamily < 1.5 || _MaterialFamily > 2.5);
                 bool sourceHair = sourceShading && _MaterialFamily > 1.5 && _MaterialFamily < 2.5;
-                // Actual VS22256 outputs BaseMap_ST UV once; base/P/HN share it.
+                bool sourceCloth = sourceShading && _MaterialFamily < 0.5;
+                // Captured VS output applies BaseMap_ST once. Hair shares base/P/HN;
+                // cloth shares base/P/N/emission, with its own candidate clamp adapter.
                 float2 sourceUV = TRANSFORM_TEX(uv, _BaseMap);
                 float4 hairBaseMap = 0;
                 if (sourceHair)
                     hairBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearRepeat,
                         sourceUV, _EndfieldCapturedGlobalMipBias);
-                half4 baseMap = sourceHair ? hairBaseMap : sourceClamp
+                float4 clothBaseMap = 0;
+                if (sourceCloth)
+                    clothBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearClamp,
+                        sourceUV, _EndfieldCapturedGlobalMipBias);
+                half4 baseMap = sourceHair ? hairBaseMap : sourceCloth ? clothBaseMap : sourceClamp
                     ? SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BaseMap))
                     : SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
@@ -600,7 +609,10 @@ Shader "Endfield/CharacterLit"
                 }
                 else if (_UseBumpMap > 0.5 && !(sourceHair && _UseSpecBumpMap > 0.5))
                 {
-                    half4 normalSample = sourceClamp
+                    half4 normalSample = sourceCloth
+                        ? SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearClamp,
+                            sourceUV, _EndfieldCapturedGlobalMipBias)
+                        : sourceClamp
                         ? SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BumpMap))
                         : SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BumpMap));
                     half3 normalTS = UnpackEndfieldNormal(normalSample, _BumpScale);
@@ -676,15 +688,22 @@ Shader "Endfield/CharacterLit"
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     else
                     {
+                        float sourceBaseAlpha = clothBaseMap.a * _BaseColor.a;
+                        float sourceAlphaFactor = EFClothCapturedAlphaFactor(sourceBaseAlpha, _AlphaPremultiply);
+                        float3 sourceEmission = 0;
+                        if (_UseEmission > 0.5)
+                        {
+                            float3 emissionSample = SAMPLE_TEXTURE2D_BIAS(_EmissionMap, sampler_Endfield_LinearClamp,
+                                sourceUV, _EndfieldCapturedGlobalMipBias).rgb;
+                            sourceEmission = EFClothCapturedEmission(emissionSample, _EmissionColor.rgb,
+                                _EmissionBrightness, sourceAlphaFactor);
+                        }
                         float3 vertexN = SafeNormalize(input.normalWS)
                             * IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
-                        sourceColor = EndfieldShadeOfficialCloth(uv, albedo, N, vertexN, V,
-                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                        sourceColor = EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb, N, vertexN, V,
+                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow,
+                            sourceAlphaFactor, sourceEmission);
                     }
-                    // The emission-enabled cloth variants add it after saturation.
-                    if (_MaterialFamily < 0.5 && _UseEmission > 0.5)
-                        sourceColor += SAMPLE_TEXTURE2D(_EmissionMap, sampler_Endfield_LinearClamp,
-                            TRANSFORM_TEX(uv, _EmissionMap)).rgb * _EmissionColor.rgb * _EmissionBrightness;
                     // Source order: saturation is already in each family helper,
                     // then VFX, then output exposure. Never multiply the result by light again.
                     if (_EnableVFXColorAdjustment > 0.5)
