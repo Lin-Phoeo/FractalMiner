@@ -1,0 +1,103 @@
+{
+  "phase": "shadow-producers-20261001",
+  "approval": "bounded-actual-resolve-states-and-atlas-clamp-fix-only",
+  "parent_record_commit": "530a4bd646bf9b8f0db5122f7c4bbb1c0a5278ac",
+  "frame": 6411,
+  "replay": {
+    "output": "Validation/Captures/shadow-producers-20261001-final-02",
+    "complete_sha256": "e965721890c2b29788cfc379e827c25a80cc02cc31ffc11bbcd4ae7e0facf921",
+    "published_metadata": "captured-states.json",
+    "success": "complete only after both controller and capture Shutdown succeed; native exit alone not proof",
+    "raw_files_not_published": "4 actual SPV + 8 CB; no screenshot or whole raw game asset uploaded"
+  },
+  "actual_programs": [
+    {"event": 744, "pipeline": 2416, "vs": 2254, "vs_sha256": "9fb0158d67a31be253954afba3c31d164c160e302fe1a0d62785b8645b871b82", "ps": 2255, "ps_sha256": "508c936ed3c95b75d5effa6529f9909d48d30304144734c63452f3b257fc57a3"},
+    {"event": 748, "pipeline": 2417, "vs": 2260, "vs_sha256": "9fb0158d67a31be253954afba3c31d164c160e302fe1a0d62785b8645b871b82", "ps": 2261, "ps_sha256": "8c0f0c3bd1dc58c5d4560435dd7ff505662ec7c6870c64065810e3ca2e681685"}
+  ],
+  "disassembly": {
+    "tool": "../EndfieldUnpacker/_tools/renderdoc/1.46/RenderDoc_1.46_64/plugins/spirv/spirv-cross.exe",
+    "tool_sha256": "e5b4db9356bb0de3f6b66ccfa2370750e29d8a66b9d4527880c77d2e0325022d",
+    "args": ["{input.spv}", "--hlsl", "--shader-model", "51", "--output", "{output.hlsl}"],
+    "actual_ps2261_hlsl": "Validation/shadow-producer-audit-20261001-01/shader-2261.hlsl",
+    "actual_ps2261_hlsl_sha256": "f96c291b3839ec500bda03d1ba5b6d58c3b3d336232e23aded3eb7c8062bf9ad"
+  },
+  "source_contract": {
+    "atlas_sampler": "748 set3/s2, ordinary Linear ClampEdge U/V/W, mip Point, bias0; dump Mirror label NOT authoritative state",
+    "depth_sampler": "set3/s0 Point ClampEdge; actual depth SampleLevel0 at (integerPx+.5)/size",
+    "comparison_sampler": "set3/s3, Comparison Greater + Linear ClampEdge",
+    "stencil": {"read_mask": 7, "reference": 4, "744": "NotEqual", "748": "Equal", "operations": "Keep"},
+    "common_state": "writeMask15, Blend off, Depth Always + Write false, Cull none, MSAA1, no raster bias, viewport/scissor/renderarea2560x1600",
+    "directional_capture": "c35@560=(0,0,1,1), .w>=.99 short-circuits R=.z; does not implement dynamic producer",
+    "atlas_rect_slot_order_xy": [[0.75,0],[0.75,0.5],[0,0],[0,0.5],[0.25,0],[0.25,0.5],[0.5,0]],
+    "atlas_rect_zw": [0.25,0.5],
+    "valid_slots": 7,
+    "raw_state_only": "old archive pin plus actual shader, pipeline, resource/view, sampler descriptor and raw CB offset, not size-only mapping"
+  },
+  "red": {
+    "report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/sampler-red-final-01.txt",
+    "sha256": "a43e199a4564a6c7551d4dc9b58861cd68bff3388bbde8564f4457691cc92318",
+    "checks": 3072, "failures": 256, "exit_code": 1,
+    "scope": "old Mirror with same final reference/centers/profiles as green"
+  },
+  "green": {
+    "report": "sampler-gpu-report.txt",
+    "local_report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/sampler-green-final-02.txt",
+    "sha256": "800a090b44a26f462b002d7d1b89128c7f836274069f70a2787b22c9ce254a14",
+    "checks": 3072, "failures": 0, "exit_code": 0,
+    "tolerance": 0.0002,
+    "input": "32x16 synthetic R16 with conflicting texture Mirror wrap, inline production sampler controls addressing",
+    "coverage_scope": "8 centers x 16 rotation pixels x 2 flips x 2 modes x 3 atlas profiles x 2 assertions; no whole-image comparisons",
+    "zero_occluder": "Mode1 final G1 observed on tested D3D11, not universal NaN behavior; Mode0 is an extra one-tap diagnostic, not official G mode"
+  },
+  "intermediate_failures": {
+    "reports": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/sampler-red-01.txt, sampler-green-01/02.txt",
+    "counts": [394,138,16],
+    "cause": "CPU ideal continuous filtering omitted subtexel address precision; reference corrected using D3D11 contract and exact quartertexel centers, reran old Mirror to prove failure, tolerance unchanged",
+    "runner": "first lifecycle regression omitted -quit; report PASS but owned batch remained. Identity-checked stop of that owned test only; fresh -quit regressions all exit0. Initial report/log retained. No runtime lifecycle fix inferred."
+  },
+  "regressions": [
+    {"name": "actual-URP-shadow-lifecycle", "cases": 13, "failures": 0, "exit_code": 0, "report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/regression-lifecycle-final.txt", "sha256": "c27b2a1a0036d5b235f79d0ad0d99ed719aaeeb660e70c16ae8a8e7d08793d5e"},
+    {"name": "shadow-selection", "cases": 238, "failures": 0, "exit_code": 0, "report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/regression-selection-final.txt", "sha256": "cb73135b47369acf3311dd8a34ff0165cd80fb6f1f47aa4e25950599529fb94e"},
+    {"name": "source-light-selection", "cases": 688, "failures": 0, "exit_code": 0, "report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/regression-light-final.txt", "sha256": "0a311092950a2e0c466b78de0623e484f2c9ca3187c073a54b1d5596547ac03b"}
+  ],
+  "python": {
+    "original_new_tool_red": "16 failures (module absent)",
+    "new_tests": 25, "new_tool_statements": 116, "new_tool_coverage_percent": 100,
+    "coverage_report": "python-coverage-report.txt",
+    "coverage_sha256": "d5e9c9705f90015a85b1dee9eecf8e9a0e89bd3fb578bf4d687966a5bf874cab",
+    "full_tools_suite": {"passed":425,"historical_skipped":3,"subtests_passed":80,"existing_pillow_warnings":2},
+    "full_report": "D:/EndfieldTechLib/notes/shadow-producer-20261001-01/python-full-final-02.txt",
+    "full_report_sha256": "bcd6ceaa5e3f4d11696829456f8968d07b4aa6d7c997d58f4ca64fa868aee0e5",
+    "not_measured": "C#/compute or entire project line coverage"
+  },
+  "checks": {
+    "ruff_format_and_lint": "pass", "pyright": "0 errors",
+    "pip_audit": "no known vulnerabilities in temporary pip-audit + pytest/numpy/pillow environment only; not a Unity/whole-machine audit",
+    "unity_build": "isolated D3D11 batch compile and GPU probe/regressions exit0"
+  },
+  "code_sha256": {
+    "Assets/EndfieldShaderPack/EndfieldCharacterShadowResolve.compute": "07cb6a808a4fdbb466382dc29e3b63555bc3838a308f33450e1bc6028825deba",
+    "Assets/EndfieldShaderPack/EndfieldCharacterShadowFeature.cs": "966e5bd65a7b2be03003f1dce54865b802c98374c5167b4587b21b2474c4bca8",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowProducerSamplerValidation.cs": "5dc42150012517bb77fea2f374c7bb360b1a2e600cf5ef6f7a3c35cefeb53533",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowProducerSamplerValidation.cs.meta": "8f5b6f43140a488600125856d1016897c3a4154e3c57e4964623d92ddef3b877",
+    "Tools/capture_shadow_producers.py": "16a8f4a39e8a02c23cc53bf1e0225d02549a8cd7a019e4fc3d8c61cece41283c",
+    "Tools/tests/test_capture_shadow_producers.py": "e1d9d3acfb1b01361cd7d2cf293dcd77c188d41dcb9b795dde015fcdad6a51fb"
+  },
+  "hash_domain": "original local file bytes; Git may normalize CRLF",
+  "preserved": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "index_entries":9557,"staged_paths":9555,
+    "scene_sha256":"4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256":"e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256":"e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68",
+    "old_sealed_shadow_doc_sha256":"7ec85b0632c46108779e77be54417975e096d898e41739ef79444f34c0137a1a"
+  },
+  "source_seals": {
+    "v1_pending":79,"v2_pending":24,
+    "v1_drift":"existing handover document; unchanged manifest",
+    "v2_drift":"existing CharacterLit/OfficialHair; unchanged manifest",
+    "history":"original sealed shadow research document restored byte-identical; corrections are append-only increment"
+  },
+  "remaining": ["actual D16 atlas producer shaders/transforms/bias/viewport/clear/culling/alpha", "GBuffer/stencil visible domain and occluders", "dynamic official directional R producer including CSM/cloud branches", "capture/live NDC adapter contract", "weather/final pipeline lifecycle", "full native clip/MMD scene and video"]
+}

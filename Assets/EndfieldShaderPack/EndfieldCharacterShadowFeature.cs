@@ -12,12 +12,12 @@ namespace EndfieldShaderPack
     /// The official is deferred: it resolves from GBuffer0/GBuffer1 written by the
     /// character prepass. This project's pipeline asset is a forward renderer
     /// (m_RenderingMode 0), so those buffers do not exist and are rebuilt here as a
-    /// character-only prepass with the official's own formats (R10G10B10A2 index and
-    /// normal, R16 atlas, R8G8-equivalent resolved output). The resolve stays the
-    /// validated compute kernel: its arithmetic is per pixel over integer coordinates
-    /// with no derivatives or interpolation, so a dispatch evaluates the same
-    /// expression per pixel as the official fullscreen pass, and it is the exact code
-    /// the fixed-capture gate measured at 99.84% byte-exact.
+    /// character-only prepass (packed index/normal, R16 color atlas adapter and float
+    /// resolved output). Official event748 instead reads a D16 depth atlas, writes
+    /// R8G8, and tests stencil==4 with readMask7; event744 handles stencil!=4.
+    /// The compute kernel ports G arithmetic with the actual linear Clamp sampler.
+    /// The old fixed-input byte metric is historical experiment evidence, NOT a
+    /// certificate for this live atlas packing, prepass coverage or stencil state.
     public sealed class EndfieldCharacterShadowFeature : ScriptableRendererFeature
     {
         [SerializeField] ComputeShader resolveShader;

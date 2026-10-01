@@ -1,17 +1,18 @@
 // Offline reproduction of the official ScreenSpaceShadowResolve_Character pass
 // (frame 6411, event 748) against fixed captured inputs.
 //
-// Source of truth: _dump_1.5.3/.../lighting/shadow/screenspaceshadowresolve.shader
-// lines 867-1127. Every formula below is transcribed from that pass; nothing is
-// "improved". Two behaviours that look like bugs are deliberately preserved:
+// G arithmetic: actual PS2261, frame6411 event748 (SPIR-V hash
+// 8c0f0c3bd1dc58c5d4560435dd7ff505662ec7c6870c64065810e3ca2e681685).
+// Named dump lines867-1127 are a labeling aid, not binding-state authority.
+// Actual set3/s2 is linear ClampEdge despite the dump's "Mirror" name.
+// This kernel does NOT implement the actual pass's stencil==4/readMask7 or R
+// directional producer; those remain separate live integration requirements.
 //
 //   * The atlas gather is not clamped to the character's cell, so pixels within
 //     about 6 atlas texels of a cell edge read the neighbouring character's depth.
-//   * When no tap occludes, sumPositive/countLit is a 0/0 that the official pass does
-//     not guard. It never becomes NaN: HLSL min/max return the non-NaN operand, so
-//     clamp(0*inf, 0, 1) evaluates to 1, lerp(o^3, o, 1) is o, which is 0 on that
-//     path, and the result is G = 1 (fully lit). Adding a NaN guard here would
-//     silently change those pixels, so the expression is left exactly as written.
+//   * With no occluder, sumPositive/countLit contains 0/0. The target backend's
+//     final G=1 boundary was measured, not a universal min/max or NaN guarantee.
+//     Retain the arithmetic; do not infer portability from one backend.
 //
 // Reproduction of the official ScreenSpaceShadowResolve_Character pass (frame 6411,
 // event 748) with two entry points over one body: CSResolve against fixed captured
@@ -19,9 +20,8 @@
 //
 // The official resolve is a fullscreen pixel pass. This project's pipeline asset is a
 // forward renderer, and the arithmetic here is per pixel over integer coordinates with
-// no derivatives or interpolation, so a dispatch evaluates the identical expression per
-// pixel; keeping it a compute kernel also keeps the readback of intermediates that the
-// fixed-capture gates depend on.
+// no derivatives in the G arithmetic. Compute is a mathematical adapter, not proof
+// of equivalent stencil/raster state or a fully official live producer.
 #pragma kernel CSResolve
 #pragma kernel CSResolveScreen
 
@@ -31,7 +31,7 @@ Texture2D<float4> _AtlasTex;
 Texture2D<float4> _GBuffer0;
 Texture2D<float4> _GBuffer1;
 Texture2D<float4> _CameraDepth;
-SamplerState sampler_LinearMirror;
+SamplerState sampler_LinearClamp;
 
 // Float4 arrays go through StructuredBuffers rather than SetVectorArray/SetMatrixArray,
 // whose availability varies across Unity versions. Matrices are 4 consecutive
@@ -189,7 +189,7 @@ ResolveResult ResolvePixel(int2 px)
                            + shadowClip.xy * _CharacterShadowAtlasParams[slot].zw;
             if (_Mode == 0)
             {
-                centerAtlasDepth = _AtlasTex.SampleLevel(sampler_LinearMirror, FlipAtlasV(atlasUV), 0.0).x;
+                centerAtlasDepth = _AtlasTex.SampleLevel(sampler_LinearClamp, FlipAtlasV(atlasUV), 0.0).x;
                 result.selfShadow = step(0.0, centerAtlasDepth - refDepth);
             }
             else
@@ -203,7 +203,7 @@ ResolveResult ResolvePixel(int2 px)
                 countLit = 0.0;
                 for (uint tap = 0u; tap < 16u; tap++)
                 {
-                    float4 diff = _AtlasTex.GatherRed(sampler_LinearMirror,
+                    float4 diff = _AtlasTex.GatherRed(sampler_LinearClamp,
                                     FlipAtlasV(atlasUV + mul(ENDFIELD_SHADOW_POISSON[tap], rotation) * offsetScale))
                                 - refDepth;
                     float4 lit = step(float4(0.0, 0.0, 0.0, 0.0), diff);
