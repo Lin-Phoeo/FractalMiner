@@ -1306,8 +1306,9 @@ Shader "Endfield/CharacterLit"
         // ============================================================
         // Pass : character shadow atlas caster
         // Renders the character's light-space depth into its atlas cell. The official
-        // resolve applies the receiver bias from _CharacterShadowBiases on the reading
-        // side, so the caster must be unbiased: no ApplyShadowBias, no normal offset.
+        // Captured VS has no normal offset. This does NOT mean an unbiased raster:
+        // actual frame6411 writers use D16, GreaterEqual, clear0, raster depthBias=-8.
+        // The R16 color adapter below is not yet certified for that depth contract.
         // ============================================================
         Pass
         {
@@ -1355,8 +1356,19 @@ Shader "Endfield/CharacterLit"
 
             float4 fragShadowAtlas(AtlasVaryings input) : SV_Target
             {
-                half alpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).a;
-                if (_EnableAlphaTest > 0.5) clip(alpha - _AlphaClipThreshold);
+                if (_EnableAlphaTest > 0.5)
+                {
+                    // Actual PS9065: SampleBias(alpha) * UPM@c6.w - UPM@c2.y.
+                    // The source flags opt into this reviewed cutout expression;
+                    // plain/dither/dissolve variants require their own contracts.
+                    bool sourceAtlas = _EndfieldOfficialFrameEnabled > 0.5
+                        && _EndfieldOfficialShadingEnabled > 0.5;
+                    float alpha = sourceAtlas
+                        ? SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearRepeat,
+                            input.uv, _EndfieldCapturedGlobalMipBias).a * _BaseColor.a
+                        : SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, input.uv).a;
+                    clip(alpha - _AlphaClipThreshold);
+                }
                 return float4(input.shadowDepth, 0.0, 0.0, 1.0);
             }
             ENDHLSL

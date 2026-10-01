@@ -1,0 +1,97 @@
+{
+  "phase": "shadow-atlas-writers-20261001",
+  "approval": "bounded-frame6411-23-depth-writer-states-and-production-ordinary-cutout-only",
+  "parent_record_commit": "7d37f841dc087e187e6edc46938bb103a88b456e",
+  "frame": 6411,
+  "replay": {
+    "directory": "Validation/Captures/shadow-atlas-writers-20261001-final-02",
+    "complete_sha256": "7c7d628a920a0ca4a55dd3062e4eddf67e4451108430edcbccc9deeae6af1636",
+    "clear_sha256": "320b0d610e4285f7320a384a9512f894cbbe8477b0dd973f5ca618a8c6aecca3",
+    "schema": "endfield-shadow-atlas-writer-evidence-v1",
+    "writers": 23, "index_count_sum": 303756, "raw_cb_count": 120, "spv_exports": 46,
+    "published_metadata": ["captured-states.json", "captured-clear.json"],
+    "not_published": "Raw game shader/CB/vertex/texture/capture binaries; source assets kept local",
+    "completion": "actual identities/raw SHA + controller and capture Shutdown success; native exit not proof"
+  },
+  "actual_contract": {
+    "depth_target": "32538/view32540 D16 4096x2048, 1 mip/slice/sample; no color attachments",
+    "renderpass_framebuffer": [1560, 32544],
+    "depth": "Test/write true; GreaterEqual; bounds and stencil false",
+    "raster": "CullNoCull, frontCCW, depthBiasEnable true, constant=-8, slope=-0, clamp0",
+    "clear": "APIEvent260 -> chunk24904 BeginRenderPass, depthStencil.depth0/stencil0; unused union color not interpreted",
+    "viewport": [3072, 0, 1024, 1024, 0, 1],
+    "scissor": [3073, 1, 1022, 1022],
+    "scope": "All23 actual draws same cell0, does NOT prove seven slots drawn or dynamic allocator",
+    "vs_b8_raw_sha256": "1738af83c64c021f72d93b9cb59f76be27ecb42fdd63a2ff7d711cd2afc6aa6e",
+    "vs_b8": "resource864@703360,64 bytes column_major; row0=2*unit.row0-(0,0,0,1), row1=-2*unit.row1+(0,0,0,1), row2/3 unchanged; VS then negates y",
+    "ordinary_cutout": "PS9065: set1/t1 alpha SampleBias(set0/b14 c26/416=-1) * material@108 - cutoff@36 <0; actual s11 Linear min/mag, Point mip, Wrap, sampler bias0; BaseST@160 once",
+    "other_variants": "Empty PS9063/9061/9044/9046;9050 sqrt alpha signed dither;65356 extra cutoff/dissolve/instance fade+dither; not implemented by this correction"
+  },
+  "change": {
+    "file": "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+    "entry": "fragShadowAtlas",
+    "source_flags": "_EndfieldOfficialFrameEnabled and _EndfieldOfficialShadingEnabled",
+    "corrected": "float alpha SampleBias * BaseColor.a before cutout; UV ST already once in VS",
+    "retained": "legacy source-disabled alpha behavior and opaque variant bypass",
+    "not_changed": "atlas D16/depth/bias/packing, matrices/receiver/lighting/post/exposure/GBuffer/dither/dissolve/material/scene settings",
+    "source_hlsl": "Validation/shadow-atlas-writer-audit-20261001-01/shader-9065.hlsl",
+    "source_hlsl_sha256": "8fc35f32117da406580c7e2bd01af2a11ae235304a5c1f14e0c5c946bcd747fe",
+    "before_raw_shader_sha256": "03815febc7aa832a292f10430f4eb3b8e832b2f22e3f80d40bdbb0bb80b3382e",
+    "rollback": "Independent record parent contains original shader; no main checkout/reset used"
+  },
+  "red": {
+    "path": "D:/EndfieldTechLib/notes/shadow-atlas-writers-20261001-01/cutout-red-01.txt",
+    "sha256": "b2f2f6458db4b02c4d57f8b46229bdfad1285c4b194976095009faa47a41f8d9",
+    "cases": 24, "failures": 7, "exit_code": 1
+  },
+  "green": {
+    "path": "cutout-gpu-report.txt",
+    "local_path": "D:/EndfieldTechLib/notes/shadow-atlas-writers-20261001-01/regression-cutout-final.txt",
+    "sha256": "38b2a07bb1d8c90fdf5273dd42dd50ab6887fb34ff0a2928285d1e51a5fcd37c",
+    "cases": 26, "failures": 0, "exit_code": 0, "tolerance": 0.0002,
+    "gpu": "Direct3D11 / NVIDIA GeForce RTX3060 Laptop / Linear",
+    "coverage": "18 alpha-scale-cutoff combinations,4 biased mips,BaseST once,legacy/frame/shading disabled and opaque guards; actual production pass index2 after warmup",
+    "not_certified": "depth selection/bias, atlas packing, stencil/occlusion, dither/dissolve, full character output"
+  },
+  "regressions": [
+    {"name":"actual-URP-lifecycle","cases":13,"failures":0,"exit_code":0,"sha256":"c27b2a1a0036d5b235f79d0ad0d99ed719aaeeb660e70c16ae8a8e7d08793d5e"},
+    {"name":"production-atlas-sampler","cases":3072,"failures":0,"exit_code":0,"sha256":"800a090b44a26f462b002d7d1b89128c7f836274069f70a2787b22c9ce254a14"},
+    {"name":"shadow-consumer","cases":238,"failures":0,"exit_code":0,"sha256":"cb73135b47369acf3311dd8a34ff0165cd80fb6f1f47aa4e25950599529fb94e"},
+    {"name":"material-upload","fields":126,"components":225,"failures":0,"exit_code":0,"sha256":"dcceb71a23a73d1ee7fa225090424fc81afb66b32569ee477cac8aed77085ddc"},
+    {"name":"source-light-selection","cases":688,"failures":0,"exit_code":0,"sha256":"0a311092950a2e0c466b78de0623e484f2c9ca3187c073a54b1d5596547ac03b"}
+  ],
+  "python": {
+    "red": "33 failures, module absent; intermediate manual index-count test corrected by actual archive from304806 to303756",
+    "new_tests":36,"statements":116,"line_coverage_percent":100,
+    "coverage_report":"python-coverage-report.txt",
+    "coverage_sha256":"1d5b2ae1689f17b3acda3e2e0ba83447fff8c92e27e26dabaa3d36daf5bf4111",
+    "full_suite":{"passed":461,"historical_skipped":3,"subtests_passed":80,"existing_pillow_warnings":2},
+    "full_report":"D:/EndfieldTechLib/notes/shadow-atlas-writers-20261001-01/python-full-final.txt",
+    "full_report_sha256":"f6184e2fd6d4fc8018eeef019ef9b0348ca8eec4d6a5cf17bace3e29c5bd6b17",
+    "coverage_not_measured":"branch/Unity shader/C#/entire project"
+  },
+  "checks": {
+    "ruff":"pass", "pyright":"0 errors/0 warnings",
+    "pip_audit":"No known vulnerabilities in temporary pip-audit+pytest/numpy/pillow environment; not whole Unity dependencies",
+    "protected_scene_settings_index_and_sealed_doc":"byte-identical",
+    "source_baselines":"original manifests unchanged; existing79/24 pending not cleared",
+    "pipeline_test_scope":"six fresh D3D11 batch tests; not MMD/video/full scene",
+    "intermediate_shell_errors":"two read-only cwd-prefixed path checks/backup copy failed; no source lost; used explicit absolute reads and independent record-parent rollback afterward"
+  },
+  "code_sha256": {
+    "Tools/capture_shadow_atlas_writers.py":"e056292424863d8c383a0414166d5bce829f9097473a3c04921c143751deb10f",
+    "Tools/tests/test_capture_shadow_atlas_writers.py":"669d4a3b2a3ab01171f438c671b1e292f43069951194eb3950e03322bde0a248",
+    "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader":"15b0dfe4516b758325c3d8e1b3b04ecc8904d225f9bf270084717dd568098de7",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowAtlasCutoutValidation.cs":"708c5a09ede8532b532db64d195584edb58605b2bafdb45f916f93335d5796ad",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowAtlasCutoutValidation.cs.meta":"e8c1e3e1686d878992c7884a205061fc24083e747fb4da581bb3d54553ca3760"
+  },
+  "protected_before_after": {
+    "main_head":"fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256":"949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "scene_sha256":"4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256":"e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256":"e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68",
+    "sealed_shadow_research_sha256":"7ec85b0632c46108779e77be54417975e096d898e41739ef79444f34c0137a1a"
+  },
+  "next":"D16 depth/raster bias/scissor order-independent overlap probes; slot/culling; GBuffer stencil/occluders and other alpha variants; directionalR; formal scene/weather/final lifetime; native motion/MMD"
+}
