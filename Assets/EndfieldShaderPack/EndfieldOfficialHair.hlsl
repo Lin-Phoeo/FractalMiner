@@ -19,13 +19,11 @@
 // Skinned per-part root rows are supplied by EndfieldCharacterRootToWorld.
 // uv is the source VS output: raw mesh UV * BaseMap_ST.xy + BaseMap_ST.zw.
 // Base/P/HN share it. Only LineMap applies a further ST; ramp UVs have no ST.
-// Actual sampler filter/address states remain unexported; inline samplers are
-// candidate-compatible adapters, NOT proof of actual descriptor equivalence.
+// Actual event875 sampler descriptors: s4=155 Bilinear Wrap / mip Point;
+// s6=197 Bilinear ClampEdge / mip Point, both sampler bias=0. Base/P/HN
+// use captured global bias=-1. Line is implicit Sample with its own ST.
+// Ramps are s6 explicit LOD0. Native-input record: hair-eye-inputs-20261001.
 // No legacy diffuse/shade, extra material AO, or generic specular tint is used.
-
-// Unity inline sampler naming selects linear filtering and mirror addressing.
-// Private name avoids collision with URP's version-dependent global samplers.
-SAMPLER(sampler_EFHair_LinearMirror);
 
 static const float3 EFHairLuminance = float3(0.2126729041, 0.7151522040, 0.0721750036);
 
@@ -155,10 +153,10 @@ float3 EndfieldShadeOfficialHair(
         backlit * smoothstep(0.25, 0.75, 1.0 - abs(cameraAxisZ.y)) * backlightEnabled)
         + _CharacterParams11.w * _CharacterParams12.x;
     float2 rampUV = float2(clamp(rampInput, -1.0, 1.0) * 0.5 + 0.5, 0.5);
-    float4 ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_EFHair_LinearMirror,
+    float4 ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp,
         rampUV, 0);
     float2 viewRampUV = float2(dot(diffuseN, cameraAxisZ) * 0.5 + 0.5, 0.5);
-    float viewRampAlpha = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_EFHair_LinearMirror,
+    float viewRampAlpha = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp,
         viewRampUV, 0).a;
     EFHairLightingTerms lighting = EFHairDiffuseLighting(albedo, diffuseN, lightColor, lightColorI,
         ramp, viewRampAlpha, directionalShadow, selfShadow, shadowMask);
@@ -185,7 +183,7 @@ float3 EndfieldShadeOfficialHair(
     float primaryDotHalf = dot(primaryTangent, H);
     float primaryLobe = saturate(EFHairSineLobe(primaryDotHalf, 200.0) * specularMask);
     float2 specRampUV = float2(primaryLobe, (primaryDotHalf > 0.0 ? 1.0 : 0.0) * edgeFade * edgeFade);
-    float3 primaryRamp = SAMPLE_TEXTURE2D_LOD(_SpecRampMap, sampler_EFHair_LinearMirror,
+    float3 primaryRamp = SAMPLE_TEXTURE2D_LOD(_SpecRampMap, sampler_Endfield_LinearClamp,
         specRampUV, 0).rgb;
     float3 primarySpecular = primaryLobe * primaryRamp * edgeFade;
     float primaryPeak = EFHairMax3(primarySpecular);

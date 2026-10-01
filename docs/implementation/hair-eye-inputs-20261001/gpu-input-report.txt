@@ -1,0 +1,13 @@
+Native captured Hair/Eye inputs; no official-image/per-pixel fitting.
+GPU=Direct3D11 / NVIDIA GeForce RTX 3060 Laptop GPU
+Native view PASS images=9 mipLevels=68 cases=340 maxError=0; SampleLevel+Load; sRGB RGB once / alpha linear / no UV flip
+Native bytes/mip partition + fail-closed null/corruption=18 PASS
+Production native HN/P/Line/Base and Matcap/Base decoded fixtures PASS cases=4; native ramps retained; Base ST once / shared HN UV / separate Line ST
+Scoped ownership PASS root/slot inheritance/restoration/foreign writer/no dangling inputs/reject before mutation
+Eye production Base SampleBias PASS bias=-1=>mip2, bias=0=>mip3; independent known per-mip colors
+Eye Base production addressing PASS negative UV repeats to last-column texel; independent RGBAFloat lattice
+Eye Matcap production PASS bias=-1=>mip2 / 0=>mip3, spherical seam clamps to last-column texel; independent expected cases=3
+Eye analytic UV production PASS raw mesh(.25,.25) inside / captured VS ST gives(.99,.99) outside; independent disk mask expected
+Hair Line implicit Sample PASS bias=-1 and 0 both mip3, LineST x2 gives mip4; independent reduced-light CPU expected cases=3
+Actual recovered four-family simultaneous native binding PASS slots=2+2+2, dirty unchanged; no scene save/full frame/settings changes
+RESULT PASS defaultPasses=5; bounded dry inputs/sampling, not all uniforms/weather/final scene/MMD.

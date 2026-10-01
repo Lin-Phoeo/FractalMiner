@@ -681,7 +681,7 @@ Shader "Endfield/CharacterLit"
                     float3 sourceVFXN = N;
                     float3 sourceVFXV = V;
                     if (_MaterialFamily > 2.5)
-                        sourceColor = EndfieldShadeOfficialEye(input.uv, input.normalWS, V, input.tangentWS,
+                        sourceColor = EndfieldShadeOfficialEye(sourceUV, input.normalWS, normalize(input.viewDirWS), input.tangentWS,
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     else if (_MaterialFamily > 1.5)
                     {

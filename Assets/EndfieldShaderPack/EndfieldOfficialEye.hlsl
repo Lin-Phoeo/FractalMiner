@@ -8,9 +8,10 @@
 // Returns source _1479: after saturation/backlight/eye accents, before VFX,
 // exposure and fog. The caller owns those output stages.
 // Frame scope excludes snow, irradiance clipmaps, local lights, motion vectors
-// and HGRP fog. Texture mip bias is zero at the unit rendering scale.
-// The input UV is the original mesh UV; per-slot ST corrects exported texture
-// orientation only at the texture fetch, never the analytic iris coordinates.
+// and HGRP fog. Actual PS22259 uses global mip bias=-1: Base is s4 Repeat,
+// Matcap is s6 Clamp, both Bilinear/mip Point. DiffRamp is s6 explicit LOD0.
+// UV is the captured VS22258 Base-transformed UV (ST once before analytic
+// iris/parallax coordinates). No extra slot ST, export-orientation fix or flip.
 
 float EFEyeLuminance(float3 color)
 {
@@ -48,9 +49,9 @@ float3 EndfieldShadeOfficialEye(
     float3 viewTS = EFEyeNormalize(mul(worldToTangent, V));
     float2 parallaxOffset = viewTS.xy * _ParallaxScale * float2(1.0, 0.25)
         * smoothstep(0.25, 0.05, radiusSquared);
-    float2 baseUV = (uv - parallaxOffset) * _BaseMap_ST.xy + _BaseMap_ST.zw;
+    float2 baseUV = uv - parallaxOffset;
     float4 baseSample = SAMPLE_TEXTURE2D_BIAS(
-        _BaseMap, sampler_Endfield_LinearClamp, baseUV, 0.0);
+        _BaseMap, sampler_Endfield_LinearRepeat, baseUV, _EndfieldCapturedGlobalMipBias);
     float3 albedo = baseSample.rgb * _BaseColor.rgb;
     float pupilDepth = baseSample.a * _BaseColor.a;
     float3 shadowAlbedo = albedo * _ShadowColorBrightness;
@@ -83,8 +84,9 @@ float3 EndfieldShadeOfficialEye(
     float3x3 objectToWorld = (float3x3)EndfieldCharacterRootToWorld();
     float3 objectLight = EFEyeNormalize(mul(L, objectToWorld));
     objectLight.y = 0.0;
-    // Source _1233 deliberately retains the projected length. Renormalizing
-    // here changes ramp lighting, especially for lights near the root Y axis.
+    // Source _1233 stores the projected vector. PS22259:674 (_1295)
+    // explicitly normalizes it at the ramp dot consumer below. Do not omit
+    // that last operation (the prior port and CPU test both omitted it).
     float3 rampLightWS = mul(objectToWorld, objectLight);
     // lightColorI already contains the caller's directional intensity and
     // CP5 override; source _1216 is needed separately by the ambient term.
@@ -103,14 +105,14 @@ float3 EndfieldShadeOfficialEye(
         * ((1.0 - outerDiskMask).xxx + eyeHighLight)
         * ((1.0 - pupilDepth).xxx + eyeScattering);
 
-    // _1295.._1324: preserve all four ramp channels and repeat addressing.
-    float rampU = clamp(dot(shadingNormalWS, rampLightWS)
+    // _1295.._1324: preserve all four ramp channels, s6 Clamp / LOD0.
+    float rampU = clamp(dot(shadingNormalWS, EFEyeNormalize(rampLightWS))
         + _CharacterParams11.w * _CharacterParams12.x, -1.0, 1.0) * 0.5 + 0.5;
     float4 ramp = SAMPLE_TEXTURE2D_LOD(
-        _DiffRampMap, sampler_Endfield_LinearRepeat, float2(rampU, 0.5), 0.0);
+        _DiffRampMap, sampler_Endfield_LinearClamp, float2(rampU, 0.5), 0.0);
     float litMask = min(1.0, ramp.a);
     float rampChroma = max(max(ramp.r, ramp.g), ramp.b) - min(min(ramp.r, ramp.g), ramp.b);
-    float rampV = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearRepeat,
+    float rampV = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp,
         float2(dot(shadingNormalWS, cameraAxisZ) * 0.5 + 0.5, 0.5), 0.0).a;
     float ambientGradient = saturate(dot(horizontalNormalWS, _CharacterParams6.xyz)
         + _CharacterParams7.x) * _CharacterParams7.y + _CharacterParams7.z;
@@ -142,7 +144,7 @@ float3 EndfieldShadeOfficialEye(
         mul(matcapNormalTS, tangentToWorld)));
     float2 matcapUV = matcapNormalVS.xy * 0.5 + 0.5;
     float4 matcap = SAMPLE_TEXTURE2D_BIAS(
-        _MatcapTex, sampler_Endfield_LinearRepeat, matcapUV, 0.0);
+        _MatcapTex, sampler_Endfield_LinearClamp, matcapUV, _EndfieldCapturedGlobalMipBias);
     float3 color = lightTerm * diffuseTerm
         + (matcap.rgb * _MatcapColor.a + _MatcapColor.rgb * matcap.a) * specLight;
 

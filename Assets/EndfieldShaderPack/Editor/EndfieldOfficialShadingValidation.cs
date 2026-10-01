@@ -46,6 +46,8 @@ namespace EndfieldShaderPack
 
         public static void RunNumerical()
         {
+            string freshReport=Environment.GetEnvironmentVariable("ENDFIELD_OFFICIAL_NUMERICAL_REPORT");
+            if(freshReport!=null&&(freshReport.Length==0||File.Exists(freshReport)))throw new InvalidOperationException("Fresh numerical report required.");
             if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals();
@@ -114,9 +116,9 @@ namespace EndfieldShaderPack
                     if(float.IsNaN(error) || error>.004f || p.a<.9f) failures++;
                 }
                 finally { Object.DestroyImmediate(eyeRamp); Object.DestroyImmediate(eyeMatcap); }
-                // Actual b28 _1226 -> _1231 -> _1233: normalize in root
-                // space, remove Y, transform back WITHOUT renormalizing.
-                // A gradient-alpha ramp exposes any accidental energy boost.
+                // PS22259 _1226 -> _1231 -> _1233, THEN _1295 explicitly
+                // normalizes the projected vector at the ramp dot consumer.
+                // The old test/port omitted that final source operation.
                 var gradientRamp = new Texture2D(128, 1, TextureFormat.RGBAFloat, false, true);
                 var originalQuadMesh = quad.GetComponent<MeshFilter>().sharedMesh;
                 var eyeMesh = Object.Instantiate(originalQuadMesh);
@@ -134,24 +136,30 @@ namespace EndfieldShaderPack
                     mat.SetFloat("_MatcapNormalScale", 0);
                     mat.SetColor("_MatcapColor", Color.clear);
                     mat.SetTexture("_DiffRampMap", gradientRamp);
-                    Shader.SetGlobalVector("_CharacterParams11", new Vector4(0,.6f,.8f,0));
+                    foreach(Vector3 testLight in new[]{new Vector3(0,.6f,.8f),new Vector3(0,.6f,-.8f)})
                     foreach (Vector3 angles in new[] { Vector3.zero, new Vector3(30,0,0), new Vector3(45,37,0) })
                     {
+                        Shader.SetGlobalVector("_CharacterParams11",new Vector4(testLight.x,testLight.y,testLight.z,0));
                         Quaternion rotation = Quaternion.Euler(angles);
                         Matrix4x4 basis = Matrix4x4.Rotate(rotation);
                         mat.SetFloat("_EndfieldSkinBasisEnabled", 1);
                         for (int row = 0; row < 3; row++) mat.SetVector("_EndfieldSkinBasisRow"+row, basis.GetRow(row));
-                        Vector3 lightLocal = (Quaternion.Inverse(rotation) * new Vector3(0,.6f,.8f)).normalized;
+                        Vector3 lightLocal = (Quaternion.Inverse(rotation) * testLight).normalized;
                         lightLocal.y = 0;
-                        Vector3 projected = rotation * lightLocal;
-                        float rampAlpha = Mathf.Clamp01(projected.z*.5f+.5f);
+                        Vector3 projected = (rotation * lightLocal).normalized;
+                        // Independent linear gradient lattice + actual s6 Clamp,
+                        // including the view-ramp endpoint. The old .5 repeat
+                        // seam assumption was inert when all rampAlpha>.5; the
+                        // negative-light cases expose that hidden test weakness.
+                        float rampAlpha = Mathf.Clamp(projected.z*.5f+.5f,.5f/128,1-.5f/128);
+                        float viewAlpha = Mathf.Clamp(camera.cameraToWorldMatrix.MultiplyVector(Vector3.forward).z*.5f+.5f,.5f/128,1-.5f/128);
                         camera.Render(); RenderTexture.active = rt;
                         readback.ReadPixels(new Rect(0,0,16,16),0,0); readback.Apply();
                         Color p = readback.GetPixel(8,8);
-                        Vector3 gpu = new Vector3(p.r,p.g,p.b), expected = Expected(rampAlpha, viewAlpha:.5f);
+                        Vector3 gpu = new Vector3(p.r,p.g,p.b), expected = Expected(rampAlpha, viewAlpha:viewAlpha);
                         float error = (gpu-expected).magnitude;
                         cases++;
-                        report.AppendLine($"eye root-projected light angles={angles} rampAlpha={rampAlpha:G7} gpu={gpu} expected={expected} error={error:G6}");
+                        report.AppendLine($"eye root-projected light L={testLight} angles={angles} rampAlpha={rampAlpha:G7} viewAlpha={viewAlpha:G7} gpu={gpu} expected={expected} error={error:G6}");
                         if (!float.IsNaN(error) && error<=.004f && p.a>=.9f) continue;
                         failures++;
                     }
@@ -187,7 +195,8 @@ namespace EndfieldShaderPack
                 var shaderErrors=ShaderUtil.GetShaderMessages(mat.shader)
                     .Where(m=>m.severity==UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error).ToArray();
                 if(shaderErrors.Length!=0) throw new InvalidOperationException(string.Join("; ",shaderErrors.Select(m=>m.message)));
-                Directory.CreateDirectory("Logs"); File.WriteAllText("Logs/official-shading-numerical.txt",report.ToString());
+                if(freshReport==null){Directory.CreateDirectory("Logs");File.WriteAllText("Logs/official-shading-numerical.txt",report.ToString());}
+                else using(var stream=new FileStream(freshReport,FileMode.CreateNew,FileAccess.Write))using(var writer=new StreamWriter(stream))writer.Write(report.ToString());
                 Debug.Log(report.ToString());
                 if(failures!=0) throw new InvalidOperationException($"Official lighting GPU reference: {failures}/{cases} failed");
                 Debug.Log($"[OfficialShading] PASS: {cases} GPU/CPU reference cases");

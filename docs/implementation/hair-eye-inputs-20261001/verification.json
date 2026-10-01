@@ -1,0 +1,115 @@
+{
+  "phase": "hair-eye-inputs-20261001",
+  "approval": "bounded-input-sampling-and-eye-light-correction",
+  "frame": 6411,
+  "events": [
+    875,
+    776
+  ],
+  "programs": [
+    22257,
+    22259
+  ],
+  "private_package": "Validation/Captures/native-hair-eye-inputs-20261001-01",
+  "manifest_sha256": "879c9064fbabdaafed25d798928cc20f730e235ea709abe1f3d91d63c70a158b",
+  "actual_eye_ps_sha256": "c372e6c7708333952f52e77a17bb3c2ba300d87543cd91cd1f944adeeaa2c2b3",
+  "eye_projection_correction": {
+    "source_line": 674,
+    "canonical_b28_line": 678,
+    "old_no_renormalization_claim": "retracted",
+    "red_failures": 4,
+    "total_numerical_cases": 17,
+    "green_failures": 0,
+    "unchanged_tolerance": 0.004,
+    "projected_light_cases": 6,
+    "green_projected_light_max_error": 0.00000902933
+  },
+  "gpu": {
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "draw_bindings": 9,
+    "unique_images": 9,
+    "mips": 68,
+    "native_sample_cases": 340,
+    "sample_level_max_error": 0,
+    "integer_load_error_bound": 0.000002,
+    "production_decoded_fixture_cases": 4,
+    "independent_production_sampling_cases": 11,
+    "null_corruption_rejection_cases": 18,
+    "default_passes": 5,
+    "simultaneous_cloth_skin_hair_eye_slots": [
+      2,
+      2,
+      2
+    ],
+    "eye_outline_policy_states": 8,
+    "existing_gpu_regressions_passed": 8,
+    "full_pose_scene_render_run": false
+  },
+  "reports_sha256": {
+    "gpu-input-report.txt": "fdd4a3de72f0af7ce764fd40fa29ccb291ce8ab355193fd66b6e179642505b4f",
+    "official-numerical-report.txt": "af71b0d3518501ea3ecbcaabfac1ff7bd687a900ce57e5ec59f09bee3437f5a6",
+    "private-red-official-numerical-03.txt": "526e2723e8dafa38c85144949255d9149708f62b104cbfb062977b20da4149a6",
+    "regression-native-cloth-materials.txt": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+    "regression-hair.txt": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34",
+    "regression-skin-formula.txt": "f78b59bb40400328ff9667ab749e9c66366b8d536ac306d0fcda886b1eb94d75",
+    "regression-cube.txt": "51039dc78d44e52910d78ddd074628566b70e1da98f21046b7bd46e560a2ffe9",
+    "regression-native-skin.txt": "1365acaf89a784a78634df458bc44369d34567c4ffcf59e571bbc52424a3360c",
+    "regression-cloth-normal.txt": "4a02dee14f11e3933cd1699627edfdef12d64590e6ff30ffe2b30fe6f3fadf6c",
+    "regression-native-bc5.txt": "1168fd524e97060384b4ef96dfed40b2c361f1192ee608bded5414c7f6e3a193",
+    "regression-cloth-emission.txt": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13"
+  },
+  "private_evidence_directory": "D:/EndfieldTechLib/notes/hair-eye-inputs-20261001-01",
+  "python": {
+    "passed": 342,
+    "historical_skipped": 3,
+    "subtests": 77,
+    "existing_warnings": 2,
+    "exporter_api_io_line_coverage_percent": 97.08,
+    "csharp_hlsl_coverage_claim": false,
+    "hair_eye_wrapper_coverage_percent": 100
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "pass",
+    "pip_audit": "No known vulnerabilities found; uv temporary tool environment only, no project dependency additions"
+  },
+  "sealed_baselines": {
+    "v1": {
+      "integrity_ok": false,
+      "files": 6771,
+      "anchors": 18,
+      "pending": 79,
+      "errors": [
+        "changed:project:CODEX-HANDOVER-PROMPT.md"
+      ]
+    },
+    "v2": {
+      "integrity_ok": false,
+      "files": 149,
+      "anchors": 7,
+      "pending": 24,
+      "errors": [
+        "changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+      ]
+    }
+  },
+  "protected": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "not_claimed": [
+    "all uniforms",
+    "weather",
+    "all 17 SMR variants",
+    "final scene or Player packaging",
+    "asynchronous MPB merging",
+    "full-frame fidelity",
+    "MMD completion"
+  ]
+}

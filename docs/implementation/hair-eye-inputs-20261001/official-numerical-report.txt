@@ -1,0 +1,17 @@
+family=2 rampAlpha=0 gpu=(0.069323, 0.123032, 0.181550) expected=(0.069323, 0.123032, 0.181550) error=1.666E-08
+family=2 rampAlpha=0.5 gpu=(0.234143, 0.356626, 0.485470) expected=(0.234143, 0.356626, 0.485470) error=6.664E-08
+family=2 rampAlpha=1 gpu=(0.351932, 0.527900, 0.703868) expected=(0.351932, 0.527900, 0.703868) error=6.664E-08
+family=0 rampAlpha=0 gpu=(0.069323, 0.123032, 0.181550) expected=(0.069323, 0.123032, 0.181550) error=2.23517E-08
+family=0 rampAlpha=0.5 gpu=(0.234143, 0.356626, 0.485470) expected=(0.234143, 0.356626, 0.485470) error=6.664E-08
+family=0 rampAlpha=1 gpu=(0.351932, 0.527900, 0.703868) expected=(0.351932, 0.527900, 0.703868) error=6.664E-08
+family=3 rampAlpha=0 gpu=(0.069323, 0.123032, 0.181550) expected=(0.069323, 0.123032, 0.181550) error=2.23517E-08
+family=3 rampAlpha=0.5 gpu=(0.234143, 0.356626, 0.485470) expected=(0.234143, 0.356626, 0.485470) error=2.98023E-08
+family=3 rampAlpha=1 gpu=(0.351932, 0.527900, 0.703868) expected=(0.351932, 0.527900, 0.703868) error=6.664E-08
+eye matcap cross-blend gpu=(0.437482, 0.703031, 0.968580) expected=(0.437482, 0.703031, 0.968580) error=1.36571E-07
+eye root-projected light L=(0.00, 0.60, 0.80) angles=(0.00, 0.00, 0.00) rampAlpha=0.9960938 viewAlpha=0.9960938 gpu=(0.35, 0.53, 0.70) expected=(0.35, 0.53, 0.70) error=0
+eye root-projected light L=(0.00, 0.60, 0.80) angles=(30.00, 0.00, 0.00) rampAlpha=0.9330127 viewAlpha=0.9960938 gpu=(0.34, 0.50, 0.67) expected=(0.34, 0.50, 0.67) error=6.53616E-07
+eye root-projected light L=(0.00, 0.60, 0.80) angles=(45.00, 37.00, 0.00) rampAlpha=0.8165265 viewAlpha=0.9960938 gpu=(0.31, 0.46, 0.62) expected=(0.31, 0.46, 0.62) error=1.1155E-06
+eye root-projected light L=(0.00, 0.60, -0.80) angles=(0.00, 0.00, 0.00) rampAlpha=0.00390625 viewAlpha=0.9960938 gpu=(0.12, 0.19, 0.27) expected=(0.12, 0.19, 0.27) error=3.332E-08
+eye root-projected light L=(0.00, 0.60, -0.80) angles=(30.00, 0.00, 0.00) rampAlpha=0.06698731 viewAlpha=0.9960938 gpu=(0.13, 0.21, 0.29) expected=(0.13, 0.21, 0.29) error=6.41962E-07
+eye root-projected light L=(0.00, 0.60, -0.80) angles=(45.00, 37.00, 0.00) rampAlpha=0.1076199 viewAlpha=0.9960938 gpu=(0.14, 0.22, 0.31) expected=(0.14, 0.22, 0.31) error=9.02933E-06
+cloth emission gpu=(0.394740, 0.655319, 0.972662) expected=(0.394740, 0.655319, 0.972662) error=2.98023E-08
