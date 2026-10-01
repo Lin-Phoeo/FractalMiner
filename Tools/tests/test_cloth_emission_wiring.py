@@ -41,10 +41,10 @@ class ClothEmissionWiring(unittest.TestCase):
         self.contains(code, "sourceCloth = sourceShading && _MaterialFamily < 0.5")
         self.contains(code, "float2 sourceUV = TRANSFORM_TEX(uv, _BaseMap)")
         self.contains(code, "clothBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap")
-        self.contains(code, "SAMPLE_TEXTURE2D_BIAS(_EmissionMap, sampler_Endfield_LinearClamp,")
+        self.contains(code, "SAMPLE_TEXTURE2D_BIAS(_EmissionMap, sampler_BumpMap,")
         source = block(code, "if (sourceShading)")
         self.assertNotIn("TRANSFORM_TEX(uv, _EmissionMap)", source)
-        self.contains(code, "SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearClamp,")
+        self.contains(code, "SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_BumpMap,")
         self.contains(source, "EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb")
 
     def test_emission_after_saturation_before_ibl_not_in_caller(self):

@@ -23,8 +23,11 @@
 // b401's separate clearcoat normal. Both normals use the same backface sign.
 // uv is the captured VS BaseMap-transformed UV, shared by base/P/N/emission.
 // P uses captured bias; constructed ramp coordinates have no additional ST.
-// Clearcoat sampling remains a separate, uncertified legacy adapter. Sampler
-// filter/address states are not exported by the current actual draw-details.
+// Actual PS22255/37669: s4 (shared base/P/N/E) is bilinear Repeat / mip-point;
+// s6 (constructed ramps) is bilinear ClampEdge / mip-point, at explicit LOD0.
+// Native cloth input binding supplies s4 via sampler_BumpMap. Original PNG
+// fallback imports are not native sampler/mip-certified. Clearcoat and IBL
+// adapters remain separate, uncertified paths.
 
 static const float3 EFClothLuminance = float3(0.2126729041, 0.7151522040, 0.0721750036);
 
@@ -149,7 +152,7 @@ float3 EndfieldShadeOfficialCloth(
     float3 lightColor = lightColorI / max(lightIntensity, 1e-6);
     float4 packed = float4(_Metallic, _Specular, 1.0, _Smoothness);
     if (_UseMetallicGlossMap > 0.5)
-        packed = SAMPLE_TEXTURE2D_BIAS(_MetallicGlossMap, sampler_Endfield_LinearClamp,
+        packed = SAMPLE_TEXTURE2D_BIAS(_MetallicGlossMap, sampler_BumpMap,
             uv, _EndfieldCapturedGlobalMipBias);
     float metallic = packed.r;
     float specularMask = packed.g;
@@ -184,12 +187,12 @@ float3 EndfieldShadeOfficialCloth(
     float viewRampAlpha = smoothstep(0.25, 1.0, dot(N, cameraAxisZ));
     if (_UseDiffRampMap > 0.5)
     {
-        // b471 explicitly uses LinearRepeat and LOD 0 for both ramp samples.
+        // Actual captured PS22255/37669 use s6 ClampEdge and explicit LOD0.
         float2 rampUV = float2(rampInput * 0.5 + 0.5, 0.5);
-        ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearRepeat,
+        ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp,
             rampUV, 0);
         float2 viewRampUV = float2(dot(N, cameraAxisZ) * 0.5 + 0.5, 0.5);
-        viewRampAlpha = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearRepeat,
+        viewRampAlpha = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp,
             viewRampUV, 0).a;
     }
     EFClothLightingTerms lighting = EFClothDiffuseLighting(
@@ -215,7 +218,7 @@ float3 EndfieldShadeOfficialCloth(
             lerp(distribution / min(1.0 / (a4 + 1e-4), 65504.0),
                  NdotV * NdotV, _SpecRampIridescentMode),
             roughness * (1.0 - metallic));
-        directSpecColor *= SAMPLE_TEXTURE2D_LOD(_SpecRampMap, sampler_Endfield_LinearRepeat,
+        directSpecColor *= SAMPLE_TEXTURE2D_LOD(_SpecRampMap, sampler_Endfield_LinearClamp,
             specRampUV, 0).rgb;
         environmentSpecColor = lerp(specColor, directSpecColor, _SpecRampIridescentMode);
     }

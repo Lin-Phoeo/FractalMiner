@@ -1,3 +1,5 @@
+> 2026-10-01 最新实现接手点：先读 `docs/implementation/cloth-native-bc5-20261001/README.md` 和同目录 `verification.json`。衣物两张原生 BC5 法线的完整 12 级 mip、实际 view/sampler、生产消费与可恢复内存绑定已验证；120 项 GPU 采样与独立捕获资源一致，Python 304 passed / 3 skipped。没有新增模型 LOD、性能适配、截图拟合或曝光补偿。此结论仅覆盖本轮输入/绑定，不代表全官方渲染闭合；下一单元核查 D/P/E、ramp/cube 的原生格式/sRGB/mip/sampler，尤其 IBL 分数 LOD。原场景/质量与图形设置未改，用户 9557 项暂存索引须继续保留；旧文档“本轮不改运行时”是历史阶段限制，不是当前实现禁止令。
+
 > 2026-09-30 最新优先级：先读`docs/render-baseline/v1/foundation.md`、`plan.json`及封存manifest，再读`docs/research/INDEX-shader-sources.md`。已回源修正四族/描边/C6/后处理多处实质错误，并沿用天气审计；v1是证据与更正基线，14模块六维仍有pending，禁止称全量规格完美闭合。`render_spec_baseline.py verify --require-complete`当前应返回2。先关资料缺口，再按foundation§7对照实现；不要调曝光/截图拟合或按旧伪码接湿身。旧handoff正文仅历史参考，其逐像素/LSB/删垃圾优先级全部失效；不碰用户9557项暂存索引、不改本轮运行时代码。
 
 > 2026-09-30 已完成实现增量：先读 `CODEX-HANDOFF-2026-09-30-eye-hair-shadow.md`，再读 `CODEX-HANDOFF-2026-09-30-live-skin-and-motion.md` 和 `CODEX-AUDIT-HANDOFF-2026-09-30.md`。用户明确不要逐像素对照；按官方代码、光照、管线/后处理的结构与逻辑验收，然后接解包动作/MMD。动态根已覆盖face/body/iris/hair；眼睛投影光公式、虹膜描边、根参数块遮住阴影参数的问题已修正，解包动作/VMD六个时刻的实时阴影/Bloom/post链路通过。后续实现是官方OverlayShadow模板/乘色pass，不是调曝光，须先完成当前资料优先事项。旧颜色LSB/IoU门禁不再作为主线。仍未宣称全渲染/MMD完成，不按旧垃圾清单删用户资源。

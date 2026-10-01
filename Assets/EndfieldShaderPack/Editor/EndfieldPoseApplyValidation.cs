@@ -436,6 +436,9 @@ namespace EndfieldShaderPack.EditorTools
                 report.Add("dynamic Typhoeus skin roots applied after pose/instance transform");
             }
 
+            // Explicit opt-in native input scope. Restores MPBs and owns transient
+            // BC5 textures; never saves scene/material/texture-import assets.
+            using var nativeCloth = EndfieldCapturedClothInputs.BindIfRequested(charRoot, report);
             // B of the A/B: the same pose/camera with the captured lighting branch live.
             RenderPng(camera, Path.Combine(OutDir, "pose-applied-lit.png"));
 
@@ -684,12 +687,14 @@ namespace EndfieldShaderPack.EditorTools
             var json = new System.Text.StringBuilder("{\"renderers\":[");
             var unposedBones = new SortedSet<string>();
             var originalMeshes = new Mesh[renderers.Length];
+            var originalBlocks = new MaterialPropertyBlock[renderers.Length][];
             var cameraData = camera.GetUniversalAdditionalCameraData();
             bool previousPost = cameraData.renderPostProcessing;
             bool previousMsaa = camera.allowMSAA;
             var previousAa = cameraData.antialiasing;
             var previousClear = camera.clearFlags;
             var previousBackground = camera.backgroundColor;
+            float previousLabel = Shader.GetGlobalFloat("_EndfieldLabelMode");
             try
             {
                 cameraData.renderPostProcessing = false;
@@ -701,6 +706,7 @@ namespace EndfieldShaderPack.EditorTools
                 {
                     var smr = renderers[r];
                     var mats = smr.sharedMaterials;
+                    originalBlocks[r] = new MaterialPropertyBlock[mats.Length];
                     if (r > 0) json.Append(',');
                     json.Append("{\"index\":").Append(r).Append(",\"name\":\"").Append(smr.name)
                         .Append("\",\"mesh\":\"").Append(smr.sharedMesh.name).Append("\",\"submeshes\":[");
@@ -708,7 +714,12 @@ namespace EndfieldShaderPack.EditorTools
                     {
                         if (mats[s].shader.name != "Endfield/CharacterLit")
                             throw new InvalidOperationException(smr.name + " submesh " + s + " uses " + mats[s].shader.name);
+                        var previous = new MaterialPropertyBlock();
+                        smr.GetPropertyBlock(previous, s);
+                        originalBlocks[r][s] = previous;
                         var block = new MaterialPropertyBlock();
+                        if (previous.isEmpty) smr.GetPropertyBlock(block);
+                        else smr.GetPropertyBlock(block, s);
                         block.SetVector("_EndfieldLabelColor", new Vector4((r + 1) / 255f, (s + 1) / 255f, 128f / 255f, 1f));
                         smr.SetPropertyBlock(block, s);
                         if (s > 0) json.Append(',');
@@ -756,11 +767,13 @@ namespace EndfieldShaderPack.EditorTools
             }
             finally
             {
-                Shader.SetGlobalFloat("_EndfieldLabelMode", 0f);
+                Shader.SetGlobalFloat("_EndfieldLabelMode", previousLabel);
                 for (int r = 0; r < renderers.Length; r++)
                 {
-                    for (int s = 0; s < renderers[r].sharedMaterials.Length; s++)
-                        renderers[r].SetPropertyBlock(null, s);
+                    if (originalBlocks[r] != null)
+                        for (int s = 0; s < originalBlocks[r].Length; s++)
+                            if (originalBlocks[r][s] != null)
+                                renderers[r].SetPropertyBlock(originalBlocks[r][s].isEmpty ? null : originalBlocks[r][s], s);
                     if (originalMeshes[r] != null)
                     {
                         UnityEngine.Object.DestroyImmediate(renderers[r].sharedMesh);

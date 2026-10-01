@@ -353,6 +353,9 @@ Shader "Endfield/CharacterLit"
         SAMPLER(sampler_Endfield_LinearClamp);
         SAMPLER(sampler_Endfield_PointClamp);
         SAMPLER(sampler_CharMaxCubemap);
+        // Captured cloth s4 is bilinear Repeat / mip-point. The native BC5
+        // binding carries this state; inline "Linear" would interpolate mips.
+        SAMPLER(sampler_BumpMap);
 
         // Official screen-space character shadow (HGRP ScreenSpaceShadowResolve
         // _Character, G channel), produced by EndfieldCharacterShadowFeature before
@@ -567,7 +570,7 @@ Shader "Endfield/CharacterLit"
                 bool sourceHair = sourceShading && _MaterialFamily > 1.5 && _MaterialFamily < 2.5;
                 bool sourceCloth = sourceShading && _MaterialFamily < 0.5;
                 // Captured VS output applies BaseMap_ST once. Hair shares base/P/HN;
-                // cloth shares base/P/N/emission, with its own candidate clamp adapter.
+                // cloth shares base/P/N/emission and the captured s4 sampler.
                 float2 sourceUV = TRANSFORM_TEX(uv, _BaseMap);
                 float4 hairBaseMap = 0;
                 if (sourceHair)
@@ -575,7 +578,7 @@ Shader "Endfield/CharacterLit"
                         sourceUV, _EndfieldCapturedGlobalMipBias);
                 float4 clothBaseMap = 0;
                 if (sourceCloth)
-                    clothBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearClamp,
+                    clothBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_BumpMap,
                         sourceUV, _EndfieldCapturedGlobalMipBias);
                 half4 baseMap = sourceHair ? hairBaseMap : sourceCloth ? clothBaseMap : sourceClamp
                     ? SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BaseMap))
@@ -694,7 +697,7 @@ Shader "Endfield/CharacterLit"
                             * IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
                         if (_UseBumpMap > 0.5)
                         {
-                            float4 clothPackedNormal = SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearClamp,
+                            float4 clothPackedNormal = SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_BumpMap,
                                 sourceUV, _EndfieldCapturedGlobalMipBias);
                             clothNormals = EFClothDecodeNormals(clothPackedNormal, _BumpScale,
                                 input.normalWS, input.tangentWS,
@@ -714,7 +717,7 @@ Shader "Endfield/CharacterLit"
                         float3 sourceEmission = 0;
                         if (_UseEmission > 0.5)
                         {
-                            float3 emissionSample = SAMPLE_TEXTURE2D_BIAS(_EmissionMap, sampler_Endfield_LinearClamp,
+                            float3 emissionSample = SAMPLE_TEXTURE2D_BIAS(_EmissionMap, sampler_BumpMap,
                                 sourceUV, _EndfieldCapturedGlobalMipBias).rgb;
                             sourceEmission = EFClothCapturedEmission(emissionSample, _EmissionColor.rgb,
                                 _EmissionBrightness, sourceAlphaFactor);

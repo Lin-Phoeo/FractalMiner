@@ -1,0 +1,63 @@
+{
+  "scope": "frame6411 Cloth01/02 native BC5 inputs, actual view/sampler, scoped binding and production normal consumption; not final official rendering",
+  "date": "2026-10-01",
+  "record_parent": "2d7a81942029c24310b785d0f00c5e3f49e653b1",
+  "model_policy": "highest-detail only; no new model LOD or performance adaptation",
+  "method": "official offline resource/program evidence, TDD, GPU input/algebra probes; no screenshot fitting",
+  "manifest_sha256": "37b3fb48aaef2eb0d8d6e9359f8e116065fc25ae449d6b2b93471a1f543dde0f",
+  "private_bundle": "Validation/Captures/native-cloth-inputs-20261001-02",
+  "resources": [
+    {"event":835,"ps":22255,"image":37987,"view":37988,"set":1,"binding":4,"zip_entry":"002959","bytes":5592432,"mips":12,"sha256":"e96d6fd9c9a1850ab0655f8fe42fd156beb992d19008fea1a5ac45e5c6c62841"},
+    {"event":850,"ps":37669,"image":37828,"view":37829,"set":1,"binding":5,"zip_entry":"004532","bytes":5592432,"mips":12,"sha256":"9c7ab3cb6d4c7e85284f4caee838c5dd8978495ed147b38856808758b7db35d8"}
+  ],
+  "image_contract": "BC5_UNORM 2048x2048, depth1/array1, full12mips, each draw-time mip byte-identical to ZIP initial contents",
+  "view_contract": "BC5_UNORM Texture2D, baseMip0/count12, baseSlice0/count1, minLODClamp0, identity RGBA",
+  "sampler_s4": "set0/b4 Resource155: Wrap UVW, Linear min/mag, Point mip, Normal filter, aniso0, mipBias0, minLOD0/maxLOD1000, normalized",
+  "sampler_s6": "set0/b6 Resource197: ClampEdge UVW, same filters/LOD; actual PS ramps explicit LOD0",
+  "gpu": {
+    "device":"NVIDIA GeForce RTX 3060 Laptop GPU / Direct3D11",
+    "sample_level_cases":120,
+    "sample_level_max_error":0,
+    "integer_load_cases":120,
+    "captured_channel_threshold":0.000002,
+    "fractional_lod_sampler_cases":8,
+    "repeat_checks":2,
+    "production_native_normal_cases":2,
+    "production_noninteger_bias_cases":1,
+    "payload_rejections":4,
+    "target_rejections":3,
+    "mpb_ownership":"scoped snapshots; long-menu owned-normal restore preserving later fields and foreign texture replacements",
+    "actual_character_slots":2,
+    "actual_scene_saved_or_rendered":false,
+    "default_shader_passes":5,
+    "report":"D:/EndfieldTechLib/notes/bc5-cloth-20261001-01/gpu-probes-09.txt",
+    "report_sha256":"1168fd524e97060384b4ef96dfed40b2c361f1192ee608bded5414c7f6e3a193",
+    "compressed_gpu_memory_readback":"unavailable in Unity; not claimed"
+  },
+  "regression": {
+    "cloth_normal":{"kernel":31,"production":14,"sha256":"4a02dee14f11e3933cd1699627edfdef12d64590e6ff30ffe2b30fe6f3fadf6c"},
+    "cloth_emission":{"kernel":32,"production":16,"sha256":"b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13"},
+    "hair_split":{"kernel":18,"production":3,"sha256":"83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"},
+    "python_full_suite":{"passed":304,"historical_skipped":3,"subtests_passed":25,"existing_pillow_warnings":2},
+    "exporter_python_unit":{"tests":12,"subtests":22,"line_coverage_percent":97.69,"coverage_scope":"only capture_cloth_normals.py; not C#/HLSL/project"},
+    "ruff":"pass",
+    "pyright":"pass",
+    "pip_audit":"No known vulnerabilities found in temporary audit environment; no new project deps"
+  },
+  "baseline": {
+    "v1":{"files":6771,"anchors":18,"integrity_ok":true,"pending":79,"approval":"evidence-only"},
+    "v2":{"files":149,"anchors":7,"integrity_ok":false,"pending":24,"approval":"evidence-only","errors":["changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader","changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"]},
+    "manifests_rewritten":false
+  },
+  "preservation": {
+    "main_head":"fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries":9557,
+    "main_index_entry_diff":0,
+    "scene_sha256":"4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256":"e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256":"e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68",
+    "raw_png_material_imports_changed":false,
+    "raw_capture_payloads_in_git":false
+  },
+  "not_certified":["Cloth D/P/E/ramp texture payload fidelity","IBL fractional-LOD sampler","wet/clearcoat/transparent variants","native vertex fetch/skinning/instance basis","all platforms/Unity6","full pose-apply activation/output run","standalone player packaging","final official rendering and complete MMD video"]
+}
