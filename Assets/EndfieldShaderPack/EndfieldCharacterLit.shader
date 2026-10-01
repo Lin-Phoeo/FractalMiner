@@ -354,7 +354,8 @@ Shader "Endfield/CharacterLit"
         SAMPLER(sampler_Endfield_PointClamp);
         SAMPLER(sampler_CharMaxCubemap);
         // Captured cloth s4 is bilinear Repeat / mip-point. The native BC5
-        // binding carries this state; inline "Linear" would interpolate mips.
+        // binding carries this state. Inline filter names alone are not proof
+        // of mip behavior; both input and sampler require GPU verification.
         SAMPLER(sampler_BumpMap);
 
         // Official screen-space character shadow (HGRP ScreenSpaceShadowResolve

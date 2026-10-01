@@ -404,6 +404,9 @@ namespace EndfieldShaderPack.EditorTools
             var envCube = EndfieldCaptureAssets.EnvironmentCube;
             Endfield.EndfieldOfficialFrameGlobals.ApplyGlobals(globals.useSourceShading, envCube);
             report.Add("captured globals applied; envCube=" + (envCube != null ? envCube.name : "NULL"));
+            // Optional reviewed native input; restore the preceding global cube
+            // on scope exit, without saving/reimporting the existing cube asset.
+            using var nativeEnvironment = EndfieldCapturedEnvironmentInputs.BindIfRequested(report);
 
             var charLight = UnityEngine.Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
             if (charLight == null) throw new InvalidOperationException(

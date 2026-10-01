@@ -26,8 +26,9 @@
 // Actual PS22255/37669: s4 (shared base/P/N/E) is bilinear Repeat / mip-point;
 // s6 (constructed ramps) is bilinear ClampEdge / mip-point, at explicit LOD0.
 // Native cloth input binding supplies s4 via sampler_BumpMap. Original PNG
-// fallback imports are not native sampler/mip-certified. Clearcoat and IBL
-// adapters remain separate, uncertified paths.
+// fallback imports are not native sampler/mip-certified. Cube s6 uses the same
+// Clamp inline sampler, GPU-verified as bilinear/mip-point on D3D11. Native
+// frame6411 BC6H input is separately pinned; clearcoat variants remain uncertified.
 
 static const float3 EFClothLuminance = float3(0.2126729041, 0.7151522040, 0.0721750036);
 
@@ -131,7 +132,10 @@ float3 EFClothSampleEnvironment(float3 N, float3 V, float roughness, float3 spec
     // IBL when the profile explicitly binds recovered environment data.
     if (_EndfieldCapturedCubemapAvailable < 0.5) return 0.0.xxx;
     float lod = 1.2 * log2(max(roughness, 0.001)) + 5.0;
-    return SAMPLE_TEXTURECUBE_LOD(_CharMaxCubemap, sampler_Endfield_LinearRepeat,
+    // Actual PS22255/37669 set0/b45 uses s6: ClampEdge, linear min/mag,
+    // point mip, explicit roughness LOD and no global mip bias. Unity's inline
+    // LinearClamp is measured mip-point here, not assumed trilinear by its name.
+    return SAMPLE_TEXTURECUBE_LOD(_CharMaxCubemap, sampler_Endfield_LinearClamp,
         reflect(-V, N), lod).rgb
         * EFClothEnvironmentBRDF(saturate(dot(N, V)), roughness, specColor);
 }
