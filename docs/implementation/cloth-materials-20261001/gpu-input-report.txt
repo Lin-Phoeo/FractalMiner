@@ -1,0 +1,10 @@
+Native captured material inputs; no official-image/per-pixel fitting.
+GPU=Direct3D11 / NVIDIA GeForce RTX 3060 Laptop GPU
+Ramp interpolation DiffRamp error=3.814697265625E-06 ideal-float bound=1/65535; not claimed bit-exact GPU arithmetic
+Ramp interpolation SpecRamp error=0 ideal-float bound=1/65535; not claimed bit-exact GPU arithmetic
+Native view GPU PASS images=7 mipLevels=62 cases=310 maxError=0; SampleLevel + integer Load; RGB sRGB decode exactly once / alpha linear / no UV flip
+Native payload bytes/mip partitions PASS; fail-closed null/corruption=14; RGBA8 ramp bilinear/Clamp=4
+Production native base + D/P/N/E vs decoded constant fixtures PASS cases=4; shared native ramps retained; source algebra certified by separate regressions, not this equivalence check
+Scoped ownership PASS root/slot merge, empty-slot restore, foreign texture+later fields preserved, no dangling owned inputs; reject missing slots/ShadowLUT/altered sampler without partial bind
+Actual recovered character native material+normal bind PASS slots=2 dirtyStateUnchanged=true; no scene save/full frame render/settings changes
+RESULT PASS defaultPasses=5; only these two dry opaque cloth input variants, not all uniforms/weather/final scene/MMD.

@@ -107,9 +107,8 @@ namespace EndfieldShaderPack
             }
         }
 
-        public static Binding Bind(Transform root, Texture2D cloth01, Texture2D cloth02, bool preserveLaterChanges = false)
+        public static void ValidateTextures(Texture2D cloth01, Texture2D cloth02)
         {
-            if (root == null) throw new ArgumentNullException(nameof(root));
             var textures = new[] { cloth01, cloth02 };
             string[] expectedHashes = { Cloth01Hash, Cloth02Hash };
             for (int i = 0; i < textures.Length; i++)
@@ -124,6 +123,12 @@ namespace EndfieldShaderPack
                 if (!texture.isReadable || Hash(texture.GetRawTextureData<byte>().ToArray()) != expectedHashes[i])
                     throw new InvalidDataException("Native cloth normal payload changed before binding.");
             }
+        }
+
+        public static Binding Bind(Transform root, Texture2D cloth01, Texture2D cloth02, bool preserveLaterChanges = false)
+        {
+            if (root == null) throw new ArgumentNullException(nameof(root));
+            ValidateTextures(cloth01, cloth02);
             var slots = new List<Binding.Slot>();
             bool found01 = false, found02 = false;
             foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))

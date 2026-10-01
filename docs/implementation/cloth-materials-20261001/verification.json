@@ -1,0 +1,55 @@
+{
+  "phase": "native-cloth-materials-20261001",
+  "approval": "bounded-input-and-consumer-only",
+  "frame": 6411,
+  "events": [835, 850],
+  "programs": [22255, 37669],
+  "private_package": "Validation/Captures/native-cloth-materials-20261001-02",
+  "manifest_sha256": "325b1baea5838c66002566a5c2b020f976c3d015a5633d7a4642b6c0be610383",
+  "payloads": {
+    "835-Base.raw": "27f50de5a07fc1b86ba195236a18beab4f254413ca0a8ef35708629e491eee15",
+    "835-P.raw": "258f59db1a976fb51b7f947bcad79101c7df3045858f1ec117ff6463ef352480",
+    "850-Base.raw": "8cd4c98c7c829e674e885fd5e66fa5c6f364468d038cc224229d8af9d6b0d45d",
+    "850-P.raw": "b581a8c3bbad96d707c0e051b842f42af7eaf4a795e876942695d8d26ebb97f0",
+    "850-E.raw": "4f6007669e944e1e61f3ca2881ea55a52d037e3f95561dd3a7c625192d776f21",
+    "835-DiffRamp.raw": "b067b42b9818b576ec9e9dba39493731f17346fc1c0dae22d2ace53a52c2b538",
+    "835-SpecRamp.raw": "538181418de6d5f0f9529923b74966d080ffeb8f85e08a0c07ebce2cdd9cd607"
+  },
+  "gpu": {
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "unique_material_images": 7,
+    "mips": 62,
+    "native_sample_cases": 310,
+    "sample_level_max_error": 0,
+    "integer_load_error_bound": 0.000002,
+    "production_consumer_cases": 4,
+    "passes": 5,
+    "actual_character_slots": 2,
+    "report": "gpu-input-report.txt",
+    "report_sha256": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+    "ideal_float_ramp_interpolation": {"bound": 0.000015259021896696422, "observed_max_error": 0.000003814697265625, "bit_exact_claim": false},
+    "full_pose_scene_render_run": false
+  },
+  "regression_report_sha256": {
+    "native-bc5": "1168fd524e97060384b4ef96dfed40b2c361f1192ee608bded5414c7f6e3a193",
+    "environment": "51039dc78d44e52910d78ddd074628566b70e1da98f21046b7bd46e560a2ffe9",
+    "normal": "4a02dee14f11e3933cd1699627edfdef12d64590e6ff30ffe2b30fe6f3fadf6c",
+    "emission": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13",
+    "hair": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"
+  },
+  "python": {"passed": 322, "historical_skipped": 3, "subtests": 77, "existing_warnings": 2, "exporter_api_io_line_coverage_percent": 96.64, "csharp_hlsl_coverage_claim": false},
+  "sealed_baselines": {
+    "v1": {"integrity_ok": false, "files": 6771, "anchors": 18, "pending": 79, "errors": ["changed:project:CODEX-HANDOVER-PROMPT.md"]},
+    "v2": {"integrity_ok": false, "files": 149, "anchors": 7, "pending": 24, "errors": ["changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader", "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"]}
+  },
+  "protected": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "not_certified": ["all_material_uniforms", "all_character_inputs", "weather_and_spatial_variants", "full_scene_post_lifecycle", "player_packaging", "unpacked_motion_and_mmd_completion"]
+}
