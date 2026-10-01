@@ -110,3 +110,5 @@ python 'FractalMiner/Tools/export_official_physics_bindings.py' `
 3. 核查官方更新顺序、更新模式、步长、约束结构和初始化流程。原 `updateMode=10` 仍是未经证实的数值；**不能据此声称官方物理固定 120Hz**。当前 120Hz 是现有预览的确定性设计。
 4. 通过上述门禁后，独立、可切回地接入官方配置的物理实现/最接近实现。未解析约束或购买授权缺口要明确记录，不能把已有 MIT Verlet 换参数后称为官方完整求解器。
 5. 在静止、转身、下蹲、跳跃、seek、固定步录制和 MMD 动作下验证骨长、碰撞、复位、更新顺序与渲染/阴影联动。按用户要求以结构、逻辑和方法正确性验收，不逐像素调参。
+
+后续检查点：[官方脚本声明、唯一骨架映射与空间门禁](../official-physics-mapping-20261002/README.md)。480 个原 Transform 的身份映射通过；统一左乘空间门禁未通过。新增 global asset 类声明不等于本页 prefab 外部脚本 PPtr 已解析，本页的 `class_resolved=false` 仍有效。

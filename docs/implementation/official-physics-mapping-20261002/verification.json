@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline typed script declarations and parent-qualified skeleton mapping; no runtime replacement",
+  "parent_record_commit": "c742a821f587e0e9d79e4d34c31d86c76097761a",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "gates": {
+    "declared_mono_scripts": 18472,
+    "typed_mono_scripts": 18472,
+    "declaration_count_gate_passed": true,
+    "game_beyond_cloth_capsule_sphere_declarations_found": true,
+    "prefab_external_script_identity_resolved": false,
+    "official_enum_numeric_value_verified": false,
+    "official_solver_and_update_order_verified": false,
+    "identity_mapping_passed": true,
+    "model_bones": 481,
+    "unique_source_transform_mappings": 480,
+    "synthetic_roots": 1,
+    "explicit_parent_qualified_aliases": 1,
+    "palette_observations": 486,
+    "unique_palette_bones": 305,
+    "repeated_palette_bones": 130,
+    "repeated_palette_bindpose_passed": true,
+    "maximum_repeated_bindpose_entry_deviation": 1.4000000003733248e-7,
+    "constant_left_basis_passed": false,
+    "basis_tolerance": 0.0001,
+    "maximum_translation_deviation_source_units": 0.042031018650988045,
+    "maximum_linear_entry_deviation": 0.03838716643125951,
+    "basis_failure_cause_identified": false,
+    "runtime_modified": false
+  },
+  "local_only_outputs": {
+    "inventory": {
+      "path": "D:/EndfieldTechLib/notes/official-physics-mapping-20261002-01/global-script-inventory-02.json",
+      "bytes": 6392119,
+      "sha256": "02447da7c1dd04e96787bb451f190341e15b9d8e75bf854e7e361bbd6712c84b"
+    },
+    "skeleton_map": {
+      "path": "D:/EndfieldTechLib/notes/official-physics-mapping-20261002-01/skeleton-map-02.json",
+      "bytes": 159034,
+      "sha256": "ace51e6680a927929ce3c1bb7706f2046d8e1720d2144707b351e86b844f97dd"
+    },
+    "game_data_published_to_git": false
+  },
+  "source_sha256": {
+    "Endfield_Data/globalgamemanagers.assets": "d6a7dc6806c8a8ffcb85cfdedd6e9c9f2fca2be8ce5d7b55ae70352f10e84cfc",
+    "EndfieldUnpacker/_il2cpp_meta_dump/all_types.txt": "6d46b0fe60c67c0b510d015b25449d99440bad0a39ae4a782200db2f197ff0d9",
+    "official-physics-bindings-03.json": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8"
+  },
+  "raw_artifact_sha256": {
+    "Tools/map_official_physics_skeleton.py": "093713ed442726b7bd796ff14fac911083f723f13e38ce63ab2d90a952448e51",
+    "Tools/tests/test_map_official_physics_skeleton.py": "9dfa3cc5cbaabe4253a054fbe4e6b4f67d7899469ab7e26ea543ac014ba22dcd",
+    "Tools/EndfieldPhysicsProbe/ScriptInventory.cs": "71ef33cfa32bc288d3f465934cc4e003d6026af4c04a6c0c382da34dde5a8d1c",
+    "Tools/EndfieldPhysicsProbe/EndfieldPhysicsProbe.csproj": "8ff5199996fe4355b3fad80b7d0e55afcdb0f7203c88ea775b49b400b5a2920a",
+    "docs/implementation/official-physics-mapping-20261002/bone-aliases.json": "966e9d10ab89dd8738e0d2a5ecd862db07e0eef3aaa2ae78a4985de079ff48d7"
+  },
+  "validation": {
+    "script_inventory_build_errors": 0,
+    "script_inventory_build_warnings": 0,
+    "default_scene_probe_build_errors": 0,
+    "default_scene_probe_build_warnings": 0,
+    "python_suite_passed": 526,
+    "python_historical_skipped": 3,
+    "python_subtests_passed": 114,
+    "existing_pillow_warnings": 2,
+    "new_mapping_tests": 18,
+    "new_tool_coverage_including_branches_percent": 89.9497487437186,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "unity_code_or_assets_modified": false,
+    "unity_rerun": false,
+    "protected_runtime_hashes": "unchanged vs official-physics-bindings-20261002/verification.json"
+  }
+}

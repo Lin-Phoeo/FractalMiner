@@ -4,6 +4,7 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <StartupObject Condition="'$(StartupObject)' == ''">Program</StartupObject>
   </PropertyGroup>
   <Target Name="ValidateLocalTools" BeforeTargets="Restore;Build">
     <Error Condition="!Exists('$(SceneProbeRoot)/Program.cs')" Text="Pass -p:SceneProbeRoot=&lt;existing EndfieldSceneProbe sources&gt;." />

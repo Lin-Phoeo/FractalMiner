@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "source_anchor_names": ["chr_0034_typhoea_postmodel"],
+  "synthetic_model_roots": ["Armature"],
+  "aliases": {
+    "Root/Bip001/Bip001_Pelvis/Bip001_Spine/Bip001_Spine1/skirt_base_L_c_01_jnt/skirt_base_L_c_02_jnt/skirt_base_L_c_03_jnt": {
+      "source_id": "CAB-f859e4fe0ae8ddbe9e3aac716c534e11:-5985668592349786321",
+      "expected_source_name": "skirt_base_R_c_03_jnt"
+    }
+  }
+}
