@@ -90,6 +90,8 @@ namespace EndfieldShaderPack
         // ================= 编辑器内实时播放 =================
         void Tick()
         {
+            if (renderSession?.Weather != null && renderSession.Weather.wetEnabled && !renderSession.Weather.freezeTime)
+                EditorApplication.QueuePlayerLoopUpdate();
             if (!playing || player == null || charRoot == null) return;
             var now = EditorApplication.timeSinceStartup;
             time += (float)(now - lastTime);
@@ -113,6 +115,7 @@ namespace EndfieldShaderPack
             if (camDrive && camDriver.HasKeys)
                 camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
             SceneView.RepaintAll();
+            EditorApplication.QueuePlayerLoopUpdate();
         }
 
         // ================= 载入 =================
@@ -415,6 +418,7 @@ namespace EndfieldShaderPack
                 renderSession.Weather.wetEnabled = EditorGUILayout.Toggle("布料湿身预览（b471）", renderSession.Weather.wetEnabled);
                 if (renderSession.Weather.wetEnabled)
                     renderSession.Weather.rain = EditorGUILayout.Slider("雨量", renderSession.Weather.rain, 0, 1);
+                EditorApplication.QueuePlayerLoopUpdate();
             }
 
             // ---- 播放 ----

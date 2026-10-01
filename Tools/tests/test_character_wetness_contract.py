@@ -78,6 +78,11 @@ def test_preview_request_has_explicit_weather_scope_and_skin_refresh():
     ).read_text(encoding="utf-8")
     assert "using (Weather.BeginRenderScope())" in code
     assert "forceMatrixRecalculationPerRender = true" in code
+    assert "EditorApplication.QueuePlayerLoopUpdate();" in code
+    studio = (ROOT / "Assets/EndfieldShaderPack/Editor/EndfieldMmdStudio.cs").read_text(
+        encoding="utf-8"
+    )
+    assert "EditorApplication.QueuePlayerLoopUpdate();" in studio
 
 
 def test_mmd_initialization_restores_all_canonical_bones_before_calibration():

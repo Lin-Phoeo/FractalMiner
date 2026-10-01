@@ -4,6 +4,7 @@
   "status": "pass",
   "scope": "cloth01/02 manual rain/immersion + visible clean MMD initial pose and five local VMD samples; not entire official weather/rendering/MMD completion",
   "record_parent": "482054d28e2365b099b45152cf6a7969f8ef5afd",
+  "display_followup_parent": "0817b47f9e9007ff8dfc519636c155f40c25d175",
   "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
   "host": {"unity": "2022.3.30f1", "urp": "14.0.11", "backend": "D3D11", "color_space": "Linear"},
   "source_checks": {
@@ -26,6 +27,8 @@
     "report_sha256": "bc00740b311aa91932103b0b406a97c4fa84bfc579533cb9314d8bf707004ca7",
     "unity_exit_code": 0,
     "checks": 513,
+    "display_followup_report": "Validation/wetness-20261001-14/report.txt",
+    "display_followup_report_sha256": "bc00740b311aa91932103b0b406a97c4fa84bfc579533cb9314d8bf707004ca7",
     "wet_gate_fragments_single_request": 83102,
     "wet_gate_fragments_camera_callbacks": 83102,
     "own_dry_wet_dry_max_output_delta": 0,

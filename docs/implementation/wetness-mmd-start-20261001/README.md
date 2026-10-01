@@ -73,6 +73,8 @@
 
 主验收：`Validation/wetness-20261001-12/report.txt`，Unity退出0，**513条检查通过**。包含 packed-float GPU 位模式、native mip/view、材质排除、两种实际相机入口、嵌套/异常/非法输入恢复、干湿干恢复、完整绑定蒙皮、骨盆/四肢/T-pose、reset、VMD采样、会话关闭原 mesh/管线恢复。
 
+显示刷新补充：两个面板显式调用 `EditorApplication.QueuePlayerLoopUpdate()`，编辑模式下改开关/拖时间/播放后请求刷新 Game；未冻结的雨滴会继续请求渲染，MMD暂停不要求Unity进入Play。补充批验证留在 `Validation/wetness-20261001-14/report.txt`，与12报告相同513条通过，未改任何渲染公式/门限。12目录仍是已入库的主预览和原始依据。
+
 相机诊断检查的是本实现 fragment 是否收到了输入，不是官方截图的像素拟合；干湿干检查只是开关可逆性。两种相机入口均覆盖83102个被标记的布料 fragment。既有 light 688、environment、atlas普通cutout 26、material uniform 225分量、shadow consumer 238、shadow lifecycle 13、MMD format/radian/root-space回归通过。
 
 Python全套470 passed /3历史skipped /80 subtests，2个既有Pillow弃用提示；本轮导出器测试16 passed /24 subtests、两文件合计94%行/分支合并覆盖。Ruff/Pyright通过。没有测量 Unity C#/HLSL 整工程行覆盖，不以513条检查宣称80%整工程覆盖。

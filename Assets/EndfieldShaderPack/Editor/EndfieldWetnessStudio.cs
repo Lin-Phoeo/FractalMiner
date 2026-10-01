@@ -250,9 +250,14 @@ namespace EndfieldShaderPack
         string status = "先打开预览。使用官方 cloth01 b471 雨/浸湿公式及原始纹理；不是整套天气系统认证。";
         [MenuItem("Endfield/Wetness Studio")]
         public static void Open() { GetWindow<EndfieldWetnessStudio>("湿身预览").minSize = new Vector2(460, 320); }
-        void OnEnable() { EditorSceneManager.sceneClosing += SceneClosing; }
+        void OnEnable() { EditorSceneManager.sceneClosing += SceneClosing; EditorApplication.update += TickPreview; }
+        void TickPreview()
+        {
+            if(session?.Weather != null && session.Weather.wetEnabled && !session.Weather.freezeTime)
+                EditorApplication.QueuePlayerLoopUpdate();
+        }
         void SceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing) { Release(); }
-        void OnDisable() { EditorSceneManager.sceneClosing -= SceneClosing; Release(); }
+        void OnDisable() { EditorSceneManager.sceneClosing -= SceneClosing; EditorApplication.update -= TickPreview; Release(); }
         void Release() { session?.Dispose(); session = null; }
         void OnGUI()
         {
@@ -289,6 +294,7 @@ namespace EndfieldShaderPack
                 status = "在 MMD Studio 按①初始化，再②打开 VMD。";
             }
             SceneView.RepaintAll();
+            EditorApplication.QueuePlayerLoopUpdate();
         }
     }
 }
