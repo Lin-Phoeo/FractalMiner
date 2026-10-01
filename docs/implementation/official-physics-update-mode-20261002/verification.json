@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline official enum literal values and physics interface inventory; no Unity/native execution",
+  "parent_record_commit": "ac68bc19a5a10e3fbab58997d8ececdfcca88f18",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "source": {
+    "path": "A:/Hypergryph Launcher/games/Arknights Endfield/Endfield_Data/il2cpp_data/Metadata/global-metadata.dat",
+    "bytes": 57021288,
+    "sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "layout": "v29 header 0x108, typeDef 92, field 12, method 32",
+    "game_data_published_to_git": false
+  },
+  "gates": {
+    "type_definitions": 58110,
+    "nested_types": 24503,
+    "canonical_byval_ids_unique": true,
+    "nested_owner_refs_resolved": true,
+    "enum_underlying_and_default_type_verified_system_int32": true,
+    "enum_types_exported": 5,
+    "interfaces_exported": 14,
+    "cloth_update_mode": {"Normal": 0, "UnityPhysics": 1, "Unscaled": 2, "AnimatorLinkage": 10},
+    "animator_linkage_field_index": 233497,
+    "animator_linkage_data_index": 472235,
+    "animator_linkage_file_offset": 33071939,
+    "animator_linkage_raw_hex": "14",
+    "animator_linkage_consumed_bytes": 1,
+    "typhoea_existing_config_groups": 11,
+    "typhoea_all_cloth_type_1_update_mode_10_connection_mode_0": true,
+    "native_field_variants_resolved": false,
+    "prefab_external_script_identity_resolved": false,
+    "native_function_bodies_inspected": false,
+    "runtime_call_order_verified": false,
+    "simulation_frequency_verified": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false
+  },
+  "local_only_output": {
+    "path": "D:/EndfieldTechLib/notes/official-physics-update-mode-20261002-01/physics-metadata-01.json",
+    "bytes": 165161,
+    "sha256": "dfe930b337ccf31419b8432d506457b42d334b4bbe3e5295c19aa538ef431765"
+  },
+  "raw_artifact_sha256": {
+    "Tools/export_official_physics_metadata.py": "0c42c08cf1c6ec507c4d3102543cebe06bece4f33b8fd576450fc6c8b8c11646",
+    "Tools/tests/test_export_official_physics_metadata.py": "d5dad05529a319e5bb7fdb1d4b4207760d6554d160b1037e2472c7a9537f26e7",
+    "Tools/THIRD_PARTY_IL2CPP_NOTICE.txt": "beb601e1901d3eda18c8729442a51231bf303ae4bb6a3450f6dea512af6ca184"
+  },
+  "local_format_reference_sha256": {
+    "Il2CppDumper-end/Il2CppDumper/Il2Cpp/MetadataClass.cs": "c7819c9edbf5e35cd9ee7a883773c9b82e0b80b9d3bf50f4fe34e5fcfa1abb50",
+    "Il2CppDumper-end/Il2CppDumper/Extensions/BinaryReaderExtensions.cs": "5ee7a558a574f16f5a600901bd41b3fc09bd4f9d3d58ebc5ca1ab902fe7f0c9c"
+  },
+  "validation": {
+    "new_tool_tests": 36,
+    "new_tool_coverage_including_branches_percent": 91.8032786885246,
+    "python_suite_passed": 584,
+    "python_historical_skipped": 3,
+    "python_subtests_passed": 114,
+    "existing_pillow_warnings": 2,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "unity_code_or_assets_modified": false,
+    "unity_rerun": false,
+    "csharp_modified_this_checkpoint": false,
+    "protected_runtime_hashes": "unchanged vs official-physics-bindings-20261002/verification.json"
+  }
+}

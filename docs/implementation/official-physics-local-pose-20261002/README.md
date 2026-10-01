@@ -95,3 +95,5 @@ D:/EndfieldTechLib/notes/official-physics-local-pose-20261002-01/
 5. 门禁通过后才接可切回的求解链。现有预览没有升级成官方求解器；也没有因上游 Magica API 相似而购买/导入插件或宣称完全等价。
 
 测试策略增加了统一基准抵消、单关节差异定位、跨辅助节点区间、源 palette/bindpose 漂移拒绝、额外挂点与循环/无锚点拒绝、可选源文件完整流程和覆盖保护。使用先测试后实现的方式，不以两个同源错误实现互相吻合作为证明。
+
+后续：[官方更新模式枚举与接口证据](../official-physics-update-mode-20261002/README.md)。本地 metadata 已确认 AnimatorLinkage=10，但原生执行时序、频率和 field type variants 仍待验证；没有改写本页历史门禁或接入官方求解器。
