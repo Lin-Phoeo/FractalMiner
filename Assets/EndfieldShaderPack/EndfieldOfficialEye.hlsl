@@ -25,7 +25,7 @@ float3 EFEyeNormalize(float3 value)
 
 float3 EndfieldShadeOfficialEye(
     float2 uv, float3 N, float3 V, float4 tangentWS, float3 positionWS,
-    float3 L, float3 lightColorI, float directionalShadow, float selfShadow)
+    float3 L, float3 lightColor, float3 lightColorI, float directionalShadow, float selfShadow)
 {
     // b28 only reads the directional mask R; the shared selfShadow argument
     // is deliberately unused (the source's _1319 is min(1, 1)). positionWS
@@ -88,10 +88,8 @@ float3 EndfieldShadeOfficialEye(
     // explicitly normalizes it at the ramp dot consumer below. Do not omit
     // that last operation (the prior port and CPU test both omitted it).
     float3 rampLightWS = mul(objectToWorld, objectLight);
-    // lightColorI already contains the caller's directional intensity and
-    // CP5 override; source _1216 is needed separately by the ambient term.
-    float intensity = lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
-    float3 lightColor = lightColorI / max(intensity, 1.0e-8);
+    // Source _1216 is passed separately from _1220 so ambient retains the
+    // unscaled RGB at zero direct intensity. No inverse intensity division.
     // The caller already resolved the directional mask and CP1.z override.
     float shadowDir = directionalShadow;
     float3 shadowDeep = shadowDiffuse * _CharacterParams0.z;

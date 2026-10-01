@@ -5,7 +5,8 @@
 // and b114 (body). Line references below are b138 unless explicitly marked.
 // Frame 6411: dry, opaque, flat environment (CP1.y=1), CP8.rgb=CP14.rgb=0,
 // no punctual lights. Caller supplies original decoded N, view direction V,
-// source light direction L and intensity-scaled lightColorI, plus albedo after
+// source light direction L, unscaled lightColor and intensity-scaled lightColorI,
+// plus albedo after
 // EmotionMap but BEFORE the legacy skin-rim tint. Return is linear RGB after
 // source saturation, before VFX adjustment, exposure and fog.
 // Actual frame6411 PS22250/37671: UV is the captured VS BaseMap-transformed
@@ -47,7 +48,7 @@ float3 EndfieldSkinShadowLUT(float3 albedo)
 }
 
 float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
-                                float3 positionWS, float3 L, float3 lightColorI,
+                                float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
                                 float directionalShadow, float selfShadow)
 {
     const float3 luminanceWeights = float3(0.2126729041337967, 0.7151522040367126, 0.07217500358819962);
@@ -97,8 +98,8 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
     // b138:727-757. Caller has already resolved the shadow strength and CP1.z
     // ignore-directional-shadow override; do not apply that override twice.
     float shadowDir = directionalShadow;
-    float lightIntensity = lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
-    float3 lightColor = lightColorI / max(lightIntensity, 1.1754943508222875e-38);
+    // Unscaled source _1454/_2107 is supplied independently. Ambient tint
+    // survives zero direct intensity; dividing lightColorI would lose it.
     float3 shadowDeep = shadowDiffuse * _CharacterParams0.z;
     float3 shadowDeep2 = shadowDeep * 0.65;
     float normalLight = clamp(dot(N, L) + _CharacterParams11.w * _CharacterParams12.x, -1.0, 1.0);

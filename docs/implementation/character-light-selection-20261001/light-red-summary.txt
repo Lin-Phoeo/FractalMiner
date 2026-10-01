@@ -1,0 +1,7 @@
+Before runtime fix: production diagnostic modes 200..202 plus full family zero-intensity continuity.
+Selection probes: cases=648 failures=408.
+Full-family zero-intensity continuity: failures=4; ambient incorrectly vanished at I=0.
+RESULT FAIL cases=652 failures=412. Thresholds: selection 2e-6; continuity 2e-4.
+Original local report: D:/EndfieldTechLib/notes/source-light-selection-20261001-01/light-red-01.txt
+Original local report SHA256 (original CRLF bytes, NOT this summary): d0a35291475b0336d0d629251cd469884d0c3cc87acbad83b0151995ea51e81b
+Unity log ends with executeMethod exception and intended return code 1. Subsequent fixed run succeeds; no threshold relaxation.

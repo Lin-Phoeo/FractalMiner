@@ -120,10 +120,10 @@ EFHairLightingTerms EFHairDiffuseLighting(
 
 float3 EndfieldShadeOfficialHair(
     float2 uv, float3 albedo, float3 diffuseN, float3 specularN, float3 V, float4 tangentWS,
-    float3 positionWS, float3 L, float3 lightColorI,
+    float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
     float directionalShadow, float selfShadow)
 {
-    // L and lightColorI are already resolved by the caller. In b125:
+    // L, unscaled lightColor and lightColorI are resolved by the caller. In b125:
     // L = lerp(-DirectionalLightDirection, CP11.xyz, CP1.w), WITHOUT normalize;
     // lightColorI = lerp(CustomData1.rgb, CP5.rgb, CP12.y)
     //             * lerp(CustomData1.w, 1, CP12.w).
@@ -134,8 +134,8 @@ float3 EndfieldShadeOfficialHair(
     // approximations at the call site; neither recovers the missing HGRP SSM.
     // positionWS is intentionally unused in the flat, dry, no-depth-rim subset.
 
-    float lightIntensity = lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
-    float3 lightColor = lightColorI / max(lightIntensity, 1e-6);
+    // Source keeps _2160 separately: intensity can be zero while ambient
+    // tint still consumes this unscaled RGB. Never recover it by division.
     float4 packed = SAMPLE_TEXTURE2D_BIAS(_MetallicGlossMap, sampler_Endfield_LinearRepeat,
         uv, _EndfieldCapturedGlobalMipBias);
     float anisotropySelector = packed.r;

@@ -1,0 +1,169 @@
+{
+  "phase": "character-light-selection-20261001",
+  "approval": "bounded-six-draw-dry-flat-light-selection-only",
+  "parent_record_commit": "6afc5393855e0fdece2bb747e9a2455fe080794e",
+  "source_provenance_sha256": "a6f177b4cfc56a24abd4f4560efe083bee50291181fda27be331e76f43c1a2ec",
+  "source_identity_reference": "../material-uniforms-20261001/verification.json",
+  "private_package": "Validation/Captures/character-light-selection-20261001-01",
+  "final_replay_package": "Validation/Captures/character-light-selection-20261001-final",
+  "manifest_sha256": "c3d7df8934814579f009f6d67844eee8541a584d17b123346678212b8b591d74",
+  "final_replay": "fresh complete marker after successful controller/capture shutdown; byte-identical",
+  "raw_blocks": {
+    "events": [
+      776,
+      786,
+      835,
+      850,
+      860,
+      875
+    ],
+    "b14": {
+      "bytes": 32864,
+      "sha256": "73b2c3111012fc9e38c0272d6e021f5d28cce9022703b9523bbf5ad8a2bd8009"
+    },
+    "b16": {
+      "bytes": 3200,
+      "sha256": "6e65fa13c1e8107bbf9a8383179332d78b1e14418b7f9f8aa5ffa3baf115384b"
+    },
+    "certified": "six float4 selections per draw, not all members in these full raw buffers"
+  },
+  "red": {
+    "cases": 652,
+    "failures": 412,
+    "selection_failures": 408,
+    "full_family_zero_intensity_failures": 4,
+    "report": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/light-red-01.txt",
+    "sha256": "d0a35291475b0336d0d629251cd469884d0c3cc87acbad83b0151995ea51e81b"
+  },
+  "green": {
+    "cases": 688,
+    "failures": 0,
+    "captured_float4": 36,
+    "captured_channels": 144,
+    "selection_cases": 648,
+    "zero_intensity_continuity_cases": 4,
+    "selection_tolerance": 0.000002,
+    "continuity_tolerance": 0.0002,
+    "report": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/light-green-02.txt",
+    "sha256": "0a311092950a2e0c466b78de0623e484f2c9ca3187c073a54b1d5596547ac03b"
+  },
+  "regressions": [
+    {
+      "sha256": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13",
+      "name": "regression-cloth-emission",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-cloth-emission.txt"
+    },
+    {
+      "sha256": "51039dc78d44e52910d78ddd074628566b70e1da98f21046b7bd46e560a2ffe9",
+      "name": "regression-cloth-environment",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-cloth-environment.txt"
+    },
+    {
+      "sha256": "618f2f41462b5b1c9137db566cef808b55ae59bd19678e0392dce63bee9ce658",
+      "name": "regression-cloth-normal",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-cloth-normal.txt"
+    },
+    {
+      "sha256": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34",
+      "name": "regression-hair-split",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-hair-split.txt"
+    },
+    {
+      "sha256": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+      "name": "regression-native-cloth",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-native-cloth.txt"
+    },
+    {
+      "sha256": "fdd4a3de72f0af7ce764fd40fa29ccb291ce8ab355193fd66b6e179642505b4f",
+      "name": "regression-native-hair-eye",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-native-hair-eye.txt"
+    },
+    {
+      "sha256": "1365acaf89a784a78634df458bc44369d34567c4ffcf59e571bbc52424a3360c",
+      "name": "regression-native-skin",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-native-skin.txt"
+    },
+    {
+      "sha256": "3f5707a41c33c3988c333840fc114c95ede293e09a72c23ed1f988cea6b03035",
+      "name": "regression-official",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-official.txt"
+    },
+    {
+      "sha256": "57a98891fec5375f72800b635dd0a4078072cf880be2d385d9dc4360aeea6f77",
+      "name": "regression-skin",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-skin.txt"
+    },
+    {
+      "sha256": "dcceb71a23a73d1ee7fa225090424fc81afb66b32569ee477cac8aed77085ddc",
+      "name": "regression-uniform",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-uniform.txt"
+    },
+    {
+      "sha256": "2b9847c0df7371f68415fd6b79b3e3dd3e5b252923a18d20c64d98daa46d0f59",
+      "name": "regression-eye-policy",
+      "file": "D:/EndfieldTechLib/notes/source-light-selection-20261001-01/regression-eye-policy.log"
+    }
+  ],
+  "python": {
+    "passed": 400,
+    "historical_skipped": 3,
+    "subtests_passed": 77,
+    "existing_pillow_warnings": 2,
+    "new_module_tests": 22,
+    "new_module_executable_lines": 88,
+    "new_module_line_coverage_percent": 100,
+    "coverage_scope": "capture_character_lighting.py only, not C#/HLSL or whole project"
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "pass",
+    "pip_audit": "no known vulnerabilities in temporary pip-audit tool environment; not Unity package audit"
+  },
+  "code_sha256": {
+    "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl": "6526707147abc6ae83babb284343bd4b7e3d30aaaf434ec49ed832465739444e",
+    "Tools/capture_character_lighting.py": "6ffe31138419f93c87b6a21c6fd77d2c55ef86a6c5ee9c766e38cf680a870d4e",
+    "Assets/EndfieldShaderPack/EndfieldOfficialCharacterLight.hlsl.meta": "af4a8ed44f25138f9b3c8ffe974b952955d44481e82159a290e667e6c497435d",
+    "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader": "00f9ebca56d7f33141f35680759dc917a1ad3aa13cabe98b930ca88c2d310434",
+    "Assets/EndfieldShaderPack/Editor/EndfieldCharacterLightingValidation.cs.meta": "5d352b7cb749a0f68c45e6322bb51fd9b5c23901ee15bf0a4fa7aa563f3d7a07",
+    "Assets/EndfieldShaderPack/EndfieldOfficialEye.hlsl": "88cf8688a4e9d7d1271a51f84220cd6406d7a892197214a7b38901afe7f3eb6d",
+    "Assets/EndfieldShaderPack/EndfieldOfficialCharacterLight.hlsl": "3863e719f11d4f60a0aa1a2fbad0cd4d5099cbd860ec794b23d5434bdeb861c0",
+    "Tools/tests/test_capture_character_lighting.py": "8ad91c6aee34746050920ccef7519c573c9b0c212f389db85b065e57cbc76977",
+    "Assets/EndfieldShaderPack/EndfieldOfficialSkin.hlsl": "6d59bfb4bc21b35158c9d95568e0c5819e52721cb4c56cbed083cd216d39bae7",
+    "Assets/EndfieldShaderPack/EndfieldOfficialCloth.hlsl": "3c86a62e74bf42de13581a73e85fa7c3caffc2da499bcc143329e22f1a431f51",
+    "Assets/EndfieldShaderPack/EndfieldOfficialFrameGlobals.cs": "e452e104e96cf740a5c942ed3f8d4e8beccc47ef238e4f225d089fec97b34e28",
+    "Assets/EndfieldShaderPack/Editor/EndfieldCharacterLightingValidation.cs": "75f5d0bdd6f9cc027d3a634e792a90fbae21732487c8b58043f03e4eedb938db"
+  },
+  "hash_domain": "original local file bytes; git may normalize line endings",
+  "preserved": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "index_entries": 9557,
+    "staged_paths": 9555,
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "source_seals": {
+    "v1_pending": 79,
+    "v2_pending": 24,
+    "not_rewritten": true,
+    "known_v1_drift": [
+      "CODEX-HANDOVER-PROMPT.md"
+    ],
+    "known_v2_drift": [
+      "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+    ],
+    "integrity_ok": false,
+    "complete": false
+  },
+  "not_certified": [
+    "full original HGRP ShadowData / screen-shadow producer",
+    "live official C++ light producer",
+    "weather/render-state/full-scene lifecycle",
+    "full captured pose render",
+    "final native asset packaging",
+    "MMD/animation video delivery"
+  ],
+  "next": "ShadowData directional strength and SSM resolve/caller selection; then render state, weather producers and final input/global lifecycle"
+}

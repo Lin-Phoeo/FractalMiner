@@ -1,0 +1,8 @@
+Source character light selection; no image fitting. tolerance=2E-06
+Actual captured input upload: six PS / 36 float4 / 144 channels; direct descriptor bytes and production GPU readback.
+Selection probes: cases=648 failures=0; endpoint/partial weights, non-unit directions, CP4 body (no SDF) vs CP5, zero intensity, show-mode interpolation.
+PASS full-family zero-intensity continuity family=0 zero=(0.0040051, 0.0660840, 0.0480611) near=(0.0040070, 0.0661157, 0.0480841) delta=3.92176153E-05
+PASS full-family zero-intensity continuity family=1 zero=(0.0360458, 0.0150191, 0.0320407) near=(0.0360631, 0.0150263, 0.0320561) delta=2.42110673E-05
+PASS full-family zero-intensity continuity family=2 zero=(0.0040051, 0.0660840, 0.0480611) near=(0.0040070, 0.0661157, 0.0480841) delta=3.92176153E-05
+PASS full-family zero-intensity continuity family=3 zero=(0.0040051, 0.0660840, 0.0480611) near=(0.0040070, 0.0661157, 0.0480841) delta=3.92176153E-05
+RESULT PASS cases=688 failures=0; globals restored; no material/scene/settings save; bounded dry light selection only.

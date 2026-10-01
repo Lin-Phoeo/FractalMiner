@@ -37,6 +37,12 @@ namespace Endfield
             Shader.SetGlobalVector("_ExposureWithMiscParams", new Vector4(1, 1, 1.6f, .100001f));
             Shader.SetGlobalFloat("_EndfieldOfficialFrameEnabled", 1);
             Shader.SetGlobalFloat("_EndfieldCapturedLightIntensity", 1.6243867874f);
+            // Actual six PS: set0/b14 c0 (world-space TRAVEL) and c3.rgb
+            // (unscaled linear RGB). Do not source these from the legacy
+            // separated-light component, normalize, or convert RGB again.
+            Shader.SetGlobalVector("_EndfieldCapturedDirectionalTravel",
+                new Vector4(.021389273926615715f, -.6427876353263855f, -.765745997428894f, 0));
+            Shader.SetGlobalVector("_EndfieldCapturedDirectionalColor", Vector4.one);
             // Event 875: ShaderVariablesGlobal set0/b16, offset416 (_child16).
             // Private scalar avoids overwriting URP's unrelated _GlobalMipBias.
             Shader.SetGlobalFloat("_EndfieldCapturedGlobalMipBias", -1f);

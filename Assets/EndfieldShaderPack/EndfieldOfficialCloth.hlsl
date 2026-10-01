@@ -142,18 +142,17 @@ float3 EFClothSampleEnvironment(float3 N, float3 V, float roughness, float3 spec
 
 float3 EndfieldShadeOfficialCloth(
     float2 uv, float3 albedo, float3 N, float3 vertexNormalWS, float3 V,
-    float3 positionWS, float3 L, float3 lightColorI,
+    float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
     float directionalShadow, float selfShadow, float alphaFactor, float3 emission)
 {
-    // L/lightColorI and directionalShadow arrive fully resolved by the caller:
+    // L/lightColor/lightColorI and directionalShadow arrive resolved by caller:
     // L=lerp(-DirectionalLightDirection,CP11.xyz,CP1.w), WITHOUT normalization;
     // lightColorI=lerp(CustomData1.rgb,CP5.rgb,CP12.y)*lerp(CustomData1.w,1,CP12.w);
     // directionalShadow=lerp(lerp(1,SSM.r,DirectionalShadowParams.x),1,CP1.z).
     // selfShadow=SSM.g. A URP shadow/constant self-shadow at the call site is an
     // explicit approximation; the original HGRP screen-space mask is absent.
     // positionWS is unused because weather, volume sampling and rims are omitted.
-    float lightIntensity = lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
-    float3 lightColor = lightColorI / max(lightIntensity, 1e-6);
+    // Preserve source unscaled RGB separately, including zero intensity.
     float4 packed = float4(_Metallic, _Specular, 1.0, _Smoothness);
     if (_UseMetallicGlossMap > 0.5)
         packed = SAMPLE_TEXTURE2D_BIAS(_MetallicGlossMap, sampler_BumpMap,
@@ -282,22 +281,22 @@ float3 EndfieldShadeOfficialCloth(
 // Compatibility adapter for older callers without captured alpha/emission.
 float3 EndfieldShadeOfficialCloth(
     float2 uv, float3 albedo, float3 N, float3 vertexNormalWS, float3 V,
-    float3 positionWS, float3 L, float3 lightColorI,
+    float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
     float directionalShadow, float selfShadow)
 {
     return EndfieldShadeOfficialCloth(uv, albedo, N, vertexNormalWS, V,
-        positionWS, L, lightColorI, directionalShadow, selfShadow, 1.0, 0.0.xxx);
+        positionWS, L, lightColor, lightColorI, directionalShadow, selfShadow, 1.0, 0.0.xxx);
 }
 
 // Minimal API: callers without a separate geometric normal can still shade
 // cloth. For b401 clearcoat NormalMode=0, call the overload above for fidelity.
 float3 EndfieldShadeOfficialCloth(
     float2 uv, float3 albedo, float3 N, float3 V,
-    float3 positionWS, float3 L, float3 lightColorI,
+    float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
     float directionalShadow, float selfShadow)
 {
     return EndfieldShadeOfficialCloth(uv, albedo, N, N, V,
-        positionWS, L, lightColorI, directionalShadow, selfShadow);
+        positionWS, L, lightColor, lightColorI, directionalShadow, selfShadow);
 }
 
 #endif

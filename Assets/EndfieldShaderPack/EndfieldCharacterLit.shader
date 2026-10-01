@@ -297,6 +297,8 @@ Shader "Endfield/CharacterLit"
         float _EndfieldOfficialShadingEnabled;
         float _EndfieldCapturedCubemapAvailable;
         float _EndfieldCapturedLightIntensity;
+        float4 _EndfieldCapturedDirectionalTravel;
+        float4 _EndfieldCapturedDirectionalColor;
         float _EndfieldCapturedGlobalMipBias;
 
         // WP1.1 part-label render (EndfieldPoseApplyValidation only): 0 = off, 1 = flat label, 2 = vertex colour.
@@ -513,6 +515,7 @@ Shader "Endfield/CharacterLit"
             return n;
         }
         #include "EndfieldCharacterBasis.hlsl"
+        #include "EndfieldOfficialCharacterLight.hlsl"
         #include "EndfieldOfficialHairNormals.hlsl"
         #include "EndfieldOfficialHair.hlsl"
         #include "EndfieldOfficialClothEmission.hlsl"
@@ -661,9 +664,22 @@ Shader "Endfield/CharacterLit"
                 {
                     // These are the dry flat-environment character paths, before the
                     // former generic diffuse/specular approximation changes N or albedo.
-                    float3 sourceL = lerp(L, _CharacterParams11.xyz, _CharacterParams1.w);
-                    float3 sourceLightColor = sourceSkin ? _CharacterParams4.rgb : _CharacterParams5.rgb;
-                    float3 sourceLightI = sourceLightColor * lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
+                    // Resolve directly from captured HGRP inputs, never from
+                    // GetCharacterLight's normalized/overridden legacy result.
+                    EFOfficialCharacterLight sourceLight = EFResolveOfficialCharacterLight(sourceSkin);
+                    float3 sourceL = sourceLight.direction;
+                    float3 sourceLightColor = sourceLight.color;
+                    float3 sourceLightI = sourceLight.colorIntensity;
+                    // Explicit diagnostics at the real production light call site.
+                    if (_EndfieldDebugValueMode == 200) return float4(sourceL, 1);
+                    if (_EndfieldDebugValueMode == 201) return float4(sourceLightColor, 1);
+                    if (_EndfieldDebugValueMode == 202) return float4(sourceLightI, 1);
+                    if (_EndfieldDebugValueMode == 203) return _EndfieldCapturedDirectionalTravel;
+                    if (_EndfieldDebugValueMode == 204) return float4(_EndfieldCapturedDirectionalColor.rgb, _EndfieldCapturedLightIntensity);
+                    if (_EndfieldDebugValueMode == 205) return _CharacterParams1;
+                    if (_EndfieldDebugValueMode == 206) return sourceSkin ? _CharacterParams4 : _CharacterParams5;
+                    if (_EndfieldDebugValueMode == 207) return _CharacterParams11;
+                    if (_EndfieldDebugValueMode == 208) return _CharacterParams12;
                     // HGRP's two-channel screen shadow buffer is reproduced by
                     // EndfieldCharacterShadowFeature; its G channel is the official
                     // selfShadow argument. The gate keeps scenes without the feature at 1.
@@ -685,7 +701,7 @@ Shader "Endfield/CharacterLit"
                     float3 sourceVFXV = V;
                     if (_MaterialFamily > 2.5)
                         sourceColor = EndfieldShadeOfficialEye(sourceUV, input.normalWS, normalize(input.viewDirWS), input.tangentWS,
-                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                            input.positionWS, sourceL, sourceLightColor, sourceLightI, directionalShadow, selfShadow);
                     else if (_MaterialFamily > 1.5)
                     {
                         // Single-normal legacy variant remains explicit, not treated as b126.
@@ -705,11 +721,11 @@ Shader "Endfield/CharacterLit"
                         sourceVFXV = sourceV;
                         sourceColor = EndfieldShadeOfficialHair(sourceUV, hairBaseMap.rgb * _BaseColor.rgb,
                             hairNormals.diffuse, hairNormals.specular, sourceV, input.tangentWS,
-                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                            input.positionWS, sourceL, sourceLightColor, sourceLightI, directionalShadow, selfShadow);
                     }
                     else if (sourceSkin)
                         sourceColor = EndfieldShadeOfficialSkin(sourceUV, albedo, sourceSkinNormal, normalize(input.viewDirWS),
-                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
+                            input.positionWS, sourceL, sourceLightColor, sourceLightI, directionalShadow, selfShadow);
                     else
                     {
                         EFClothNormals clothNormals;
@@ -745,7 +761,7 @@ Shader "Endfield/CharacterLit"
                         }
                         sourceColor = EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb,
                             clothNormals.mapped, clothNormals.geometry, sourceV,
-                            input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow,
+                            input.positionWS, sourceL, sourceLightColor, sourceLightI, directionalShadow, selfShadow,
                             sourceAlphaFactor, sourceEmission);
                     }
                     // Source order: saturation is already in each family helper,
