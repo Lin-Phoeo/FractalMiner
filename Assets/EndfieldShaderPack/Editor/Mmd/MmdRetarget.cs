@@ -295,7 +295,10 @@ namespace EndfieldShaderPack.EditorTools.Mmd
             int hip = p.roles[0];
             {
                 var pelvisBasis = BasisQ(
-                    MmdV.Norm(Pos(2) - Pos(1)), MmdV.Norm(Pos(7) - Pos(0)),
+                    // x/y/z must be a right-handed basis before Matrix.rotation.
+                    // The previous x=R-L with z=cross(L-R,up) had det=-1 and
+                    // Unity extracted a spurious pelvis twist from a reflection.
+                    MmdV.Norm(Pos(1) - Pos(2)), MmdV.Norm(Pos(7) - Pos(0)),
                     MmdV.Norm(Vector3.Cross(MmdV.Norm(Pos(1) - Pos(2)), MmdV.Norm(Pos(7) - Pos(0)))));
                 SetWorld(hip, BasisQ(leftV, up, forward * -1) * Quaternion.Inverse(pelvisBasis)
                     * p.bones[hip].restRot);

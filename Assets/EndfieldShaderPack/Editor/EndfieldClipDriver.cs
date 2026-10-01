@@ -26,7 +26,7 @@ namespace EndfieldShaderPack.EditorTools
     {
         const string ScenePath = "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity";
         const string DecodedDir = "Assets/Typhoeus/AnimationsDecoded";
-        const string RuntimeConfigPath = "../EndfieldUnpacker/typhoea_clip_runtime_config_list.json";
+        const string RuntimeConfigPath = "Validation/anim-driver-config/typhoea_clip_runtime_config_list.json";
         const string CapturedPostShaderName = "Hidden/Endfield/CapturedPost";
         const int Width = 1280;
         const int Height = 800;
@@ -37,6 +37,50 @@ namespace EndfieldShaderPack.EditorTools
             -1.7726111e-10f, 0.9999918f, +0.0040552616f, -4.371103e-8f);
         static readonly float M5InstanceYawDeg = 45.5f;
         static readonly Vector3 LightTravelDir = new Vector3(0.0213893f, -0.642788f, -0.765746f);
+
+        /// <summary>诊断入口：采样 attack_01 若干帧，dump 关键骨 localRotation/世界坐标，
+        /// 与 ACL 解码 JSON 对比，定位 SampleAnimation 是否真的驱动骨骼。</summary>
+        public static void DiagnoseSample()
+        {
+            var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+            string clipName = GetArg("-clipName") ?? "A_actor_typhoea_battle_attack_01";
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(
+                DecodedDir + "/" + clipName + ".anim");
+            if (clip == null) { Debug.LogError("[Diag] clip missing"); return; }
+            Transform charRoot = null;
+            foreach (var sceneRoot in scene.GetRootGameObjects())
+                if (sceneRoot.name == "chr_0034_typhoea_rebuilt") { charRoot = sceneRoot.transform; break; }
+            if (charRoot == null) { Debug.LogError("[Diag] char root missing"); return; }
+
+            var bindings = AnimationUtility.GetCurveBindings(clip);
+            Debug.Log("[Diag] clip=" + clipName + " bindings=" + bindings.Length
+                      + " length=" + clip.length.ToString("F3", CultureInfo.InvariantCulture));
+
+            string[] probeBones = { "Bip001_R_Forearm", "Bip001_R_Hand", "Bip001_Head", "Bip001_Pelvis" };
+            var lines = new List<string>();
+            foreach (float t in new[] { 0f, 0.5f, 1.5f, 2.5f })
+            {
+                clip.SampleAnimation(charRoot.gameObject, t);
+                foreach (var bn in probeBones)
+                {
+                    var b = FindDeep(charRoot, bn);
+                    if (b == null) { lines.Add("t=" + t + " " + bn + ": NOT FOUND"); continue; }
+                    var lr = b.localRotation;
+                    lines.Add("t=" + t.ToString("F2", CultureInfo.InvariantCulture)
+                        + " " + bn
+                        + " localQ=(" + lr.x.ToString("F4", CultureInfo.InvariantCulture)
+                        + "," + lr.y.ToString("F4", CultureInfo.InvariantCulture)
+                        + "," + lr.z.ToString("F4", CultureInfo.InvariantCulture)
+                        + "," + lr.w.ToString("F4", CultureInfo.InvariantCulture) + ")"
+                        + " world=(" + b.position.x.ToString("F3", CultureInfo.InvariantCulture)
+                        + "," + b.position.y.ToString("F3", CultureInfo.InvariantCulture)
+                        + "," + b.position.z.ToString("F3", CultureInfo.InvariantCulture) + ")");
+                }
+            }
+            string outPath = "Validation/anim-driver-diag.txt";
+            File.WriteAllLines(outPath, lines);
+            Debug.Log("[Diag] written " + outPath + "\n" + string.Join("\n", lines.ToArray()));
+        }
 
         /// <summary>batchmode 入口。命令行: -clipName X -wetness 0.8 -maxFrames 90</summary>
         public static void RunBatch()
@@ -160,11 +204,11 @@ namespace EndfieldShaderPack.EditorTools
             charLight.transform.rotation = Quaternion.LookRotation(-LightTravelDir.normalized, Vector3.up);
             charLight.ApplyLight();
 
-            // 雨湿全局参数（_CharacterParams10 风格，官方语义）:
-            //   x=override 开关  y=packed RGBA(此处 R=G=湿强度)  z=雨速  w=高度 blend 目标
-            // 经 Shader.SetGlobal 喂给 CharacterLit（官方 per-draw buffer 的编辑器等价物）
+            // Manual rain input: RGBA8 bit reinterpretation, NOT a scalar.
+            // z is the captured UV scale, not rain speed. This alone does not
+            // supply weather textures/rest streams or enable the wet consumer.
             Shader.SetGlobalVector("_CharacterParams10",
-                new Vector4(wetness > 0f ? 1f : 0f, wetness, 0f, 0f));
+                new Vector4(wetness > 0f ? 1f : 0f, EndfieldCharacterWeather.Pack(wetness, 0, 0), 2.25f, -100));
 
             var postShader = Shader.Find(CapturedPostShaderName);
             if (postShader == null || !postShader.isSupported)

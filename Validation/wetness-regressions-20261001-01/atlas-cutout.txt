@@ -1,0 +1,31 @@
+Production atlas alpha gate; actual PS9065 SHA256=8fc35f32117da406580c7e2bd01af2a11ae235304a5c1f14e0c5c946bcd747fe
+GPU=NVIDIA GeForce RTX 3060 Laptop GPU
+tolerance=0.0002
+Production atlas pass index=2
+PASS alpha=0.25 scale=0 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.25 scale=0 cutoff=0.25 expected=0 actual=0
+PASS alpha=0.25 scale=0 cutoff=0.5 expected=0 actual=0
+PASS alpha=0.25 scale=0.5 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.25 scale=0.5 cutoff=0.25 expected=0 actual=0
+PASS alpha=0.25 scale=0.5 cutoff=0.5 expected=0 actual=0
+PASS alpha=0.25 scale=1 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.25 scale=1 cutoff=0.25 expected=0.5 actual=0.4999924
+PASS alpha=0.25 scale=1 cutoff=0.5 expected=0 actual=0
+PASS alpha=0.75 scale=0 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.75 scale=0 cutoff=0.25 expected=0 actual=0
+PASS alpha=0.75 scale=0 cutoff=0.5 expected=0 actual=0
+PASS alpha=0.75 scale=0.5 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.75 scale=0.5 cutoff=0.25 expected=0.5 actual=0.4999924
+PASS alpha=0.75 scale=0.5 cutoff=0.5 expected=0 actual=0
+PASS alpha=0.75 scale=1 cutoff=0 expected=0.5 actual=0.4999924
+PASS alpha=0.75 scale=1 cutoff=0.25 expected=0.5 actual=0.4999924
+PASS alpha=0.75 scale=1 cutoff=0.5 expected=0.5 actual=0.4999924
+PASS actual SampleBias expression bias=-2 expected=0.5 actual=0.4999924
+PASS actual SampleBias expression bias=-1 expected=0 actual=0
+PASS actual SampleBias expression bias=0 expected=0.5 actual=0.4999924
+PASS actual SampleBias expression bias=1 expected=0 actual=0
+PASS BaseST applied once before alpha sampling expected=0.5 actual=0.4999924
+PASS legacy alpha behavior preserved expected=0.5 actual=0.4999924
+PASS opaque variant ignores alpha expected=0.5 actual=0.4999924
+PASS source shading disabled preserves legacy expected=0.5 actual=0.4999924
+RESULT PASS cases=26 failures=0; alpha expression only; no depth-bias/packing/stencil/dither certificate

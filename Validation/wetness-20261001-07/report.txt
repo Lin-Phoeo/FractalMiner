@@ -1,0 +1,477 @@
+PASS GPU packed float bits 00000000 channel 0
+PASS GPU packed float bits 00000000 channel 1
+PASS GPU packed float bits 00000000 channel 2
+PASS GPU packed float bits 00000000 channel 3
+PASS GPU packed float bits 00000001 channel 0
+PASS GPU packed float bits 00000001 channel 1
+PASS GPU packed float bits 00000001 channel 2
+PASS GPU packed float bits 00000001 channel 3
+PASS GPU packed float bits 000000ff channel 0
+PASS GPU packed float bits 000000ff channel 1
+PASS GPU packed float bits 000000ff channel 2
+PASS GPU packed float bits 000000ff channel 3
+PASS GPU packed float bits 12345678 channel 0
+PASS GPU packed float bits 12345678 channel 1
+PASS GPU packed float bits 12345678 channel 2
+PASS GPU packed float bits 12345678 channel 3
+PASS GPU packed float bits 7fc12345 channel 0
+PASS GPU packed float bits 7fc12345 channel 1
+PASS GPU packed float bits 7fc12345 channel 2
+PASS GPU packed float bits 7fc12345 channel 3
+PASS GPU packed float bits ffffffff channel 0
+PASS GPU packed float bits ffffffff channel 1
+PASS GPU packed float bits ffffffff channel 2
+PASS GPU packed float bits ffffffff channel 3
+PASS selector equal .5 uses object bytes but water height continuous lerp
+PASS native weather mip/view Rain mip=0 channel=0
+PASS native weather mip/view Rain mip=0 channel=1
+PASS native weather mip/view Rain mip=0 channel=2
+PASS native weather mip/view Rain mip=0 channel=3
+PASS native weather mip/view Rain mip=0 channel=0
+PASS native weather mip/view Rain mip=0 channel=1
+PASS native weather mip/view Rain mip=0 channel=2
+PASS native weather mip/view Rain mip=0 channel=3
+PASS native weather mip/view Rain mip=0 channel=0
+PASS native weather mip/view Rain mip=0 channel=1
+PASS native weather mip/view Rain mip=0 channel=2
+PASS native weather mip/view Rain mip=0 channel=3
+PASS native weather mip/view Rain mip=0 channel=0
+PASS native weather mip/view Rain mip=0 channel=1
+PASS native weather mip/view Rain mip=0 channel=2
+PASS native weather mip/view Rain mip=0 channel=3
+PASS native weather mip/view Rain mip=0 channel=0
+PASS native weather mip/view Rain mip=0 channel=1
+PASS native weather mip/view Rain mip=0 channel=2
+PASS native weather mip/view Rain mip=0 channel=3
+PASS native weather mip/view Rain mip=1 channel=0
+PASS native weather mip/view Rain mip=1 channel=1
+PASS native weather mip/view Rain mip=1 channel=2
+PASS native weather mip/view Rain mip=1 channel=3
+PASS native weather mip/view Rain mip=1 channel=0
+PASS native weather mip/view Rain mip=1 channel=1
+PASS native weather mip/view Rain mip=1 channel=2
+PASS native weather mip/view Rain mip=1 channel=3
+PASS native weather mip/view Rain mip=1 channel=0
+PASS native weather mip/view Rain mip=1 channel=1
+PASS native weather mip/view Rain mip=1 channel=2
+PASS native weather mip/view Rain mip=1 channel=3
+PASS native weather mip/view Rain mip=1 channel=0
+PASS native weather mip/view Rain mip=1 channel=1
+PASS native weather mip/view Rain mip=1 channel=2
+PASS native weather mip/view Rain mip=1 channel=3
+PASS native weather mip/view Rain mip=1 channel=0
+PASS native weather mip/view Rain mip=1 channel=1
+PASS native weather mip/view Rain mip=1 channel=2
+PASS native weather mip/view Rain mip=1 channel=3
+PASS native weather mip/view Rain mip=2 channel=0
+PASS native weather mip/view Rain mip=2 channel=1
+PASS native weather mip/view Rain mip=2 channel=2
+PASS native weather mip/view Rain mip=2 channel=3
+PASS native weather mip/view Rain mip=2 channel=0
+PASS native weather mip/view Rain mip=2 channel=1
+PASS native weather mip/view Rain mip=2 channel=2
+PASS native weather mip/view Rain mip=2 channel=3
+PASS native weather mip/view Rain mip=2 channel=0
+PASS native weather mip/view Rain mip=2 channel=1
+PASS native weather mip/view Rain mip=2 channel=2
+PASS native weather mip/view Rain mip=2 channel=3
+PASS native weather mip/view Rain mip=2 channel=0
+PASS native weather mip/view Rain mip=2 channel=1
+PASS native weather mip/view Rain mip=2 channel=2
+PASS native weather mip/view Rain mip=2 channel=3
+PASS native weather mip/view Rain mip=2 channel=0
+PASS native weather mip/view Rain mip=2 channel=1
+PASS native weather mip/view Rain mip=2 channel=2
+PASS native weather mip/view Rain mip=2 channel=3
+PASS native weather mip/view Rain mip=3 channel=0
+PASS native weather mip/view Rain mip=3 channel=1
+PASS native weather mip/view Rain mip=3 channel=2
+PASS native weather mip/view Rain mip=3 channel=3
+PASS native weather mip/view Rain mip=3 channel=0
+PASS native weather mip/view Rain mip=3 channel=1
+PASS native weather mip/view Rain mip=3 channel=2
+PASS native weather mip/view Rain mip=3 channel=3
+PASS native weather mip/view Rain mip=3 channel=0
+PASS native weather mip/view Rain mip=3 channel=1
+PASS native weather mip/view Rain mip=3 channel=2
+PASS native weather mip/view Rain mip=3 channel=3
+PASS native weather mip/view Rain mip=3 channel=0
+PASS native weather mip/view Rain mip=3 channel=1
+PASS native weather mip/view Rain mip=3 channel=2
+PASS native weather mip/view Rain mip=3 channel=3
+PASS native weather mip/view Rain mip=3 channel=0
+PASS native weather mip/view Rain mip=3 channel=1
+PASS native weather mip/view Rain mip=3 channel=2
+PASS native weather mip/view Rain mip=3 channel=3
+PASS native weather mip/view Rain mip=4 channel=0
+PASS native weather mip/view Rain mip=4 channel=1
+PASS native weather mip/view Rain mip=4 channel=2
+PASS native weather mip/view Rain mip=4 channel=3
+PASS native weather mip/view Rain mip=4 channel=0
+PASS native weather mip/view Rain mip=4 channel=1
+PASS native weather mip/view Rain mip=4 channel=2
+PASS native weather mip/view Rain mip=4 channel=3
+PASS native weather mip/view Rain mip=4 channel=0
+PASS native weather mip/view Rain mip=4 channel=1
+PASS native weather mip/view Rain mip=4 channel=2
+PASS native weather mip/view Rain mip=4 channel=3
+PASS native weather mip/view Rain mip=4 channel=0
+PASS native weather mip/view Rain mip=4 channel=1
+PASS native weather mip/view Rain mip=4 channel=2
+PASS native weather mip/view Rain mip=4 channel=3
+PASS native weather mip/view Rain mip=4 channel=0
+PASS native weather mip/view Rain mip=4 channel=1
+PASS native weather mip/view Rain mip=4 channel=2
+PASS native weather mip/view Rain mip=4 channel=3
+PASS native weather mip/view Rain mip=5 channel=0
+PASS native weather mip/view Rain mip=5 channel=1
+PASS native weather mip/view Rain mip=5 channel=2
+PASS native weather mip/view Rain mip=5 channel=3
+PASS native weather mip/view Rain mip=5 channel=0
+PASS native weather mip/view Rain mip=5 channel=1
+PASS native weather mip/view Rain mip=5 channel=2
+PASS native weather mip/view Rain mip=5 channel=3
+PASS native weather mip/view Rain mip=5 channel=0
+PASS native weather mip/view Rain mip=5 channel=1
+PASS native weather mip/view Rain mip=5 channel=2
+PASS native weather mip/view Rain mip=5 channel=3
+PASS native weather mip/view Rain mip=5 channel=0
+PASS native weather mip/view Rain mip=5 channel=1
+PASS native weather mip/view Rain mip=5 channel=2
+PASS native weather mip/view Rain mip=5 channel=3
+PASS native weather mip/view Rain mip=5 channel=0
+PASS native weather mip/view Rain mip=5 channel=1
+PASS native weather mip/view Rain mip=5 channel=2
+PASS native weather mip/view Rain mip=5 channel=3
+PASS native weather mip/view Rain mip=6 channel=0
+PASS native weather mip/view Rain mip=6 channel=1
+PASS native weather mip/view Rain mip=6 channel=2
+PASS native weather mip/view Rain mip=6 channel=3
+PASS native weather mip/view Rain mip=6 channel=0
+PASS native weather mip/view Rain mip=6 channel=1
+PASS native weather mip/view Rain mip=6 channel=2
+PASS native weather mip/view Rain mip=6 channel=3
+PASS native weather mip/view Rain mip=6 channel=0
+PASS native weather mip/view Rain mip=6 channel=1
+PASS native weather mip/view Rain mip=6 channel=2
+PASS native weather mip/view Rain mip=6 channel=3
+PASS native weather mip/view Rain mip=6 channel=0
+PASS native weather mip/view Rain mip=6 channel=1
+PASS native weather mip/view Rain mip=6 channel=2
+PASS native weather mip/view Rain mip=6 channel=3
+PASS native weather mip/view Rain mip=6 channel=0
+PASS native weather mip/view Rain mip=6 channel=1
+PASS native weather mip/view Rain mip=6 channel=2
+PASS native weather mip/view Rain mip=6 channel=3
+PASS native weather mip/view Rain mip=7 channel=0
+PASS native weather mip/view Rain mip=7 channel=1
+PASS native weather mip/view Rain mip=7 channel=2
+PASS native weather mip/view Rain mip=7 channel=3
+PASS native weather mip/view Rain mip=7 channel=0
+PASS native weather mip/view Rain mip=7 channel=1
+PASS native weather mip/view Rain mip=7 channel=2
+PASS native weather mip/view Rain mip=7 channel=3
+PASS native weather mip/view Rain mip=7 channel=0
+PASS native weather mip/view Rain mip=7 channel=1
+PASS native weather mip/view Rain mip=7 channel=2
+PASS native weather mip/view Rain mip=7 channel=3
+PASS native weather mip/view Rain mip=7 channel=0
+PASS native weather mip/view Rain mip=7 channel=1
+PASS native weather mip/view Rain mip=7 channel=2
+PASS native weather mip/view Rain mip=7 channel=3
+PASS native weather mip/view Rain mip=7 channel=0
+PASS native weather mip/view Rain mip=7 channel=1
+PASS native weather mip/view Rain mip=7 channel=2
+PASS native weather mip/view Rain mip=7 channel=3
+PASS native weather mip/view Rain mip=8 channel=0
+PASS native weather mip/view Rain mip=8 channel=1
+PASS native weather mip/view Rain mip=8 channel=2
+PASS native weather mip/view Rain mip=8 channel=3
+PASS native weather mip/view Rain mip=8 channel=0
+PASS native weather mip/view Rain mip=8 channel=1
+PASS native weather mip/view Rain mip=8 channel=2
+PASS native weather mip/view Rain mip=8 channel=3
+PASS native weather mip/view Rain mip=8 channel=0
+PASS native weather mip/view Rain mip=8 channel=1
+PASS native weather mip/view Rain mip=8 channel=2
+PASS native weather mip/view Rain mip=8 channel=3
+PASS native weather mip/view Rain mip=8 channel=0
+PASS native weather mip/view Rain mip=8 channel=1
+PASS native weather mip/view Rain mip=8 channel=2
+PASS native weather mip/view Rain mip=8 channel=3
+PASS native weather mip/view Rain mip=8 channel=0
+PASS native weather mip/view Rain mip=8 channel=1
+PASS native weather mip/view Rain mip=8 channel=2
+PASS native weather mip/view Rain mip=8 channel=3
+PASS native weather mip/view Rain mip=9 channel=0
+PASS native weather mip/view Rain mip=9 channel=1
+PASS native weather mip/view Rain mip=9 channel=2
+PASS native weather mip/view Rain mip=9 channel=3
+PASS native weather mip/view Rain mip=9 channel=0
+PASS native weather mip/view Rain mip=9 channel=1
+PASS native weather mip/view Rain mip=9 channel=2
+PASS native weather mip/view Rain mip=9 channel=3
+PASS native weather mip/view Rain mip=9 channel=0
+PASS native weather mip/view Rain mip=9 channel=1
+PASS native weather mip/view Rain mip=9 channel=2
+PASS native weather mip/view Rain mip=9 channel=3
+PASS native weather mip/view Rain mip=9 channel=0
+PASS native weather mip/view Rain mip=9 channel=1
+PASS native weather mip/view Rain mip=9 channel=2
+PASS native weather mip/view Rain mip=9 channel=3
+PASS native weather mip/view Rain mip=9 channel=0
+PASS native weather mip/view Rain mip=9 channel=1
+PASS native weather mip/view Rain mip=9 channel=2
+PASS native weather mip/view Rain mip=9 channel=3
+PASS native weather mip/view Rain mip=10 channel=0
+PASS native weather mip/view Rain mip=10 channel=1
+PASS native weather mip/view Rain mip=10 channel=2
+PASS native weather mip/view Rain mip=10 channel=3
+PASS native weather mip/view Rain mip=10 channel=0
+PASS native weather mip/view Rain mip=10 channel=1
+PASS native weather mip/view Rain mip=10 channel=2
+PASS native weather mip/view Rain mip=10 channel=3
+PASS native weather mip/view Rain mip=10 channel=0
+PASS native weather mip/view Rain mip=10 channel=1
+PASS native weather mip/view Rain mip=10 channel=2
+PASS native weather mip/view Rain mip=10 channel=3
+PASS native weather mip/view Rain mip=10 channel=0
+PASS native weather mip/view Rain mip=10 channel=1
+PASS native weather mip/view Rain mip=10 channel=2
+PASS native weather mip/view Rain mip=10 channel=3
+PASS native weather mip/view Rain mip=10 channel=0
+PASS native weather mip/view Rain mip=10 channel=1
+PASS native weather mip/view Rain mip=10 channel=2
+PASS native weather mip/view Rain mip=10 channel=3
+PASS native weather mip/view Streak mip=0 channel=0
+PASS native weather mip/view Streak mip=0 channel=1
+PASS native weather mip/view Streak mip=0 channel=2
+PASS native weather mip/view Streak mip=0 channel=3
+PASS native weather mip/view Streak mip=0 channel=0
+PASS native weather mip/view Streak mip=0 channel=1
+PASS native weather mip/view Streak mip=0 channel=2
+PASS native weather mip/view Streak mip=0 channel=3
+PASS native weather mip/view Streak mip=0 channel=0
+PASS native weather mip/view Streak mip=0 channel=1
+PASS native weather mip/view Streak mip=0 channel=2
+PASS native weather mip/view Streak mip=0 channel=3
+PASS native weather mip/view Streak mip=0 channel=0
+PASS native weather mip/view Streak mip=0 channel=1
+PASS native weather mip/view Streak mip=0 channel=2
+PASS native weather mip/view Streak mip=0 channel=3
+PASS native weather mip/view Streak mip=0 channel=0
+PASS native weather mip/view Streak mip=0 channel=1
+PASS native weather mip/view Streak mip=0 channel=2
+PASS native weather mip/view Streak mip=0 channel=3
+PASS native weather mip/view Streak mip=1 channel=0
+PASS native weather mip/view Streak mip=1 channel=1
+PASS native weather mip/view Streak mip=1 channel=2
+PASS native weather mip/view Streak mip=1 channel=3
+PASS native weather mip/view Streak mip=1 channel=0
+PASS native weather mip/view Streak mip=1 channel=1
+PASS native weather mip/view Streak mip=1 channel=2
+PASS native weather mip/view Streak mip=1 channel=3
+PASS native weather mip/view Streak mip=1 channel=0
+PASS native weather mip/view Streak mip=1 channel=1
+PASS native weather mip/view Streak mip=1 channel=2
+PASS native weather mip/view Streak mip=1 channel=3
+PASS native weather mip/view Streak mip=1 channel=0
+PASS native weather mip/view Streak mip=1 channel=1
+PASS native weather mip/view Streak mip=1 channel=2
+PASS native weather mip/view Streak mip=1 channel=3
+PASS native weather mip/view Streak mip=1 channel=0
+PASS native weather mip/view Streak mip=1 channel=1
+PASS native weather mip/view Streak mip=1 channel=2
+PASS native weather mip/view Streak mip=1 channel=3
+PASS native weather mip/view Streak mip=2 channel=0
+PASS native weather mip/view Streak mip=2 channel=1
+PASS native weather mip/view Streak mip=2 channel=2
+PASS native weather mip/view Streak mip=2 channel=3
+PASS native weather mip/view Streak mip=2 channel=0
+PASS native weather mip/view Streak mip=2 channel=1
+PASS native weather mip/view Streak mip=2 channel=2
+PASS native weather mip/view Streak mip=2 channel=3
+PASS native weather mip/view Streak mip=2 channel=0
+PASS native weather mip/view Streak mip=2 channel=1
+PASS native weather mip/view Streak mip=2 channel=2
+PASS native weather mip/view Streak mip=2 channel=3
+PASS native weather mip/view Streak mip=2 channel=0
+PASS native weather mip/view Streak mip=2 channel=1
+PASS native weather mip/view Streak mip=2 channel=2
+PASS native weather mip/view Streak mip=2 channel=3
+PASS native weather mip/view Streak mip=2 channel=0
+PASS native weather mip/view Streak mip=2 channel=1
+PASS native weather mip/view Streak mip=2 channel=2
+PASS native weather mip/view Streak mip=2 channel=3
+PASS native weather mip/view Streak mip=3 channel=0
+PASS native weather mip/view Streak mip=3 channel=1
+PASS native weather mip/view Streak mip=3 channel=2
+PASS native weather mip/view Streak mip=3 channel=3
+PASS native weather mip/view Streak mip=3 channel=0
+PASS native weather mip/view Streak mip=3 channel=1
+PASS native weather mip/view Streak mip=3 channel=2
+PASS native weather mip/view Streak mip=3 channel=3
+PASS native weather mip/view Streak mip=3 channel=0
+PASS native weather mip/view Streak mip=3 channel=1
+PASS native weather mip/view Streak mip=3 channel=2
+PASS native weather mip/view Streak mip=3 channel=3
+PASS native weather mip/view Streak mip=3 channel=0
+PASS native weather mip/view Streak mip=3 channel=1
+PASS native weather mip/view Streak mip=3 channel=2
+PASS native weather mip/view Streak mip=3 channel=3
+PASS native weather mip/view Streak mip=3 channel=0
+PASS native weather mip/view Streak mip=3 channel=1
+PASS native weather mip/view Streak mip=3 channel=2
+PASS native weather mip/view Streak mip=3 channel=3
+PASS native weather mip/view Streak mip=4 channel=0
+PASS native weather mip/view Streak mip=4 channel=1
+PASS native weather mip/view Streak mip=4 channel=2
+PASS native weather mip/view Streak mip=4 channel=3
+PASS native weather mip/view Streak mip=4 channel=0
+PASS native weather mip/view Streak mip=4 channel=1
+PASS native weather mip/view Streak mip=4 channel=2
+PASS native weather mip/view Streak mip=4 channel=3
+PASS native weather mip/view Streak mip=4 channel=0
+PASS native weather mip/view Streak mip=4 channel=1
+PASS native weather mip/view Streak mip=4 channel=2
+PASS native weather mip/view Streak mip=4 channel=3
+PASS native weather mip/view Streak mip=4 channel=0
+PASS native weather mip/view Streak mip=4 channel=1
+PASS native weather mip/view Streak mip=4 channel=2
+PASS native weather mip/view Streak mip=4 channel=3
+PASS native weather mip/view Streak mip=4 channel=0
+PASS native weather mip/view Streak mip=4 channel=1
+PASS native weather mip/view Streak mip=4 channel=2
+PASS native weather mip/view Streak mip=4 channel=3
+PASS native weather mip/view Streak mip=5 channel=0
+PASS native weather mip/view Streak mip=5 channel=1
+PASS native weather mip/view Streak mip=5 channel=2
+PASS native weather mip/view Streak mip=5 channel=3
+PASS native weather mip/view Streak mip=5 channel=0
+PASS native weather mip/view Streak mip=5 channel=1
+PASS native weather mip/view Streak mip=5 channel=2
+PASS native weather mip/view Streak mip=5 channel=3
+PASS native weather mip/view Streak mip=5 channel=0
+PASS native weather mip/view Streak mip=5 channel=1
+PASS native weather mip/view Streak mip=5 channel=2
+PASS native weather mip/view Streak mip=5 channel=3
+PASS native weather mip/view Streak mip=5 channel=0
+PASS native weather mip/view Streak mip=5 channel=1
+PASS native weather mip/view Streak mip=5 channel=2
+PASS native weather mip/view Streak mip=5 channel=3
+PASS native weather mip/view Streak mip=5 channel=0
+PASS native weather mip/view Streak mip=5 channel=1
+PASS native weather mip/view Streak mip=5 channel=2
+PASS native weather mip/view Streak mip=5 channel=3
+PASS native weather mip/view Streak mip=6 channel=0
+PASS native weather mip/view Streak mip=6 channel=1
+PASS native weather mip/view Streak mip=6 channel=2
+PASS native weather mip/view Streak mip=6 channel=3
+PASS native weather mip/view Streak mip=6 channel=0
+PASS native weather mip/view Streak mip=6 channel=1
+PASS native weather mip/view Streak mip=6 channel=2
+PASS native weather mip/view Streak mip=6 channel=3
+PASS native weather mip/view Streak mip=6 channel=0
+PASS native weather mip/view Streak mip=6 channel=1
+PASS native weather mip/view Streak mip=6 channel=2
+PASS native weather mip/view Streak mip=6 channel=3
+PASS native weather mip/view Streak mip=6 channel=0
+PASS native weather mip/view Streak mip=6 channel=1
+PASS native weather mip/view Streak mip=6 channel=2
+PASS native weather mip/view Streak mip=6 channel=3
+PASS native weather mip/view Streak mip=6 channel=0
+PASS native weather mip/view Streak mip=6 channel=1
+PASS native weather mip/view Streak mip=6 channel=2
+PASS native weather mip/view Streak mip=6 channel=3
+PASS native weather mip/view Streak mip=7 channel=0
+PASS native weather mip/view Streak mip=7 channel=1
+PASS native weather mip/view Streak mip=7 channel=2
+PASS native weather mip/view Streak mip=7 channel=3
+PASS native weather mip/view Streak mip=7 channel=0
+PASS native weather mip/view Streak mip=7 channel=1
+PASS native weather mip/view Streak mip=7 channel=2
+PASS native weather mip/view Streak mip=7 channel=3
+PASS native weather mip/view Streak mip=7 channel=0
+PASS native weather mip/view Streak mip=7 channel=1
+PASS native weather mip/view Streak mip=7 channel=2
+PASS native weather mip/view Streak mip=7 channel=3
+PASS native weather mip/view Streak mip=7 channel=0
+PASS native weather mip/view Streak mip=7 channel=1
+PASS native weather mip/view Streak mip=7 channel=2
+PASS native weather mip/view Streak mip=7 channel=3
+PASS native weather mip/view Streak mip=7 channel=0
+PASS native weather mip/view Streak mip=7 channel=1
+PASS native weather mip/view Streak mip=7 channel=2
+PASS native weather mip/view Streak mip=7 channel=3
+PASS native weather mip/view Streak mip=8 channel=0
+PASS native weather mip/view Streak mip=8 channel=1
+PASS native weather mip/view Streak mip=8 channel=2
+PASS native weather mip/view Streak mip=8 channel=3
+PASS native weather mip/view Streak mip=8 channel=0
+PASS native weather mip/view Streak mip=8 channel=1
+PASS native weather mip/view Streak mip=8 channel=2
+PASS native weather mip/view Streak mip=8 channel=3
+PASS native weather mip/view Streak mip=8 channel=0
+PASS native weather mip/view Streak mip=8 channel=1
+PASS native weather mip/view Streak mip=8 channel=2
+PASS native weather mip/view Streak mip=8 channel=3
+PASS native weather mip/view Streak mip=8 channel=0
+PASS native weather mip/view Streak mip=8 channel=1
+PASS native weather mip/view Streak mip=8 channel=2
+PASS native weather mip/view Streak mip=8 channel=3
+PASS native weather mip/view Streak mip=8 channel=0
+PASS native weather mip/view Streak mip=8 channel=1
+PASS native weather mip/view Streak mip=8 channel=2
+PASS native weather mip/view Streak mip=8 channel=3
+PASS wet surface finite/range rain=0
+PASS wet spec normal unit rain=0
+PASS wet surface finite/range rain=0.25
+PASS wet spec normal unit rain=0.25
+PASS wet surface finite/range rain=0.6
+PASS wet spec normal unit rain=0.6
+PASS wet surface finite/range rain=1
+PASS wet spec normal unit rain=1
+PASS material exclusion keeps dry surface
+PASS CPU channel bit locations
+PASS reject nonfinite user channel
+PASS only two reviewed cloth rest mesh streams prepared without saving assets
+PASS production camera wet gates reach reviewed cloth fragments: 83102/83102
+PASS synchronous skin matrices refreshed: S_actor_Typhoea_vfxpart_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_Typhoea_vfxpart_02_lod0
+PASS synchronous skin matrices refreshed: S_actor_Typhoea_vfxpart_03_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_body_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_brow_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_02_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_03_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_04_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_05_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_06_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_cloth_07_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_eyeshadow_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_face_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_hair_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_hairshadow_01_lod0
+PASS synchronous skin matrices refreshed: S_actor_typhoea_iris_01_lod0
+PASS wet gate restored after camera
+CPU pose mesh=S_actor_Typhoea_vfxpart_01_lod0 bounds=Center: (0.04, 0.50, 0.53), Extents: (0.18, 0.50, 0.48) allBoneCount=7
+CPU pose mesh=S_actor_Typhoea_vfxpart_02_lod0 bounds=Center: (-0.08, 0.07, 1.06), Extents: (0.11, 0.04, 0.06) allBoneCount=12
+CPU pose mesh=S_actor_Typhoea_vfxpart_03_lod0 bounds=Center: (0.05, 0.13, 0.91), Extents: (0.06, 0.05, 0.05) allBoneCount=1
+CPU pose mesh=S_actor_typhoea_body_01_lod0 bounds=Center: (-0.08, 0.01, 0.98), Extents: (0.46, 0.11, 0.37) allBoneCount=35
+CPU pose mesh=S_actor_typhoea_brow_01_lod0 bounds=Center: (-0.09, -0.06, 1.26), Extents: (0.07, 0.03, 0.03) allBoneCount=37
+CPU pose mesh=S_actor_typhoea_cloth_01_lod0 bounds=Center: (-0.08, 0.10, 0.62), Extents: (0.51, 0.29, 0.63) allBoneCount=120
+CPU pose mesh=S_actor_typhoea_cloth_02_lod0 bounds=Center: (-0.08, 0.05, 0.71), Extents: (0.59, 0.21, 0.70) allBoneCount=126
+CPU pose mesh=S_actor_typhoea_cloth_03_lod0 bounds=Center: (-0.07, 0.02, 0.96), Extents: (0.17, 0.09, 0.17) allBoneCount=9
+CPU pose mesh=S_actor_typhoea_cloth_04_lod0 bounds=Center: (0.04, 0.50, 0.53), Extents: (0.18, 0.50, 0.48) allBoneCount=7
+CPU pose mesh=S_actor_typhoea_cloth_05_lod0 bounds=Center: (-0.06, 0.05, 1.44), Extents: (0.20, 0.15, 0.13) allBoneCount=1
+CPU pose mesh=S_actor_typhoea_cloth_06_lod0 bounds=Center: (0.07, 0.15, 0.90), Extents: (0.10, 0.11, 0.08) allBoneCount=2
+CPU pose mesh=S_actor_typhoea_cloth_07_lod0 bounds=Center: (0.05, 0.13, 0.91), Extents: (0.06, 0.05, 0.05) allBoneCount=1
+CPU pose mesh=S_actor_typhoea_eyeshadow_01_lod0 bounds=Center: (-0.09, -0.05, 1.25), Extents: (0.06, 0.02, 0.01) allBoneCount=17
+CPU pose mesh=S_actor_typhoea_face_01_lod0 bounds=Center: (-0.08, -0.03, 1.26), Extents: (0.10, 0.09, 0.10) allBoneCount=54
+CPU pose mesh=S_actor_typhoea_hair_01_lod0 bounds=Center: (0.01, 0.19, 0.95), Extents: (0.52, 0.37, 0.47) allBoneCount=32
+CPU pose mesh=S_actor_typhoea_hairshadow_01_lod0 bounds=Center: (-0.08, -0.06, 1.26), Extents: (0.09, 0.06, 0.10) allBoneCount=17
+CPU pose mesh=S_actor_typhoea_iris_01_lod0 bounds=Center: (-0.09, -0.06, 1.25), Extents: (0.05, 0.02, 0.01) allBoneCount=8
+PASS visible calibrated trunk upright
+FAIL System.InvalidOperationException: pelvis lateral axis agrees with shoulders (no reflected basis/twist)
+  at EndfieldShaderPack.EndfieldWetnessValidation.Check (System.Boolean valid, System.String reason) [0x00028] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldWetnessValidation.cs:18 
+  at EndfieldShaderPack.EndfieldWetnessValidation.RunBatch () [0x002de] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldWetnessValidation.cs:60 

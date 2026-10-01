@@ -86,8 +86,10 @@ def validate_sampler(record, number):
 
 
 def collect(
-    rd, controller, output, roles_by_event=None, programs=None, role_samplers=None
+    rd, controller, output, roles_by_event=None, programs=None, role_samplers=None, resource_set=1
 ):
+    if type(resource_set) is not int or resource_set not in (0, 1):
+        raise ValueError("Only reviewed global/material descriptor sets 0/1 supported")
     roles_by_event = ROLES if roles_by_event is None else roles_by_event
     programs = PROGRAMS if programs is None else programs
     if set(roles_by_event) != set(programs):
@@ -105,7 +107,7 @@ def collect(
         resources = {}
         for used in state.GetReadOnlyResources(stage):
             record = binding(used, reflection.readOnlyResources)
-            if record["set"] == 1 and record["binding"] in roles.values():
+            if record["set"] == resource_set and record["binding"] in roles.values():
                 if record["binding"] in resources:
                     raise ValueError("Duplicate material descriptor")
                 resources[record["binding"]] = (used, record)
@@ -229,7 +231,7 @@ def collect(
     return results
 
 
-def run(roles_by_event=None, programs=None, role_samplers=None):
+def run(roles_by_event=None, programs=None, role_samplers=None, resource_set=1):
     capture = Path(os.environ["ENDFIELD_CAPTURE_PATH"]).resolve()
     output = Path(os.environ["ENDFIELD_CAPTURE_OUTPUT"]).resolve()
     validate_paths(capture, output)
@@ -241,7 +243,7 @@ def run(roles_by_event=None, programs=None, role_samplers=None):
 
             cap, controller = open_controller(rd, capture)
             results = collect(
-                rd, controller, output, roles_by_event, programs, role_samplers
+                rd, controller, output, roles_by_event, programs, role_samplers, resource_set
             )
         finally:
             try:

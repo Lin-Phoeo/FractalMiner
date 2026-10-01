@@ -1,0 +1,11 @@
+Native cube input/sampler/production probes; no screenshot fitting.
+GPU=NVIDIA GeForce RTX 3060 Laptop GPU
+Native BC6H unsigned/linear PASS faces=6 mips=48 CPU bytes=131232; GPU samples=144 maxError=0
+Scoped global restore/foreign-owner preservation PASS cases=2
+Mutated-after-load cube rejection / no partial binding PASS
+Native DDS fail-closed PASS truncation/length/hash cases=3
+Synthetic cube face/LOD/bounds PASS cases=132; linked Bilinear and inline LinearClamp nearest mip; trilinear negative control PASS
+Within-face bilinear exact quarter-texel interpolation PASS cases=12; point-filter negative control PASS
+CharacterLit source IBL original roughness-log2 LOD / captured inline Clamp sampler PASS cases=10
+CharacterLit native BC6H consumption / missing-input gate PASS
+RESULT PASS defaultPasses=5; bounded native environment path, not full scene/post/motion certification.

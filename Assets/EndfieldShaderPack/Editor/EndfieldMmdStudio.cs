@@ -29,6 +29,7 @@ namespace EndfieldShaderPack
         bool ownsPipelineActivation;
         bool ownsSceneSession;
         EndfieldCharacterShadowCaster transientShadowCaster;
+        EndfieldWetnessSession renderSession;
 
         // 最近一次载入的文件组合（会话内存）
         string lastMotionPath = "";
@@ -69,17 +70,22 @@ namespace EndfieldShaderPack
             sourceRigJsonPath = EditorPrefs.GetString("Endfield.MmdSourceRigJson", "");
             EditorApplication.update += Tick;
             EditorApplication.update += StepRoutine;
+            EditorSceneManager.sceneClosing += OnSceneClosing;
         }
 
         void OnDisable()
         {
             playing = false;
+            renderSession?.Dispose(); renderSession = null;
             if (camDrive) { camDrive = false; camDriver.Restore(); }
             ReleaseTransientShadowCaster();
             ReleasePipelineActivation();
             EditorApplication.update -= Tick;
             EditorApplication.update -= StepRoutine;
+            EditorSceneManager.sceneClosing -= OnSceneClosing;
         }
+        void OnSceneClosing(UnityEngine.SceneManagement.Scene scene, bool removing)
+        { PrepareForFreshScene(); charRoot = null; cam = null; ownsSceneSession = false; }
 
         // ================= 编辑器内实时播放 =================
         void Tick()
@@ -118,9 +124,10 @@ namespace EndfieldShaderPack
             try
             {
                 PrepareForFreshScene();
-                EnsureScene(true);            // 强制重开基线场景 = 干净绑定姿态（校准标准前提）
+                EnsureScene(true);            // session restores complete unpacked bind; reopening alone is NOT a clean bind
+                renderSession.InitializeMmdPose(); // actually write the calibrated T-pose to the visible rig
                 lastMotionPath = "";         // 动作也需重载（重新校准）
-                info = "人物已初始化: 舞台 + chr_0034_typhoea_rebuilt + M5 枢轴 + 捕获光照 + 捕获后期 + 自阴影\n" +
+                info = "人物已初始化: 舞台 + 干净 T-pose（已写入骨骼）+ 原生角色贴图 + 捕获光照/后期 + 实时自阴影\n" +
                        "下一步: 打开动作 VMD（校准自动完成，成功与否看信息行）";
                 ApplyAt(0);
                 Repaint();
@@ -138,10 +145,11 @@ namespace EndfieldShaderPack
         {
             try
             {
-                // 强制重开基线场景：FromUnity 按当前骨态建 rest，
-                // 脏姿态（上次播放/Studio 遗留）会让 T-pose 校准失败——干净绑定是校准前提
+                // Reload stage, restore all canonical bind bones, then apply the
+                // calibrated pose before capturing the MMD player's baseline.
                 PrepareForFreshScene();
                 EnsureScene(true);
+                renderSession.InitializeMmdPose();
                 camDriver.target = cam;   // 旧相机句柄随场景更替刷新
                 var clip = Vmd.ReadFile(path);
                 MmdRigDefinition sourceRig = string.IsNullOrEmpty(sourceRigJsonPath) ? null :
@@ -217,7 +225,7 @@ namespace EndfieldShaderPack
                         "当前场景有未保存修改。继续会放弃这些修改并打开提弗洛斯基线场景。",
                         "放弃修改并继续", "取消"))
                     throw new OperationCanceledException("用户取消了基线场景重载");
-                // 找当前场景里的角色（可能有脏姿态）；强制重开基线场景获得干净绑定
+                // Disk stage may contain stale pose; the session restores the unpacked bind separately.
                 EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
                 ownsSceneSession = true;
                 foreach (var go in EditorSceneManager.GetActiveScene().GetRootGameObjects())
@@ -275,11 +283,7 @@ namespace EndfieldShaderPack
                     -new Vector3(0.0213893f, -0.642788f, -0.765746f).normalized, Vector3.up);
                 light.ApplyLight();
             }
-            if (!EndfieldCapturedPipelineActivation.IsActivated)
-            {
-                EndfieldCapturedPipelineActivation.Activate();
-                ownsPipelineActivation = true;
-            }
+            // Transient pipeline clone/native texture scopes, never persist settings.
             var caster = charRoot.GetComponent<EndfieldCharacterShadowCaster>();
             if (caster == null)
             {
@@ -292,11 +296,13 @@ namespace EndfieldShaderPack
 
             cam = Camera.main;
             if (cam == null) throw new InvalidOperationException("场景没有 Main Camera");
+            renderSession = new EndfieldWetnessSession(false);
         }
 
         void PrepareForFreshScene()
         {
             playing = false;
+            _routine = null; // a render iterator must not continue against a destroyed rig
             time = 0f;
             if (camDrive)
             {
@@ -304,6 +310,7 @@ namespace EndfieldShaderPack
                 camDrive = false;
             }
             player = null;
+            renderSession?.Dispose(); renderSession = null;
             ReleaseTransientShadowCaster();
         }
 
@@ -401,6 +408,14 @@ namespace EndfieldShaderPack
             }
 
             GUILayout.Space(6);
+
+            if (renderSession?.Weather != null)
+            {
+                if (GUILayout.Button("正面全身镜头（测试构图）")) renderSession.FrameFront();
+                renderSession.Weather.wetEnabled = EditorGUILayout.Toggle("布料湿身预览（b471）", renderSession.Weather.wetEnabled);
+                if (renderSession.Weather.wetEnabled)
+                    renderSession.Weather.rain = EditorGUILayout.Slider("雨量", renderSession.Weather.rain, 0, 1);
+            }
 
             // ---- 播放 ----
             using (new EditorGUI.DisabledScope(player == null))
@@ -564,7 +579,8 @@ namespace EndfieldShaderPack
                 if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
                 if (camDrive && camDriver.HasKeys)
                     camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
-                EndfieldVmdBatchRender.SaveFrame(cam, Path.Combine(dir,
+                Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
+                renderSession.SavePreview(Path.Combine(dir,
                     "frame_" + k.ToString("D4") + ".png"), w, h, false);
 
                 if (k % 10 == 0)

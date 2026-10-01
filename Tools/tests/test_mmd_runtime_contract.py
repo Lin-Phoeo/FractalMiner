@@ -2,7 +2,6 @@ import re
 import unittest
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2]
 STUDIO = ROOT / "Assets/EndfieldShaderPack/Editor/EndfieldMmdStudio.cs"
 BATCH = ROOT / "Assets/EndfieldShaderPack/Editor/EndfieldVmdBatchRender.cs"
@@ -15,8 +14,8 @@ ANIM = ROOT / "Assets/EndfieldShaderPack/Editor/EndfieldAnimStudio.cs"
 class MmdRuntimeContractTests(unittest.TestCase):
     def test_loading_a_camera_does_not_reopen_and_invalidate_the_loaded_player(self):
         text = STUDIO.read_text("utf-8")
-        method = re.search(r"void LoadCamera\(.*?\n        \}", text, re.S)
-        self.assertIsNotNone(method)
+        method = re.search(r"void LoadCamera\(.*?\n        \}", text, re.DOTALL)
+        assert method is not None
         self.assertNotIn("EnsureScene(true)", method.group(0))
         self.assertIn("EnsureScene()", method.group(0))
 
@@ -28,8 +27,8 @@ class MmdRuntimeContractTests(unittest.TestCase):
 
     def test_overall_amplitude_is_not_squared_for_torso_roles(self):
         text = RETARGET.read_text("utf-8")
-        amp_for = re.search(r"float AmpFor\(int role\).*?;", text, re.S)
-        self.assertIsNotNone(amp_for)
+        amp_for = re.search(r"float AmpFor\(int role\).*?;", text, re.DOTALL)
+        assert amp_for is not None
         self.assertRegex(amp_for.group(0), r":\s*1f\s*;")
 
     def test_studio_output_rate_controls_sampling_density_without_changing_speed(self):
@@ -58,8 +57,10 @@ class MmdRuntimeContractTests(unittest.TestCase):
 
     def test_recalibration_rebuilds_from_the_clean_captured_bind_pose(self):
         text = PLAYER.read_text("utf-8")
-        method = re.search(r"public bool Recalibrate\(\).*?\n        \}", text, re.S)
-        self.assertIsNotNone(method)
+        method = re.search(
+            r"public bool Recalibrate\(\).*?\n        \}", text, re.DOTALL
+        )
+        assert method is not None
         self.assertIn("Reset()", method.group(0))
         self.assertIn("MmdRetargetProfile.FromUnity(charRoot)", method.group(0))
 
@@ -73,7 +74,9 @@ class MmdRuntimeContractTests(unittest.TestCase):
         text = RIG.read_text("utf-8")
         self.assertIn("Mathf.Min(Mathf.Acos(dot), controller.angleLimit)", text)
         self.assertIn("controller.angleLimit * (linkIndex + 1)", text)
-        self.assertEqual(text.count("Quaternion.AngleAxis(angle * Mathf.Rad2Deg, localAxis)"), 2)
+        self.assertEqual(
+            text.count("Quaternion.AngleAxis(angle * Mathf.Rad2Deg, localAxis)"), 2
+        )
         self.assertIn("MmdIk.LimitTotal(next, lo, hi, order", text)
         for axis in ("x", "y", "z"):
             self.assertIn(f"e.{axis} * Mathf.Rad2Deg", text)
@@ -91,8 +94,10 @@ class MmdRuntimeContractTests(unittest.TestCase):
 
     def test_frame_capture_restores_camera_and_render_target_in_finally(self):
         text = BATCH.read_text("utf-8")
-        method = re.search(r"public static void SaveFrame\(.*?\n        \}", text, re.S)
-        self.assertIsNotNone(method)
+        method = re.search(
+            r"public static void SaveFrame\(.*?\n        \}", text, re.DOTALL
+        )
+        assert method is not None
         self.assertIn("finally", method.group(0))
         self.assertIn("cam.targetTexture = previousTarget", method.group(0))
         self.assertIn("RenderTexture.active = previousActive", method.group(0))
@@ -114,8 +119,13 @@ class MmdRuntimeContractTests(unittest.TestCase):
         studio = STUDIO.read_text("utf-8")
         batch = BATCH.read_text("utf-8")
         self.assertIn("bool flipY = false", batch)
-        self.assertIn("SaveFrame(cam, Path.Combine(dir,", studio)
+        self.assertIn("renderSession.SavePreview(Path.Combine(dir,", studio)
         self.assertIn("w, h, false", studio)
+        preview = (
+            ROOT / "Assets/EndfieldShaderPack/Editor/EndfieldWetnessStudio.cs"
+        ).read_text("utf-8")
+        self.assertIn("image.ReadPixels(new Rect(0, 0, width, height)", preview)
+        self.assertNotIn("SetPixels32", preview)
         self.assertIn("SaveFrame(camera, frame, 1280, 720, false)", batch)
 
     def test_smoke_gate_checks_head_is_above_pelvis(self):

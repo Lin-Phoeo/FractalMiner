@@ -33,6 +33,7 @@ Shader "Endfield/CharacterLit"
     {
         // ---- 基础 / 混合 ----
         [MainTexture] _BaseMap ("Albedo", 2D) = "white" {}
+        _DisableRainEffectOnMaterial ("Disable Source Rain Response", Range(0,1)) = 0
         _BaseColor ("Color", Color) = (1,1,1,1)
         [Enum(Cloth,0,Skin,1,Hair,2,Eye,3)] _MaterialFamily ("Material Family", Float) = 0
         [HideInInspector] _EndfieldSkinBasisEnabled ("Explicit Skin Root Basis", Float) = 0
@@ -230,6 +231,7 @@ Shader "Endfield/CharacterLit"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
         CBUFFER_START(UnityPerMaterial)
+            float _DisableRainEffectOnMaterial;
             float4 _BaseMap_ST;          float4 _BaseColor;
             float _MaterialFamily;      float _DebugView;
             float _EndfieldSkinBasisEnabled;
@@ -300,6 +302,12 @@ Shader "Endfield/CharacterLit"
         float4 _EndfieldCapturedDirectionalTravel;
         float4 _EndfieldCapturedDirectionalColor;
         float _EndfieldCapturedGlobalMipBias;
+        float _EndfieldCharacterWetnessEnabled;
+        float _EndfieldWeatherTexturesReady;
+        float4 _EndfieldObjectWeather;
+        float4 _EndfieldWeatherTime; // x=manual time enabled, y=seconds/20 (official Time.x)
+        TEXTURE2D(_CharacterRainEffectTex);
+        TEXTURE2D(_CharacterRainStreakTex);
 
         // WP1.1 part-label render (EndfieldPoseApplyValidation only): 0 = off, 1 = flat label, 2 = vertex colour.
         float _EndfieldLabelMode;
@@ -395,6 +403,8 @@ Shader "Endfield/CharacterLit"
             float4 tangentOS  : TANGENT;
             float2 uv         : TEXCOORD0;
             float4 color      : COLOR;
+            float4 restPosition : TEXCOORD2;
+            float4 restNormal : TEXCOORD3;
         };
 
         struct Varyings
@@ -407,11 +417,15 @@ Shader "Endfield/CharacterLit"
             float3 viewDirWS   : TEXCOORD4;
             float4 color       : TEXCOORD5;
             float  fogFactor   : TEXCOORD6;
+            float4 restPosition : TEXCOORD7;
+            float4 restNormal : TEXCOORD8;
         };
 
         Varyings CharVert(Attributes input)
         {
             Varyings output = (Varyings)0;
+            output.restPosition = input.restPosition;
+            output.restNormal = input.restNormal;
             output.positionWS = TransformObjectToWorld(input.positionOS.xyz);
             output.positionCS = TransformWorldToHClip(output.positionWS);
             output.normalWS   = SafeNormalize(TransformObjectToWorldNormal(input.normalOS));
@@ -529,6 +543,7 @@ Shader "Endfield/CharacterLit"
         #include "EndfieldOfficialClothEmission.hlsl"
         #include "EndfieldOfficialClothNormals.hlsl"
         #include "EndfieldOfficialSkin.hlsl"
+        #define ENDFIELD_SOURCE_WETNESS 1
         #include "EndfieldOfficialCloth.hlsl"
         #include "EndfieldOfficialEye.hlsl"
         #include "EndfieldMaterialUniformProbe.hlsl"
@@ -760,6 +775,12 @@ Shader "Endfield/CharacterLit"
                         float3 sourceV = normalize(input.viewDirWS);
                         sourceVFXN = clothNormals.mapped;
                         sourceVFXV = sourceV;
+                        // Explicit wet-input diagnostics, never used in normal mode.
+                        if (_EndfieldDebugValueMode > 229.5 && _EndfieldDebugValueMode < 230.5)
+                            return float4(EFWetInputs(input.positionWS.y).xyz, 1);
+                        if (_EndfieldDebugValueMode > 230.5 && _EndfieldDebugValueMode < 231.5)
+                            return float4(input.restPosition.w, _EndfieldCharacterWetnessEnabled,
+                                _EndfieldWeatherTexturesReady, 1);
                         float sourceBaseAlpha = clothBaseMap.a * _BaseColor.a;
                         float sourceAlphaFactor = EFClothCapturedAlphaFactor(sourceBaseAlpha, _AlphaPremultiply);
                         float3 sourceEmission = 0;
@@ -773,7 +794,10 @@ Shader "Endfield/CharacterLit"
                         sourceColor = EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb,
                             clothNormals.mapped, clothNormals.geometry, sourceV,
                             input.positionWS, sourceL, sourceLightColor, sourceLightI, directionalShadow, selfShadow,
-                            sourceAlphaFactor, sourceEmission);
+                            sourceAlphaFactor, sourceEmission, input.restPosition.xyz, input.restNormal.xyz,
+                            input.restNormal.w > 0.5,
+                            _EndfieldCharacterWetnessEnabled > 0.5 && _EndfieldWeatherTexturesReady > 0.5
+                                && input.restPosition.w > 0.5 && _ClearCoat < 0.5 && _UseDiffRampMap > 0.5);
                     }
                     // Source order: saturation is already in each family helper,
                     // then VFX, then output exposure. Never multiply the result by light again.

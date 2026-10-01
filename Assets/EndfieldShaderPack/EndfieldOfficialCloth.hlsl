@@ -9,12 +9,14 @@
 // expressions, not the imperfect prose reconstruction in the research docs.
 //
 // Include after the material/global/texture declarations and SampleSkinLUT3D.
-// Preconditions: CP1.y=1; dry weather; opaque output. Direct diffuse/emission
+// Preconditions: CP1.y=1; dry weather by default; opaque output. Reviewed
+// cloth01/02 may opt in to the b471/b472 rain/immersion block via rest streams.
+// Direct diffuse/emission
 // selection supports the captured AlphaPremultiply expression; transparent
 // blending/output and alpha-test variants are not certified by this helper.
 // CP2/CP5 are the cloth's captured environment/light colors. Face AND body
 // use the separate Skin helper and CP3/CP4; the old b401 body match was false.
-// Weather, irradiance volumes, local lights, motion vectors, screen-depth rims,
+// Other weather variants/snow, irradiance volumes, local lights, motion vectors, screen-depth rims,
 // and transparent premultiplication are outside this bounded implementation.
 // The omitted capture rims are zero with CP8.rgb=0 and CP12.x=1.
 //
@@ -31,6 +33,10 @@
 // frame6411 BC6H input is separately pinned; clearcoat variants remain uncertified.
 
 static const float3 EFClothLuminance = float3(0.2126729041, 0.7151522040, 0.0721750036);
+// Opt-in b471 source rain/immersion response. Dry path remains the default.
+#if defined(ENDFIELD_SOURCE_WETNESS)
+#include "EndfieldOfficialWetness.hlsl"
+#endif
 
 float EFClothLuma(float3 color)
 {
@@ -143,7 +149,8 @@ float3 EFClothSampleEnvironment(float3 N, float3 V, float roughness, float3 spec
 float3 EndfieldShadeOfficialCloth(
     float2 uv, float3 albedo, float3 N, float3 vertexNormalWS, float3 V,
     float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
-    float directionalShadow, float selfShadow, float alphaFactor, float3 emission)
+    float directionalShadow, float selfShadow, float alphaFactor, float3 emission,
+    float3 restPosition, float3 restNormal, bool skinned, bool wetEnabled)
 {
     // L/lightColor/lightColorI and directionalShadow arrive resolved by caller:
     // L=lerp(-DirectionalLightDirection,CP11.xyz,CP1.w), WITHOUT normalization;
@@ -161,8 +168,6 @@ float3 EndfieldShadeOfficialCloth(
     float specularMask = packed.g;
     float shadowMask = packed.b;
     float roughness = 1.0 - packed.a;
-    float roughSq = max(roughness * roughness, 0.0078125);
-    float a4 = roughSq * roughSq;
     float nonmetalDiffuse = 0.96 - metallic * 0.96;
     float3 diffuseColor = albedo * nonmetalDiffuse;
     float3 specColor = lerp((0.04 * specularMask).xxx, albedo, metallic);
@@ -174,6 +179,25 @@ float3 EndfieldShadeOfficialCloth(
         float3 shadowBase = albedo * _ShadowColorBrightness;
         shadowColor = lerp(EFClothLuma(shadowBase).xxx, shadowBase, _ShadowColorSaturation);
     }
+
+    float3 specNormal = N;
+    #if defined(ENDFIELD_SOURCE_WETNESS)
+    if (wetEnabled)
+    {
+        EFWetSurface wet = EFWetEvaluate471(albedo, shadowColor, N, metallic, roughness,
+            restPosition, restNormal, skinned, positionWS.y);
+        // No snow: b471 diffuse/ramp/ambient retain original mapped N (_553),
+        // while GGX and reflection use wet N (_1828); do not merge these normals.
+        specNormal = wet.specNormal;
+        roughness = wet.roughness;
+        albedo = wet.albedo;
+        shadowColor = wet.shadowAlbedo;
+        diffuseColor = albedo * nonmetalDiffuse;
+        specColor = lerp((0.04 * specularMask).xxx, albedo, metallic);
+    }
+    #endif
+    float roughSq = max(roughness * roughness, 0.0078125);
+    float a4 = roughSq * roughSq;
 
     float3 cameraAxisZ = mul((float3x3)UNITY_MATRIX_I_V, float3(0.0, 0.0, 1.0));
     float3 horizontalLight = EFClothNormalize(float3(L.x, 6.103515625e-5, L.z));
@@ -206,8 +230,8 @@ float3 EndfieldShadeOfficialCloth(
     float3 pseudoLight = float3(cameraAxisZ.x, lerp(0.5, L.y, directionalShadow), cameraAxisZ.z);
     float3 H = EFClothNormalize(L * directionalShadow + EFClothNormalize(pseudoLight) * 2.0
         + V * (2.0 + directionalShadow));
-    float NdotV = saturate(dot(N, V));
-    float NdotH = dot(N, H);
+    float NdotV = saturate(dot(specNormal, V));
+    float NdotH = dot(specNormal, H);
     float denominator = ((NdotH * a4) - NdotH) * NdotH + 1.0;
     float denominatorSquared = denominator * denominator;
     float distribution = a4 != denominatorSquared ? a4 / denominatorSquared : 1.0;
@@ -269,13 +293,24 @@ float3 EndfieldShadeOfficialCloth(
 
     // Source orders IBL AFTER the direct-light saturation boost. Its scale uses
     // specLightMultiplier rather than the complete directional specLight term.
-    float3 environment = EFClothSampleEnvironment(N, V, roughness, environmentSpecColor);
+    float3 environment = EFClothSampleEnvironment(specNormal, V, roughness, environmentSpecColor);
     if (clearcoatMask > 0.001)
         environment += EFClothSampleEnvironment(clearcoatN, V, clearcoatRoughness, clearcoatF0)
             * clearcoatMask;
     color += environment * (clamp(lighting.ambientPeak, 0.5, 1.5) * _CharacterParams0.w)
         * lighting.specLightMultiplier * _CharacterParams2.rgb;
     return color; // Linear RGB before VFX, output exposure and fog; do not boost saturation again.
+}
+
+// Compatibility adapter for older callers without captured alpha/emission.
+float3 EndfieldShadeOfficialCloth(
+    float2 uv, float3 albedo, float3 N, float3 vertexNormalWS, float3 V,
+    float3 positionWS, float3 L, float3 lightColor, float3 lightColorI,
+    float directionalShadow, float selfShadow, float alphaFactor, float3 emission)
+{
+    return EndfieldShadeOfficialCloth(uv, albedo, N, vertexNormalWS, V, positionWS,
+        L, lightColor, lightColorI, directionalShadow, selfShadow, alphaFactor, emission,
+        0.0.xxx, 0.0.xxx, false, false);
 }
 
 // Compatibility adapter for older callers without captured alpha/emission.

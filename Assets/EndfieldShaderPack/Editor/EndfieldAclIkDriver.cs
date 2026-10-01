@@ -115,7 +115,7 @@ namespace EndfieldShaderPack.EditorTools
             charLight.transform.rotation = Quaternion.LookRotation(-LightTravelDir.normalized, Vector3.up);
             charLight.ApplyLight();
             Shader.SetGlobalVector("_CharacterParams10",
-                new Vector4(wetness > 0f ? 1f : 0f, wetness, 0f, 0f));
+                new Vector4(wetness > 0f ? 1f : 0f, EndfieldCharacterWeather.Pack(wetness, 0, 0), 2.25f, -100));
 
             var postShader = Shader.Find(CapturedPostShaderName);
             var lut = EndfieldCaptureAssets.Texture("grading-lut");

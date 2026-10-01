@@ -13,6 +13,23 @@ import capture_cloth_materials as export
 
 
 class MaterialContracts(unittest.TestCase):
+    def test_global_weather_binding_set_is_explicit_and_validated(self):
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaises(ValueError):
+                export.collect(None, None, Path(folder), resource_set=2)
+            fixture = Fixture()
+            original = fixture.GetShaderReflection
+            def global_reflection(stage):
+                result = original(stage)
+                for resource in result.readOnlyResources:
+                    resource.fixedBindSetOrSpace = 0
+                return result
+            fixture.GetShaderReflection = global_reflection
+            with patch.object(export, "sampler_record", side_effect=lambda value: sampler(value.number)):
+                records = export.collect(fixture.rd, fixture, Path(folder), resource_set=0)
+            self.assertEqual(len(records), 9)
+            self.assertTrue(all(record["binding"]["set"] == 0 for record in records))
+
     def test_variant_roles_do_not_invent_cloth01_emission_or_shadow_lut(self):
         self.assertEqual(
             export.ROLES[835], {"SpecRamp": 1, "P": 2, "DiffRamp": 3, "Base": 5}
