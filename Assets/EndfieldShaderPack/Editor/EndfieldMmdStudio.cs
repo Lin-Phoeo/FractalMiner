@@ -30,6 +30,9 @@ namespace EndfieldShaderPack
         bool ownsSceneSession;
         EndfieldCharacterShadowCaster transientShadowCaster;
         EndfieldWetnessSession renderSession;
+        EndfieldSecondaryMotion secondaryMotion;
+        bool secondaryMotionEnabled = true;
+        object lastPhysicsInputs;
 
         // 最近一次载入的文件组合（会话内存）
         string lastMotionPath = "";
@@ -76,6 +79,7 @@ namespace EndfieldShaderPack
         void OnDisable()
         {
             playing = false;
+            secondaryMotion?.Dispose(); secondaryMotion = null;
             renderSession?.Dispose(); renderSession = null;
             if (camDrive) { camDrive = false; camDriver.Restore(); }
             ReleaseTransientShadowCaster();
@@ -108,14 +112,26 @@ namespace EndfieldShaderPack
         void ApplyAt(float t)
         {
             if (player == null || charRoot == null) return;
-            player.Reset();
-            player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
-            if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
+            if (secondaryMotion != null)
+            {
+                var inputs=(scale,height,soleBelowFootBone,inPlace,keepFeetAboveFloor,ikMode,amp,ampArms,ampLegs,ampHead);
+                if(!inputs.Equals(lastPhysicsInputs))
+                {secondaryMotion.ResetTimeline();lastPhysicsInputs=inputs;}
+                secondaryMotion.Evaluate(t, ApplyAnimatedPose, secondaryMotionEnabled);
+            }
+            else ApplyAnimatedPose(t);
             Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
             if (camDrive && camDriver.HasKeys)
                 camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
             SceneView.RepaintAll();
             EditorApplication.QueuePlayerLoopUpdate();
+        }
+
+        void ApplyAnimatedPose(float t)
+        {
+            player.Reset();
+            player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
+            if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
         }
 
         // ================= 载入 =================
@@ -158,6 +174,7 @@ namespace EndfieldShaderPack
                 MmdRigDefinition sourceRig = string.IsNullOrEmpty(sourceRigJsonPath) ? null :
                     MmdRigDefinition.FromFile(sourceRigJsonPath);
                 player = MmdPlayer.Load(clip, charRoot, sourceRig);
+                secondaryMotion = new EndfieldSecondaryMotion(charRoot);
                 scale = player.suggestedScale;
                 camDriver.UseMotionClip(clip);
                 if (camDriver.target == null) camDriver.target = cam;
@@ -313,6 +330,7 @@ namespace EndfieldShaderPack
                 camDrive = false;
             }
             player = null;
+            secondaryMotion?.Dispose(); secondaryMotion = null;
             renderSession?.Dispose(); renderSession = null;
             ReleaseTransientShadowCaster();
         }
@@ -418,6 +436,15 @@ namespace EndfieldShaderPack
                 renderSession.Weather.wetEnabled = EditorGUILayout.Toggle("布料湿身预览（b471）", renderSession.Weather.wetEnabled);
                 if (renderSession.Weather.wetEnabled)
                     renderSession.Weather.rain = EditorGUILayout.Slider("雨量", renderSession.Weather.rain, 0, 1);
+                if (secondaryMotion != null)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    secondaryMotionEnabled = EditorGUILayout.Toggle("长发/裙摆物理（替代求解）", secondaryMotionEnabled);
+                    if (EditorGUI.EndChangeCheck()) ApplyAt(time);
+                    if (GUILayout.Button("重置物理并重放到当前时间"))
+                    { secondaryMotion.ResetTimeline(); ApplyAt(time); }
+                    EditorGUILayout.HelpBox("固定120Hz；拖动时间会从起点重放。仅长发/裙摆24关节，不是官方物理算法，也未保证所有动作无穿模。", MessageType.None);
+                }
                 EditorApplication.QueuePlayerLoopUpdate();
             }
 
@@ -455,6 +482,7 @@ namespace EndfieldShaderPack
                 height = EditorGUILayout.Slider("高度修正", height, -1f, 1f);
                 if (GUILayout.Button("重校准 T-pose", GUILayout.Width(110)))
                 {
+                    secondaryMotion?.ResetTimeline(); // never recalibrate from simulated secondary locals
                     bool ok = player.Recalibrate();
                     info += "\n重校准 " + (ok ? "成功" : "失败");
                     ApplyAt(time);
@@ -574,16 +602,12 @@ namespace EndfieldShaderPack
             yield return null;
 
             var sw = Stopwatch.StartNew();
+            secondaryMotion?.ResetTimeline();
             const int w = 1920, h = 1080;
             for (int k = 0; k < count; k++)
             {
                 float t = t0 + k / (float)outFps;
-                player.Reset();
-                player.ApplyFrame(t, scale, inPlace, height, ikMode, amp, ampArms, ampLegs, ampHead);
-                if (keepFeetAboveFloor) player.KeepFeetAboveBindFloor(soleBelowFootBone);
-                if (camDrive && camDriver.HasKeys)
-                    camDriver.Apply(t, scale, charRoot, player.bindRootWorld);
-                Endfield.EndfieldSkinBasisDriver.ApplyForTyphoeus(charRoot);
+                ApplyAt(t); // exactly the preview animation/physics/basis/camera chain
                 renderSession.SavePreview(Path.Combine(dir,
                     "frame_" + k.ToString("D4") + ".png"), w, h, false);
 

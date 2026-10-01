@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-01",
+  "scope": "Alternate long-hair/skirt physics in MMD Studio only; not certified official physics or perfect MMD",
+  "parent_record_commit": "ea456801c2ac0b7f868257fc1d0a1e642db0fb9c",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "source": {
+    "url": "https://github.com/vrm-c/UniVRM/blob/8d33850c433881a765ccd88c2839f1042d414094/Assets/VRM/Runtime/SpringBone/VRMSpringBone.cs",
+    "license": "MIT",
+    "adopted": "Verlet / rotation core with explicit weighted-chain, fixed tick, timeline and collision projection adaptations"
+  },
+  "physics": {
+    "driven_joints": 24,
+    "hair": 10,
+    "skirt": 14,
+    "step_hz": 120,
+    "unweighted_tips_excluded": 9,
+    "parameters": "authored alternate preview defaults, NOT extracted official configuration",
+    "mesh_collision_free": false
+  },
+  "validation": {
+    "unity_physics_checks": 716,
+    "unity_wet_regression_checks": 513,
+    "python_passed": 474,
+    "python_historical_skipped": 3,
+    "python_subtests_passed": 80,
+    "ruff": "PASS",
+    "pyright": "PASS",
+    "pip_audit": "no known vulnerabilities in temporary Python tool environment",
+    "csharp_hlsl_line_coverage": null,
+    "source_motion": "UNFORGIVEN; 52 tracks; 4146 bone keys; approx37.7s",
+    "full_timeline_evaluation": true,
+    "full_timeline_collision_certification": false,
+    "studio_preview_export_state_consistency": true,
+    "video": {
+      "frames": 61,
+      "fps": 30,
+      "width": 960,
+      "height": 600,
+      "duration_seconds": 2.033333,
+      "audio": false
+    }
+  },
+  "retained_failures": [
+    "secondary-motion-20261001-03-red",
+    "secondary-motion-20261001-04",
+    "secondary-motion-20261001-05",
+    "secondary-motion-20261001-07-red"
+  ],
+  "sha256_raw_files": {
+    "Assets/EndfieldShaderPack/Editor/EndfieldSecondaryMotion.cs": "31e7d49fe264a17b1829995198a5df41ed285d1ca527aa10ff379e65d906805a",
+    "Assets/EndfieldShaderPack/Editor/EndfieldSecondaryMotionValidation.cs": "8b61c7b98eca35f12e5bb1c3e763e58466e58f03c52551082f8274d33b8d4157",
+    "Assets/EndfieldShaderPack/Editor/EndfieldMmdStudio.cs": "548705fad1ae86e52dc3df79d6e622889263914bfb99fdb2ce16e623a0fceef7",
+    "Assets/Typhoeus/_typhoea_model_data.json": "008b95e54768515b621ce0775e96f8b133b7089b1ac33da7cf9c9e3ed121d860",
+    "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "Assets/Scenes/Typhoeus_MMD_Stage.unity": "b7a3d627497234d676cddbf038b047434a85de68d8aa0b8b19a9c47414324c61",
+    "ProjectSettings/QualitySettings.asset": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "ProjectSettings/GraphicsSettings.asset": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68",
+    "docs/research/character-shadow-evidence-20260923.md": "7ec85b0632c46108779e77be54417975e096d898e41739ef79444f34c0137a1a",
+    "Validation/secondary-motion-20261001-10/report.txt": "aff4fb1826ebabf9531f04c48dde130d2f3b34f72ae79fe11fe3a87c6138dcf7",
+    "Validation/secondary-motion-20261001-10/03-mmd-physics-wet.png": "6536656cd9147f40e58351245a0567e49f81ecb5d20a5bd7296823e0b9d8bd74",
+    "Validation/secondary-motion-20261001-10/mmd-physics-wet-preview.mp4": "113caf5b714c74191a57222429a975f3f5ca06bea74c9b41f84083ea1c618b24",
+    "Validation/wetness-physics-regression-20261001-01/report.txt": "bc00740b311aa91932103b0b406a97c4fa84bfc579533cb9314d8bf707004ca7"
+  }
+}

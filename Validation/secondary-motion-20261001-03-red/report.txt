@@ -1,0 +1,3 @@
+FAIL System.InvalidOperationException: secondary-motion implementation exists
+  at EndfieldShaderPack.EndfieldSecondaryMotionValidation.Check (System.Boolean ok, System.String why) [0x0002b] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldSecondaryMotionValidation.cs:20 
+  at EndfieldShaderPack.EndfieldSecondaryMotionValidation.RunBatch () [0x0005c] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldSecondaryMotionValidation.cs:36 
