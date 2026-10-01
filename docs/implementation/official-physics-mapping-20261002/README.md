@@ -109,3 +109,5 @@ python 'FractalMiner/Tools/map_official_physics_skeleton.py' `
 5. 若选 MagicaCloth 2 作为可用替代，先确认项目授权与集成兼容性；本轮未购买、未导入该插件，也未承诺替换插件即可等价还原。其他官方 GPU Cloth 的存在不证明本角色就走那条链。
 
 验收：18 个新增测试；全部 Python 测试 526 passed、3 项历史 skip、114 subtests passed、2 项历史 Pillow 弃用告警。新增映射工具含分支覆盖率 89.95%。Ruff/Pyright/pip-audit 通过；两个 C# 入口分别编译 0 错误、0 警告。Unity 未重跑，Unity 文件与主索引保持不变。
+
+后续检查点：[源模型一致性、局部姿态区间与碰撞挂接计划](../official-physics-local-pose-20261002/README.md)。现有模型 palette/bindpose 与已有原始导出精确一致；局部空间差异集中于旋转，18 个额外碰撞挂点已生成离线恢复计划。未修改本页历史门禁结果，也未升级为已接入官方物理。

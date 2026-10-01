@@ -7,6 +7,7 @@ An identity match and a constant-basis compatibility test are separate gates.
 import argparse
 import hashlib
 import json
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -129,6 +130,159 @@ def trs(node: dict[str, Any]) -> np.ndarray:
     return matrix
 
 
+def audit_model_provenance(
+    model: dict[str, Any], avatar: dict[str, Any], raw_meshes: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Verify the existing model builder's exact source flattening/palette contract.
+
+    This does not certify the mesh reader or infer which authored pose is intended.
+    In particular Mij are flattened by rows, then current C# reads by columns.
+    """
+    names = avatar["bonePathsStr"]
+    paths = avatar["bonePaths"]
+    if len(names) != len(paths) or len(names) != len(model["bones"]):
+        raise ValueError("Avatar/model bone count mismatch")
+    hashes = []
+    for index, (name, path, bone) in enumerate(
+        zip(names, paths, model["bones"], strict=True)
+    ):
+        chain = path["boneIdxs"]
+        if (
+            not chain
+            or chain[-1] != index
+            or any(
+                type(item) is not int or not 0 <= item < len(names) for item in chain
+            )
+            or len(set(chain)) != len(chain)
+        ):
+            raise ValueError("Invalid source Avatar path")
+        parent = chain[-2] if len(chain) > 1 else -1
+        if bone != {"name": name or "Armature", "parent": parent}:
+            raise ValueError("Model bone definition differs from source Avatar")
+        full_path = "/".join(names[item] for item in chain if names[item])
+        hashes.append(zlib.crc32(full_path.encode("utf-8")))
+    if len(set(hashes)) != len(hashes):
+        raise ValueError("Ambiguous Avatar path CRC")
+    raw_by_name = {mesh["m_Name"]: mesh for mesh in raw_meshes}
+    model_names = [mesh["name"] for mesh in model["meshes"]]
+    if (
+        len(raw_by_name) != len(raw_meshes)
+        or len(set(model_names)) != len(model_names)
+        or set(raw_by_name) != set(model_names)
+        or not model_names
+    ):
+        raise ValueError("Missing/duplicate raw or model mesh")
+    count = 0
+    for mesh in model["meshes"]:
+        raw = raw_by_name[mesh["name"]]
+        palette = mesh["bones"]
+        if any(
+            type(index) is not int or not 0 <= index < len(names) for index in palette
+        ):
+            raise ValueError("Invalid model palette")
+        if [hashes[index] for index in palette] != raw["m_BoneNameHashes"]:
+            raise ValueError("Model palette differs from source name hashes")
+        matrices = raw["m_BindPose"]
+        if len(matrices) != len(palette):
+            raise ValueError("Raw bindpose count mismatch")
+        keys = [f"M{row}{col}" for row in range(4) for col in range(4)]
+        if any(not set(keys).issubset(matrix) for matrix in matrices):
+            raise ValueError("Missing raw matrix field")
+        flat = [matrix[key] for matrix in matrices for key in keys]
+        if (
+            not np.isfinite(np.array(flat, dtype=float)).all()
+            or flat != mesh["bindPoses"]
+        ):
+            raise ValueError("Model bindpose values differ from original raw export")
+        count += len(matrices)
+    return {
+        "source_model_bone_definitions_match": True,
+        "raw_palette_and_bindposes_exact_match": True,
+        "meshes": len(model_names),
+        "bindpose_matrices": count,
+        "non_claim": "Exact match to existing raw exports, not independent certification of the original mesh parser or authored/rest pose equivalence.",
+    }
+
+
+def physics_binding_plan(
+    bindings: dict[str, Any], mapping: list[dict[str, Any]], weighted: set[int]
+) -> dict[str, Any]:
+    """Resolve references and preserve extra mount TRS without installing physics."""
+    nodes = {node["id"]: node for node in bindings["transforms"]}
+    by_pid = {node["path_id"]: node for node in nodes.values()}
+    indices = {
+        entry["source_id"]: entry["model_index"]
+        for entry in mapping
+        if not entry["synthetic"]
+    }
+
+    def mapped_references(references: list[dict[str, Any]]) -> list[int]:
+        if any(node["id"] not in indices for node in references):
+            raise ValueError("Unmapped physics root/ignore reference")
+        return [indices[node["id"]] for node in references]
+
+    groups = []
+    for group in bindings["groups"]:
+        roots = mapped_references(group["roots"])
+        groups.append(
+            {
+                "name": group["name"],
+                "root_model_indices": roots,
+                "unweighted_root_indices": [
+                    index for index in roots if index not in weighted
+                ],
+                "ignored_model_indices": mapped_references(group["ignored"]),
+                "collider_ids": group["collider_ids"],
+            }
+        )
+    colliders = []
+    for collider in bindings["colliders"]:
+        node = nodes.get(collider["transform_id"])
+        chain = []
+        visited = set()
+        while node is not None and node["id"] not in indices:
+            if node["id"] in visited:
+                raise ValueError("Cyclic collider mount ancestry")
+            visited.add(node["id"])
+            chain.append(node)
+            node = by_pid.get(node["parent_path_id"])
+        if node is None:
+            raise ValueError("Collider mount has no mapped ancestor")
+        chain.reverse()
+        matrix = np.eye(4)
+        for step in chain:
+            matrix = matrix @ trs(step)
+        colliders.append(
+            {
+                "component_id": collider["id"],
+                "source_transform_id": collider["transform_id"],
+                "anchor_model_index": indices[node["id"]],
+                "source_local_chain": [
+                    {
+                        key: step[key]
+                        for key in (
+                            "id",
+                            "name",
+                            "local_position",
+                            "local_rotation_xyzw",
+                            "local_scale",
+                        )
+                    }
+                    for step in chain
+                ],
+                "anchor_local_matrix": matrix.tolist(),
+                "shape_fingerprint": collider["shape_fingerprint"],
+                "class_resolved": collider["class_resolved"],
+            }
+        )
+    return {
+        "groups": groups,
+        "colliders": colliders,
+        "runtime_ready": False,
+        "non_claim": "A source-local mount plan, not a collider geometry conversion or proof of target local-axis equivalence; official classes, semantics and pose-space gates remain pending.",
+    }
+
+
 def audit_basis(
     bindings: dict[str, Any], mapping: list[dict[str, Any]], model: dict[str, Any]
 ) -> dict[str, Any]:
@@ -202,6 +356,51 @@ def audit_basis(
         )
     translation = max(item["translation_deviation"] for item in deviations)
     linear = max(item["linear_deviation"] for item in deviations)
+    # Relative transforms cancel any uniform left basis. Compare each weighted
+    # bone to its nearest weighted ancestor; never invent identity for helpers
+    # that have no stored bindpose. A spanning interval is not a single-joint
+    # attribution and must retain its intermediate indices.
+    bind_worlds = {
+        index: np.linalg.inv(matrix) for index, matrix in first_bind_by_bone.items()
+    }
+    intervals = []
+    unanchored_roots = []
+    for index in sorted(bind_worlds):
+        ancestor = model["bones"][index]["parent"]
+        intermediate = []
+        while ancestor != -1 and ancestor not in bind_worlds:
+            intermediate.append(ancestor)
+            ancestor = model["bones"][ancestor]["parent"]
+        if ancestor == -1:
+            unanchored_roots.append(index)
+            continue
+        source = by_id[mapping[index]["source_id"]]
+        source_ancestor = by_id[mapping[ancestor]["source_id"]]
+        source_relative = np.linalg.inv(world(source_ancestor["path_id"])) @ world(
+            source["path_id"]
+        )
+        bind_relative = np.linalg.inv(bind_worlds[ancestor]) @ bind_worlds[index]
+        local_translation = float(
+            np.linalg.norm(source_relative[:3, 3] - bind_relative[:3, 3])
+        )
+        local_linear = float(
+            np.max(np.abs(source_relative[:3, :3] - bind_relative[:3, :3]))
+        )
+        intervals.append(
+            {
+                "model_index": index,
+                "model_path": mapping[index]["model_path"],
+                "ancestor_model_index": ancestor,
+                "ancestor_model_path": mapping[ancestor]["model_path"],
+                "direct_parent": not intermediate,
+                "unweighted_intermediate_indices": intermediate,
+                "translation_deviation": local_translation,
+                "linear_deviation": local_linear,
+                "matched": local_translation <= 1e-4 and local_linear <= 1e-4,
+                "source_relative_matrix": source_relative.tolist(),
+                "bind_relative_matrix": bind_relative.tolist(),
+            }
+        )
     return {
         "constant_left_basis_pass": translation <= 1e-4 and linear <= 1e-4,
         "tolerance": 1e-4,
@@ -213,6 +412,14 @@ def audit_basis(
         "candidate_basis": baseline.tolist(),
         "maximum_translation_deviation": translation,
         "maximum_linear_deviation": linear,
+        "local_interval_audit": {
+            "palette_input_consistent": repeat_maximum <= 1e-4,
+            "matched_intervals": sum(item["matched"] for item in intervals),
+            "mismatched_intervals": sum(not item["matched"] for item in intervals),
+            "unanchored_palette_roots": unanchored_roots,
+            "intervals": intervals,
+            "non_claim": "Relative intervals cancel the global basis; spanning intervals cannot isolate an individual unweighted joint. Neither a match nor a mismatch supplies a runtime pose correction.",
+        },
         "worst_observations": sorted(
             deviations, key=lambda item: item["translation_deviation"], reverse=True
         )[:20],
@@ -222,13 +429,29 @@ def audit_basis(
 
 
 def export_files(
-    bindings_path: Path, model_path: Path, contract_path: Path, output: Path
+    bindings_path: Path,
+    model_path: Path,
+    contract_path: Path,
+    output: Path,
+    avatar_path: Path | None = None,
+    raw_mesh_dir: Path | None = None,
 ) -> None:
     if output.exists():
         raise FileExistsError(f"Refusing to overwrite {output}")
     paths = [bindings_path, model_path, contract_path]
     inputs = [json.loads(path.read_text(encoding="utf-8-sig")) for path in paths]
     bindings, model, contract = inputs
+    if (avatar_path is None) != (raw_mesh_dir is None):
+        raise ValueError("Pass both source Avatar and raw mesh directory")
+    provenance = None
+    if avatar_path is not None and raw_mesh_dir is not None:
+        raw_paths = sorted(raw_mesh_dir.glob("*.json"))
+        avatar = json.loads(avatar_path.read_text(encoding="utf-8-sig"))
+        raw_meshes = [
+            json.loads(path.read_text(encoding="utf-8-sig")) for path in raw_paths
+        ]
+        provenance = audit_model_provenance(model, avatar, raw_meshes)
+        paths.extend([avatar_path, *raw_paths])
     mapping = map_bones(bindings, model["bones"], contract)
     result = {
         "schema_version": 1,
@@ -236,6 +459,12 @@ def export_files(
         "identity_mapping_pass": True,
         "mapping": mapping,
         "basis_audit": audit_basis(bindings, mapping, model),
+        "source_model_provenance": provenance,
+        "physics_binding_plan": physics_binding_plan(
+            bindings,
+            mapping,
+            {index for mesh in model["meshes"] for index in mesh["bones"]},
+        ),
         "source_sha256": {
             str(path.resolve()): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in paths
@@ -250,8 +479,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("bindings", "model", "contract", "output"):
         parser.add_argument(f"--{name}", type=Path, required=True)
+    parser.add_argument("--avatar", type=Path)
+    parser.add_argument("--raw-mesh-dir", type=Path)
     args = parser.parse_args()
-    export_files(args.bindings, args.model, args.contract, args.output)
+    export_files(
+        args.bindings,
+        args.model,
+        args.contract,
+        args.output,
+        args.avatar,
+        args.raw_mesh_dir,
+    )
     print(f"Offline skeleton mapping/basis audit: {args.output}")
 
 
