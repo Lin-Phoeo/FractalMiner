@@ -22,9 +22,10 @@
 //    - 色彩调节 _ColorAdjustment*(brightness/contrast/saturation/rim)
 //    - 描边 _EnableOutline + _Outline*(亮度/饱和度/遮罩/平滑法线)
 //
-//  法线说明：终末地法线为 10bit×3 有符号 + 1bit 符号的单 float
-//  压缩格式，需先经 EndfieldNormalDecompress.cs 还原为标准切线
-//  空间 RGB 法线贴图，再挂到 _BumpMap。
+//  法线说明：模型的压缩顶点法线与材质 N/HN 贴图是不同的数据链。
+//  source Cloth 按 R*A/G 解码 N；source Hair 按 RG/BA 解码 HN。
+//  不能把顶点解压当作 RGB 法线贴图生成步骤；native vertex-fetch、
+//  skinning 和实际贴图字节/mip 等价仍须分别核验。
 // ============================================================
 Shader "Endfield/CharacterLit"
 {
@@ -491,7 +492,8 @@ Shader "Endfield/CharacterLit"
             return lerp(c0, c1, bFrac);
         }
 
-        // 终末地法线解码 —— 与官方 HGRP/CharacterNPR 反编译逐行一致：
+        // 旧半精度法线适配，仅保留给尚未接入专用 source helper 的路径。
+        // 通道关系来自下列候选；其 sqrt 下限位置不等于实际 Cloth 源式。
         //   (characternpr_skin/Sub0_Pass0_Fragment_b95.hlsl L418-424)
         //     _466.w = _466.w * _466.x;              -> X = A * R
         //     _475  = (_466.wy * 2.0f) - 1.0f;       -> X=(A*R)*2-1, Y=G*2-1
@@ -510,6 +512,7 @@ Shader "Endfield/CharacterLit"
         #include "EndfieldOfficialHairNormals.hlsl"
         #include "EndfieldOfficialHair.hlsl"
         #include "EndfieldOfficialClothEmission.hlsl"
+        #include "EndfieldOfficialClothNormals.hlsl"
         #include "EndfieldOfficialSkin.hlsl"
         #include "EndfieldOfficialCloth.hlsl"
         #include "EndfieldOfficialEye.hlsl"
@@ -607,12 +610,9 @@ Shader "Endfield/CharacterLit"
                     half3 normalTS = half3(xy * _BumpScale, sqrt(saturate(1.0 - dot(xy, xy))));
                     N = SafeNormalize(mul(normalTS, CharTBN(input, N)));
                 }
-                else if (_UseBumpMap > 0.5 && !(sourceHair && _UseSpecBumpMap > 0.5))
+                else if (_UseBumpMap > 0.5 && !sourceCloth && !(sourceHair && _UseSpecBumpMap > 0.5))
                 {
-                    half4 normalSample = sourceCloth
-                        ? SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearClamp,
-                            sourceUV, _EndfieldCapturedGlobalMipBias)
-                        : sourceClamp
+                    half4 normalSample = sourceClamp
                         ? SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BumpMap))
                         : SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BumpMap));
                     half3 normalTS = UnpackEndfieldNormal(normalSample, _BumpScale);
@@ -688,6 +688,27 @@ Shader "Endfield/CharacterLit"
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     else
                     {
+                        EFClothNormals clothNormals;
+                        clothNormals.mapped = N; // explicit unmapped fallback, not captured bump variant
+                        clothNormals.geometry = normalize(input.normalWS)
+                            * IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
+                        if (_UseBumpMap > 0.5)
+                        {
+                            float4 clothPackedNormal = SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearClamp,
+                                sourceUV, _EndfieldCapturedGlobalMipBias);
+                            clothNormals = EFClothDecodeNormals(clothPackedNormal, _BumpScale,
+                                input.normalWS, input.tangentWS,
+                                IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip));
+                        }
+                        // Raw signed normal diagnostics, enabled only explicitly in
+                        // the captured cloth path. No fitting or scene state changes.
+                        if (_EndfieldDebugValueMode > 8.5 && _EndfieldDebugValueMode < 9.5)
+                            return float4(clothNormals.mapped, 1);
+                        if (_EndfieldDebugValueMode >= 9.5 && _EndfieldDebugValueMode < 10.5)
+                            return float4(clothNormals.geometry, 1);
+                        float3 sourceV = normalize(input.viewDirWS);
+                        sourceVFXN = clothNormals.mapped;
+                        sourceVFXV = sourceV;
                         float sourceBaseAlpha = clothBaseMap.a * _BaseColor.a;
                         float sourceAlphaFactor = EFClothCapturedAlphaFactor(sourceBaseAlpha, _AlphaPremultiply);
                         float3 sourceEmission = 0;
@@ -698,9 +719,8 @@ Shader "Endfield/CharacterLit"
                             sourceEmission = EFClothCapturedEmission(emissionSample, _EmissionColor.rgb,
                                 _EmissionBrightness, sourceAlphaFactor);
                         }
-                        float3 vertexN = SafeNormalize(input.normalWS)
-                            * IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
-                        sourceColor = EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb, N, vertexN, V,
+                        sourceColor = EndfieldShadeOfficialCloth(sourceUV, clothBaseMap.rgb * _BaseColor.rgb,
+                            clothNormals.mapped, clothNormals.geometry, sourceV,
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow,
                             sourceAlphaFactor, sourceEmission);
                     }

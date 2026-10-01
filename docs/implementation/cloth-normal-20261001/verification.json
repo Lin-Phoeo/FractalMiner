@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-01",
+  "scope": "frame6411 PS22255 / PS37669 cloth fragment-normal algebra and CharacterLit consumption",
+  "official_cloth_full_certified": false,
+  "official_render_full_certified": false,
+  "pixel_fitting": false,
+  "record_parent": "7b1f81e5cd5b7992fce056b5735b9433b4c36bd0",
+  "actual_ps_sha256": {
+    "22255": "b2d68a56bc8fa136502b2ae2b08f0e56705f078808a413fbfa8657afa287f1f8",
+    "37669": "d47f4f5dbffcfd2d67c57bc42bbd070448fe0c3ce6413df63037acede06fd87a"
+  },
+  "gpu": {
+    "unity": "2022.3.30f1", "pipeline": "UnityEngine.Rendering.Universal.UniversalRenderPipeline",
+    "api": "Direct3D11", "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "kernel_cases": 31, "kernel_max_component_error": 1.3564337875138222e-7,
+    "kernel_error_limit": 2e-5,
+    "z_floor": 1.0000000168623835e-16, "z_floor_relative_error": 1.6862383489524291e-8,
+    "z_floor_relative_error_limit": 1e-5,
+    "production_cases": 14,
+    "production_mapped_error": 3.1985277759716269e-8,
+    "production_geometry_error": 4.1958060248425966e-8,
+    "production_diffuse_cpu_direction_reference_difference": 0,
+    "production_diffuse_response": 0.01485404372215271,
+    "production_vfx_error": 8.2829113234872409e-8,
+    "production_error_limit": 2e-5,
+    "character_lit_compiled_passes": 5, "compiled_keyword_scope": "default keywords only",
+    "csharp_compile_errors": 0, "shader_compile_errors": 0,
+    "native_vertex_input_certified": false, "real_texture_bytes_mips_sampler_certified": false,
+    "native16_output_platform_certified": false,
+    "report_path": "D:/EndfieldTechLib/notes/cloth-normal-20261001-01/gpu-probes-03.txt",
+    "report_sha256": "4a02dee14f11e3933cd1699627edfdef12d64590e6ff30ffe2b30fe6f3fadf6c"
+  },
+  "imported_normals_read_only_observation": {
+    "cloth01": {"graphicsFormat": "RGBA_DXT5_UNorm", "textureFormat": "DXT5", "width": 2048, "height": 2048, "type": "NormalMap", "sRGB": false},
+    "cloth02": {"graphicsFormat": "RGBA_DXT5_UNorm", "textureFormat": "DXT5", "width": 2048, "height": 2048, "type": "NormalMap", "sRGB": false},
+    "capture_format": "BC5_UNORM_BLOCK", "lossless_equivalence": false,
+    "original_import_settings_modified": false
+  },
+  "raw_bc5_candidates": [
+    {"resource": 37987, "zip_entry": "002959", "bytes": 5592432, "sha256": "e96d6fd9c9a1850ab0655f8fe42fd156beb992d19008fea1a5ac45e5c6c62841"},
+    {"resource": 37828, "zip_entry": "004532", "bytes": 5592432, "sha256": "9c7ab3cb6d4c7e85284f4caee838c5dd8978495ed147b38856808758b7db35d8"}
+  ],
+  "raw_candidate_mip_packing_final_draw_and_row_orientation_certified": false,
+  "regressions": {
+    "hair": {"normal_cases": 18, "production_invariants": 3, "status": "pass", "report_sha256": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"},
+    "emission": {"kernel_cases": 32, "production_cases": 16, "status": "pass", "report_sha256": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13"},
+    "python": {"passed": 287, "historical_skipped": 3, "subtests_passed": 3, "historical_warnings": 2}
+  },
+  "new_structure_guards": 6,
+  "ruff": "pass", "pyright_errors": 0,
+  "hlsl_instrumented_coverage": null,
+  "new_project_dependencies": false,
+  "python_isolated_tool_environment_pip_audit": {"status": "unavailable", "reason": "PyPI and fallback OSV TLS EOF", "tls_verification_disabled": false},
+  "v1": {"files": 6771, "anchors": 18, "integrity_ok": true, "pending_count": 79, "approval": "evidence-only"},
+  "v2": {
+    "files": 149, "anchors": 7, "full_snapshot_integrity_ok": false, "source_integrity_ok": true,
+    "pending_count": 24, "approval": "evidence-only", "seal_modified": false,
+    "original_verify_errors": ["changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader", "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"],
+    "remaining_unexpected_errors": []
+  },
+  "backup_directory": "D:/EndfieldTechLib/notes/cloth-normal-20261001-01",
+  "pre_edit_CharacterLit_sha256": "ff9ca6ab1b372d5efaaaca1b5f186ab22c4938a270d7180035f9faf9f2be4da5",
+  "main_head_unchanged": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_entries": 9557, "main_index_entry_differences": 0,
+  "scene_quality_graphics_hashes_unchanged": true
+}
