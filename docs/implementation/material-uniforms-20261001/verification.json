@@ -1,0 +1,194 @@
+{
+  "phase": "material-uniforms-20261001",
+  "approval": "bounded-six-draw-material-upload-only",
+  "frame": 6411,
+  "parent_record_commit": "576cef0a18d99440a9f67b6fe122c80141477aba",
+  "private_package": "Validation/Captures/material-uniforms-20261001-01",
+  "manifest_sha256": "943267aebf73d76b1aa0b8755c66bc5ba62af2f76085dba58c23bd6caee7909d",
+  "source_provenance_sha256": "a6f177b4cfc56a24abd4f4560efe083bee50291181fda27be331e76f43c1a2ec",
+  "sources": [
+    {
+      "event": 776,
+      "program": 22259,
+      "material": "M_actor_typhoea_iris_01",
+      "bytes": 400,
+      "file": "776-upm.raw",
+      "sha256": "643f73928e28a2b0300b798d07853921b1e7ccd755b0b3b4862eaa0d3b9ce206",
+      "shader_sha256": "0b34a60305f47c9e8ff32e79f16e5804fc3df1d08261128cb1465097f5a95d9b",
+      "actual_hlsl_sha256": "c372e6c7708333952f52e77a17bb3c2ba300d87543cd91cd1f944adeeaa2c2b3",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_eye/Sub0_Pass0_Fragment_b28.hlsl",
+      "reference_sha256": "8496d455a64622f87ebbc1649de32a35946e52662679db6205349a9149b53671"
+    },
+    {
+      "event": 786,
+      "program": 22250,
+      "material": "M_actor_typhoea_body_01",
+      "bytes": 368,
+      "file": "786-upm.raw",
+      "sha256": "f35b4eb86dcc6115467510c0deb48a2a61769dbe49fdc85d82eed6000b041c7b",
+      "shader_sha256": "2d19733e44f3586b5e1be4749a277af9d4b198c91a92a16ffe41af14e1ab96d2",
+      "actual_hlsl_sha256": "43d4d92caddb38bfdfbd6a022ebb2d9c4920ed9b578548305191886a1a3d4168",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b114.hlsl",
+      "reference_sha256": "f6d39cd116f95eaa35a129e9da84a8258efa0502ef39479461b46ecb371012e0"
+    },
+    {
+      "event": 835,
+      "program": 22255,
+      "material": "M_actor_typhoea_cloth_01",
+      "bytes": 336,
+      "file": "835-upm.raw",
+      "sha256": "4580d853496126a47801e4ebf7da136e6602162455f41ed9ce793ec9ca387e27",
+      "shader_sha256": "e2c3d5f19c14e12689d1c98424d94f514e5c06f3c5feee01e5c385360e7fe6a4",
+      "actual_hlsl_sha256": "b2d68a56bc8fa136502b2ae2b08f0e56705f078808a413fbfa8657afa287f1f8",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b471.hlsl",
+      "reference_sha256": "0f449421ac189205b40978788a25dde7709e74a27d17756087a437497d48b19d"
+    },
+    {
+      "event": 850,
+      "program": 37669,
+      "material": "M_actor_typhoea_cloth_02",
+      "bytes": 336,
+      "file": "850-upm.raw",
+      "sha256": "e13f42625b7a091db1ab9271d194343049fa792f187c184ef50acd798787a389",
+      "shader_sha256": "2817e9a7979169efec513d2f19e7f0c3740fbff5eb48bcfee49978c1b25143d1",
+      "actual_hlsl_sha256": "d47f4f5dbffcfd2d67c57bc42bbd070448fe0c3ce6413df63037acede06fd87a",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr/Sub0_Pass0_Fragment_b472.hlsl",
+      "reference_sha256": "9079206b4a5da702773a0c789452c0f48c4e8538e522a00167180dccb5d72521"
+    },
+    {
+      "event": 860,
+      "program": 37671,
+      "material": "M_actor_typhoea_face_01",
+      "bytes": 384,
+      "file": "860-upm.raw",
+      "sha256": "782f825640ae65a7463937b384c5b007c2b3ff74ba9169fdd388d6b5031df129",
+      "shader_sha256": "5c86693267a23337ad756f9ca02e14ef7c533aa521778095ad44051704908ea8",
+      "actual_hlsl_sha256": "49a1db74953ef3878d74c448af3113585fdb22e6a28af859b9db7aea8362468b",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_skin/Sub0_Pass0_Fragment_b138.hlsl",
+      "reference_sha256": "8485341ac6de9e45e2ef25791f2d17bf975b8b567913fe740950307376cade7d"
+    },
+    {
+      "event": 875,
+      "program": 22257,
+      "material": "M_actor_typhoea_hair_01",
+      "bytes": 448,
+      "file": "875-upm.raw",
+      "sha256": "162707b619e9b4c3f7f97dc4336dac79fbda75a05937e5fbdae0f3af8574cf5a",
+      "shader_sha256": "f2ea7b62f4e23e356908690084b0bed5f5e2562cfa3be2969420ad58abb7a052",
+      "actual_hlsl_sha256": "e2394790fca96e29a67f4a8925f4a04bdc977a493847fe284d128bfbfeca37b9",
+      "reference": "_dump_1.5.3/AllShader_1.5.3/Assets/packages/com.hg.render-pipelines/runtime/shaders/materials/characternpr/characternpr_hair/Sub0_Pass0_Fragment_b126.hlsl",
+      "reference_sha256": "abc21b605de1fe108bed9473c69056abc996ce553357eecfbc467ea4500b7e43"
+    }
+  ],
+  "correction": {
+    "property": "_AnisotropyColor2",
+    "old_flags": "HDR Color",
+    "official_flags": "Color",
+    "actual_ps_member": "_51_m42",
+    "offset": 240,
+    "actual_ps_declaration_line": 303,
+    "actual_ps_consumer_line": 1057,
+    "schema_line": 60,
+    "red_failed_components": 3,
+    "green_failed_components": 0,
+    "unchanged_tolerance": 0.000002,
+    "material_file_color_edits": false,
+    "exposure_or_compensation": false
+  },
+  "gpu": {
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "color_space": "Linear",
+    "draws": 6,
+    "raw_upm_bytes": 2272,
+    "ps_active_fields": 126,
+    "excluded_weather_selectors": 6,
+    "covered_active_fields": 120,
+    "additional_base_st_fields": 6,
+    "covered_fields": 126,
+    "covered_components": 225,
+    "independent_color_transfer_components": 8,
+    "default_debug_mode": 0,
+    "explicit_debug_modes": [
+      100,
+      120
+    ],
+    "related_gpu_regressions_passed": 5,
+    "eye_outline_policy_states": 8,
+    "full_scene_render_run": false
+  },
+  "reports_sha256": {
+    "uniform-gpu-report.txt": "dcceb71a23a73d1ee7fa225090424fc81afb66b32569ee477cac8aed77085ddc",
+    "uniform-red.txt": "c3c8680b68604ed696f78809a482822b4ee6035b7c836ab3409ad499dd4e9485",
+    "regression-native-hair-eye.txt": "fdd4a3de72f0af7ce764fd40fa29ccb291ce8ab355193fd66b6e179642505b4f",
+    "regression-native-cloth.txt": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+    "regression-skin-formula.txt": "e575c787a962497b66bd65cd91290d5fd36a026a56b1de23157a54e778c5448c",
+    "regression-hair-split.txt": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34",
+    "regression-official-formula.txt": "af71b0d3518501ea3ecbcaabfac1ff7bd687a900ce57e5ec59f09bee3437f5a6"
+  },
+  "report_hash_domain": "Local original report bytes; Git may normalize line endings",
+  "private_evidence_directory": "D:/EndfieldTechLib/notes/material-uniforms-20261001-01",
+  "python": {
+    "passed": 378,
+    "historical_skipped": 3,
+    "subtests": 77,
+    "existing_warnings": 2,
+    "new_module_tests": 36,
+    "new_module_executable_lines": 116,
+    "new_module_covered_lines": 116,
+    "new_module_line_coverage_percent": 100,
+    "csharp_hlsl_coverage_claim": false
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "pass",
+    "pip_audit": "No known vulnerabilities found; uv temporary tool environment only, no new project dependencies",
+    "final_offline_export_manifest_identical": true
+  },
+  "unchanged_material_asset_sha256": {
+    "M_actor_typhoea_hair_01.mat": "cc45020511e48a31d6860159ebbaeb21153a878ab8b66234de5f3876c300665c",
+    "M_actor_typhoea_body_01.mat": "e5b0f5a8784dbac23bc719155a39e97de9560535539406b0b5cc817fea38d9cc",
+    "M_actor_typhoea_face_01.mat": "25c8e13f4aa21571954d82cb2269072b509e1730ae9440d5d591c76dfeed5974",
+    "M_actor_typhoea_cloth_02.mat": "fe1e2acd2fd2e2913913a503788292080cb2187d698ee086071ff85f705667bd",
+    "M_actor_typhoea_cloth_01.mat": "f9ca8ed5f27f69d3fef359415bfede7c3e3c27435c257a9ed6608988c6eb1ce0",
+    "M_actor_typhoea_iris_01.mat": "9970a23ae36a185d59df41027aed08661348cea4d61ddeba56eb298f55bf537b"
+  },
+  "sealed_baselines": {
+    "v1": {
+      "integrity_ok": false,
+      "files": 6771,
+      "anchors": 18,
+      "pending": 79,
+      "errors": [
+        "changed:project:CODEX-HANDOVER-PROMPT.md"
+      ]
+    },
+    "v2": {
+      "integrity_ok": false,
+      "files": 149,
+      "anchors": 7,
+      "pending": 24,
+      "errors": [
+        "changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+      ]
+    }
+  },
+  "protected": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "not_claimed": [
+    "weather behavior",
+    "CP/global/directional-light producer equivalence",
+    "all shader variants",
+    "outline VS parameter audit",
+    "all 17 SMR/material slots",
+    "final scene or Player packaging",
+    "full rendering or MMD completion"
+  ]
+}

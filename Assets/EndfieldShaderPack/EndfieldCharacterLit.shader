@@ -159,7 +159,7 @@ Shader "Endfield/CharacterLit"
         _AnisotropyEdgeFade ("Legacy Anisotropy Edge Fade", Range(0.01,10)) = 1
         _AnisotropyRange2 ("Legacy Anisotropy Range2", Range(0,1)) = 0.7
         _AnisotropyColor ("Anisotropy Color", Color) = (1,1,1,1)
-        [HDR] _AnisotropyColor2 ("Anisotropy Color2", Color) = (0,0,0,1)
+        _AnisotropyColor2 ("Anisotropy Color2", Color) = (0,0,0,1)
         [ToggleUI] _UseLineMap ("Use Line Map", Float) = 0
         _LineMap ("Hairline Map", 2D) = "white" {}
         _LineAmount ("Hairline Amount", Range(0,1000)) = 300
@@ -520,6 +520,7 @@ Shader "Endfield/CharacterLit"
         #include "EndfieldOfficialSkin.hlsl"
         #include "EndfieldOfficialCloth.hlsl"
         #include "EndfieldOfficialEye.hlsl"
+        #include "EndfieldMaterialUniformProbe.hlsl"
         ENDHLSL
 
         // ============================================================
@@ -546,6 +547,8 @@ Shader "Endfield/CharacterLit"
 
             half4 frag(Varyings input, FRONT_FACE_TYPE frontFace : FRONT_FACE_SEMANTIC) : SV_Target
             {
+                if (_EndfieldDebugValueMode >= 100.0 && _EndfieldDebugValueMode <= 120.0)
+                    return EFMaterialUniformProbe((int)_EndfieldDebugValueMode - 100);
                 float2 uv = input.uv;
                 bool sourceShading = _EndfieldOfficialFrameEnabled > 0.5
                     && _EndfieldOfficialShadingEnabled > 0.5 && _CharacterParams1.y >= 0.5
