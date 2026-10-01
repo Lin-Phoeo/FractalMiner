@@ -1,0 +1,770 @@
+PASS secondary-motion implementation exists
+PASS exact reviewed 10 long-hair + 14 skirt + 6 tail joints; unweighted tips excluded
+PASS secondary-only ownership hair_R_base_a_01_jnt
+PASS secondary-only ownership hair_R_base_a_02_jnt
+PASS secondary-only ownership hair_R_base_a_03_jnt
+PASS secondary-only ownership hair_R_base_a_04_jnt
+PASS secondary-only ownership hair_R_base_a_05_jnt
+PASS secondary-only ownership hair_L_base_a_01_jnt
+PASS secondary-only ownership hair_L_base_a_02_jnt
+PASS secondary-only ownership hair_L_base_a_03_jnt
+PASS secondary-only ownership hair_L_base_a_04_jnt
+PASS secondary-only ownership hair_L_base_a_05_jnt
+PASS secondary-only ownership skirt_base_R_c_01_jnt
+PASS secondary-only ownership skirt_base_R_c_02_jnt
+PASS secondary-only ownership skirt_base_R_b_01_jnt
+PASS secondary-only ownership skirt_base_R_b_02_jnt
+PASS secondary-only ownership skirt_base_R_a_01_jnt
+PASS secondary-only ownership skirt_base_R_a_02_jnt
+PASS secondary-only ownership skirt_base_M_a_01_jnt
+PASS secondary-only ownership skirt_base_M_a_02_jnt
+PASS secondary-only ownership skirt_base_L_c_01_jnt
+PASS secondary-only ownership skirt_base_L_c_02_jnt
+PASS secondary-only ownership skirt_base_L_b_01_jnt
+PASS secondary-only ownership skirt_base_L_b_02_jnt
+PASS secondary-only ownership skirt_base_L_a_01_jnt
+PASS secondary-only ownership skirt_base_L_a_02_jnt
+PASS secondary-only ownership tail_M_stone_a_01_jnt
+PASS secondary-only ownership tail_M_stone_a_02_jnt
+PASS secondary-only ownership tail_M_stone_a_03_jnt
+PASS secondary-only ownership tail_M_stone_a_04_jnt
+PASS secondary-only ownership tail_M_stone_a_05_jnt
+PASS secondary-only ownership tail_M_stone_a_06_jnt
+PASS animated head produces measurable hair/skirt secondary rotation
+PASS solver does not overwrite primary animated head
+PASS direct seek and incremental playback agree at fixed 120 Hz
+PASS repeat same timestamp does not advance simulation
+PASS backward scrub replays deterministically from zero
+PASS same 120Hz result from 30fps sampling
+PASS same 120Hz result from 60fps sampling
+PASS disable removes simulated local rotations immediately
+PASS re-enable reconstructs timeline, not dirty physical rest
+PASS finite after 2400 substeps hair_R_base_a_01_jnt
+PASS bounded swing hair_R_base_a_01_jnt
+PASS finite after 2400 substeps hair_R_base_a_02_jnt
+PASS bounded swing hair_R_base_a_02_jnt
+PASS finite after 2400 substeps hair_R_base_a_03_jnt
+PASS bounded swing hair_R_base_a_03_jnt
+PASS finite after 2400 substeps hair_R_base_a_04_jnt
+PASS bounded swing hair_R_base_a_04_jnt
+PASS finite after 2400 substeps hair_R_base_a_05_jnt
+PASS bounded swing hair_R_base_a_05_jnt
+PASS finite after 2400 substeps hair_L_base_a_01_jnt
+PASS bounded swing hair_L_base_a_01_jnt
+PASS finite after 2400 substeps hair_L_base_a_02_jnt
+PASS bounded swing hair_L_base_a_02_jnt
+PASS finite after 2400 substeps hair_L_base_a_03_jnt
+PASS bounded swing hair_L_base_a_03_jnt
+PASS finite after 2400 substeps hair_L_base_a_04_jnt
+PASS bounded swing hair_L_base_a_04_jnt
+PASS finite after 2400 substeps hair_L_base_a_05_jnt
+PASS bounded swing hair_L_base_a_05_jnt
+PASS finite after 2400 substeps skirt_base_R_c_01_jnt
+PASS bounded swing skirt_base_R_c_01_jnt
+PASS finite after 2400 substeps skirt_base_R_c_02_jnt
+PASS bounded swing skirt_base_R_c_02_jnt
+PASS finite after 2400 substeps skirt_base_R_b_01_jnt
+PASS bounded swing skirt_base_R_b_01_jnt
+PASS finite after 2400 substeps skirt_base_R_b_02_jnt
+PASS bounded swing skirt_base_R_b_02_jnt
+PASS finite after 2400 substeps skirt_base_R_a_01_jnt
+PASS bounded swing skirt_base_R_a_01_jnt
+PASS finite after 2400 substeps skirt_base_R_a_02_jnt
+PASS bounded swing skirt_base_R_a_02_jnt
+PASS finite after 2400 substeps skirt_base_M_a_01_jnt
+PASS bounded swing skirt_base_M_a_01_jnt
+PASS finite after 2400 substeps skirt_base_M_a_02_jnt
+PASS bounded swing skirt_base_M_a_02_jnt
+PASS finite after 2400 substeps skirt_base_L_c_01_jnt
+PASS bounded swing skirt_base_L_c_01_jnt
+PASS finite after 2400 substeps skirt_base_L_c_02_jnt
+PASS bounded swing skirt_base_L_c_02_jnt
+PASS finite after 2400 substeps skirt_base_L_b_01_jnt
+PASS bounded swing skirt_base_L_b_01_jnt
+PASS finite after 2400 substeps skirt_base_L_b_02_jnt
+PASS bounded swing skirt_base_L_b_02_jnt
+PASS finite after 2400 substeps skirt_base_L_a_01_jnt
+PASS bounded swing skirt_base_L_a_01_jnt
+PASS finite after 2400 substeps skirt_base_L_a_02_jnt
+PASS bounded swing skirt_base_L_a_02_jnt
+PASS finite after 2400 substeps tail_M_stone_a_01_jnt
+PASS bounded swing tail_M_stone_a_01_jnt
+PASS finite after 2400 substeps tail_M_stone_a_02_jnt
+PASS bounded swing tail_M_stone_a_02_jnt
+PASS finite after 2400 substeps tail_M_stone_a_03_jnt
+PASS bounded swing tail_M_stone_a_03_jnt
+PASS finite after 2400 substeps tail_M_stone_a_04_jnt
+PASS bounded swing tail_M_stone_a_04_jnt
+PASS finite after 2400 substeps tail_M_stone_a_05_jnt
+PASS bounded swing tail_M_stone_a_05_jnt
+PASS finite after 2400 substeps tail_M_stone_a_06_jnt
+PASS bounded swing tail_M_stone_a_06_jnt
+PASS fixed segment length after long run
+PASS invalid timestamp rejected before pose writes: NaN
+PASS invalid timestamp rejected before pose writes: Infinity
+PASS invalid timestamp rejected before pose writes: -1
+PASS collision projection preserves both bone length and sphere exclusion
+PASS zero length collision input rejected
+PASS actual VMD calibration before physics
+MESH S_actor_Typhoea_vfxpart_01_lod0 maxDisplacement=0.229735255
+PASS secondary motion does not deform unrelated mesh S_actor_Typhoea_vfxpart_02_lod0
+MESH S_actor_Typhoea_vfxpart_02_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_Typhoea_vfxpart_03_lod0
+MESH S_actor_Typhoea_vfxpart_03_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_body_01_lod0
+MESH S_actor_typhoea_body_01_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_brow_01_lod0
+MESH S_actor_typhoea_brow_01_lod0 maxDisplacement=0
+MESH S_actor_typhoea_cloth_01_lod0 maxDisplacement=0.02132949
+MESH S_actor_typhoea_cloth_02_lod0 maxDisplacement=0.0140372245
+MESH S_actor_typhoea_cloth_03_lod0 maxDisplacement=0.003354637
+PASS weighted tail cloth04 actually deforms, not only unused helper bones
+MESH S_actor_typhoea_cloth_04_lod0 maxDisplacement=0.229393691
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_cloth_05_lod0
+MESH S_actor_typhoea_cloth_05_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_cloth_06_lod0
+MESH S_actor_typhoea_cloth_06_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_cloth_07_lod0
+MESH S_actor_typhoea_cloth_07_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_eyeshadow_01_lod0
+MESH S_actor_typhoea_eyeshadow_01_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_face_01_lod0
+MESH S_actor_typhoea_face_01_lod0 maxDisplacement=0
+MESH S_actor_typhoea_hair_01_lod0 maxDisplacement=0.233814672
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_hairshadow_01_lod0
+MESH S_actor_typhoea_hairshadow_01_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_iris_01_lod0
+MESH S_actor_typhoea_iris_01_lod0 maxDisplacement=0
+PASS real weighted hair/skirt mesh vertices move, not only unused helper bones
+PASS actual VMD half-second samples finite/fixed lengths t=0.0
+PASS actual VMD half-second samples finite/fixed lengths t=0.5
+PASS actual VMD half-second samples finite/fixed lengths t=1.0
+PASS actual VMD half-second samples finite/fixed lengths t=1.5
+PASS actual VMD half-second samples finite/fixed lengths t=2.0
+PASS actual VMD half-second samples finite/fixed lengths t=2.5
+PASS actual VMD half-second samples finite/fixed lengths t=3.0
+PASS actual VMD half-second samples finite/fixed lengths t=3.5
+PASS actual VMD half-second samples finite/fixed lengths t=4.0
+PASS actual VMD half-second samples finite/fixed lengths t=4.5
+PASS actual VMD half-second samples finite/fixed lengths t=5.0
+PASS actual VMD half-second samples finite/fixed lengths t=5.5
+PASS actual VMD half-second samples finite/fixed lengths t=6.0
+PASS actual VMD half-second samples finite/fixed lengths t=6.5
+PASS actual VMD half-second samples finite/fixed lengths t=7.0
+PASS actual VMD half-second samples finite/fixed lengths t=7.5
+PASS actual VMD half-second samples finite/fixed lengths t=8.0
+PASS actual VMD half-second samples finite/fixed lengths t=8.5
+PASS actual VMD half-second samples finite/fixed lengths t=9.0
+PASS actual VMD half-second samples finite/fixed lengths t=9.5
+PASS actual VMD half-second samples finite/fixed lengths t=10.0
+PASS actual VMD half-second samples finite/fixed lengths t=10.5
+PASS actual VMD half-second samples finite/fixed lengths t=11.0
+PASS actual VMD half-second samples finite/fixed lengths t=11.5
+PASS actual VMD half-second samples finite/fixed lengths t=12.0
+PASS actual VMD half-second samples finite/fixed lengths t=12.5
+PASS actual VMD half-second samples finite/fixed lengths t=13.0
+PASS actual VMD half-second samples finite/fixed lengths t=13.5
+PASS actual VMD half-second samples finite/fixed lengths t=14.0
+PASS actual VMD half-second samples finite/fixed lengths t=14.5
+PASS actual VMD half-second samples finite/fixed lengths t=15.0
+PASS actual VMD half-second samples finite/fixed lengths t=15.5
+PASS actual VMD half-second samples finite/fixed lengths t=16.0
+PASS actual VMD half-second samples finite/fixed lengths t=16.5
+PASS actual VMD half-second samples finite/fixed lengths t=17.0
+PASS actual VMD half-second samples finite/fixed lengths t=17.5
+PASS actual VMD half-second samples finite/fixed lengths t=18.0
+PASS actual VMD half-second samples finite/fixed lengths t=18.5
+PASS actual VMD half-second samples finite/fixed lengths t=19.0
+PASS actual VMD half-second samples finite/fixed lengths t=19.5
+PASS actual VMD half-second samples finite/fixed lengths t=20.0
+PASS actual VMD half-second samples finite/fixed lengths t=20.5
+PASS actual VMD half-second samples finite/fixed lengths t=21.0
+PASS actual VMD half-second samples finite/fixed lengths t=21.5
+PASS actual VMD half-second samples finite/fixed lengths t=22.0
+PASS actual VMD half-second samples finite/fixed lengths t=22.5
+PASS actual VMD half-second samples finite/fixed lengths t=23.0
+PASS actual VMD half-second samples finite/fixed lengths t=23.5
+PASS actual VMD half-second samples finite/fixed lengths t=24.0
+PASS actual VMD half-second samples finite/fixed lengths t=24.5
+PASS actual VMD half-second samples finite/fixed lengths t=25.0
+PASS actual VMD half-second samples finite/fixed lengths t=25.5
+PASS actual VMD half-second samples finite/fixed lengths t=26.0
+PASS actual VMD half-second samples finite/fixed lengths t=26.5
+PASS actual VMD half-second samples finite/fixed lengths t=27.0
+PASS actual VMD half-second samples finite/fixed lengths t=27.5
+PASS actual VMD half-second samples finite/fixed lengths t=28.0
+PASS actual VMD half-second samples finite/fixed lengths t=28.5
+PASS actual VMD half-second samples finite/fixed lengths t=29.0
+PASS actual VMD half-second samples finite/fixed lengths t=29.5
+PASS actual VMD half-second samples finite/fixed lengths t=30.0
+PASS actual VMD half-second samples finite/fixed lengths t=30.5
+PASS actual VMD half-second samples finite/fixed lengths t=31.0
+PASS actual VMD half-second samples finite/fixed lengths t=31.5
+PASS actual VMD half-second samples finite/fixed lengths t=32.0
+PASS actual VMD half-second samples finite/fixed lengths t=32.5
+PASS actual VMD half-second samples finite/fixed lengths t=33.0
+PASS actual VMD half-second samples finite/fixed lengths t=33.5
+PASS actual VMD half-second samples finite/fixed lengths t=34.0
+PASS actual VMD half-second samples finite/fixed lengths t=34.5
+PASS actual VMD half-second samples finite/fixed lengths t=35.0
+PASS actual VMD half-second samples finite/fixed lengths t=35.5
+PASS actual VMD half-second samples finite/fixed lengths t=36.0
+PASS actual VMD half-second samples finite/fixed lengths t=36.5
+PASS actual VMD half-second samples finite/fixed lengths t=37.0
+PASS actual VMD half-second samples finite/fixed lengths t=37.5
+PASS actual VMD final timestamp fixed lengths
+PASS real VMD/physics finite chr_0034_typhoea_rebuilt
+PASS real VMD/physics finite Armature
+PASS real VMD/physics finite Root
+PASS real VMD/physics finite Bip001
+PASS real VMD/physics finite Bip001_Pelvis
+PASS real VMD/physics finite Bip001_Spine
+PASS real VMD/physics finite Bip001_Spine1
+PASS real VMD/physics finite Bip001_Spine2
+PASS real VMD/physics finite Bip001_Neck
+PASS real VMD/physics finite Bip001_Head
+PASS real VMD/physics finite Bip001_HeadNub
+PASS real VMD/physics finite Head_Local
+PASS real VMD/physics finite hair_R_side_a_01_jnt
+PASS real VMD/physics finite hair_R_side_a_02_jnt
+PASS real VMD/physics finite hair_R_side_a_03_jnt
+PASS real VMD/physics finite hair_R_side_a_04_jnt
+PASS real VMD/physics finite hair_R_side_a_05_jnt
+PASS real VMD/physics finite hair_R_bangs_a_01_jnt
+PASS real VMD/physics finite hair_R_bangs_a_02_jnt
+PASS real VMD/physics finite hair_R_bangs_a_03_jnt
+PASS real VMD/physics finite hair_M_bangs_a_01_jnt
+PASS real VMD/physics finite hair_M_bangs_a_02_jnt
+PASS real VMD/physics finite hair_M_bangs_a_03_jnt
+PASS real VMD/physics finite hair_L_side_a_01_jnt
+PASS real VMD/physics finite hair_L_side_a_02_jnt
+PASS real VMD/physics finite hair_L_side_a_03_jnt
+PASS real VMD/physics finite hair_L_side_a_04_jnt
+PASS real VMD/physics finite hair_L_side_a_05_jnt
+PASS real VMD/physics finite hair_L_bangs_a_01_jnt
+PASS real VMD/physics finite hair_L_bangs_a_02_jnt
+PASS real VMD/physics finite hair_L_bangs_a_03_jnt
+PASS real VMD/physics finite hair_R_Strand_a_01_jnt
+PASS real VMD/physics finite hair_R_Strand_a_02_jnt
+PASS real VMD/physics finite hair_R_Strand_a_03_jnt
+PASS real VMD/physics finite hair_L_Strand_a_01_jnt
+PASS real VMD/physics finite hair_L_Strand_a_02_jnt
+PASS real VMD/physics finite hair_L_Strand_a_03_jnt
+PASS real VMD/physics finite hair_R_base_a_01_jnt
+PASS real VMD/physics finite hair_R_base_a_02_jnt
+PASS real VMD/physics finite hair_R_base_a_03_jnt
+PASS real VMD/physics finite hair_R_base_a_04_jnt
+PASS real VMD/physics finite hair_R_base_a_05_jnt
+PASS real VMD/physics finite hair_R_base_a_06_jnt
+PASS real VMD/physics finite hair_R_base_a_07_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_01_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_02_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_03_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_04_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_05_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_06_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_07_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_08_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_09_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_10_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_11_jnt
+PASS real VMD/physics finite hair_R_bowknot_a_12_jnt
+PASS real VMD/physics finite hair_L_base_a_01_jnt
+PASS real VMD/physics finite hair_L_base_a_02_jnt
+PASS real VMD/physics finite hair_L_base_a_03_jnt
+PASS real VMD/physics finite hair_L_base_a_04_jnt
+PASS real VMD/physics finite hair_L_base_a_05_jnt
+PASS real VMD/physics finite hair_L_base_a_06_jnt
+PASS real VMD/physics finite hair_L_base_a_07_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_01_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_02_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_03_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_04_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_05_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_06_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_07_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_08_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_09_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_10_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_11_jnt
+PASS real VMD/physics finite hair_L_bowknot_a_12_jnt
+PASS real VMD/physics finite face_Head
+PASS real VMD/physics finite eyeRtJoint
+PASS real VMD/physics finite faceRtIrisJoint
+PASS real VMD/physics finite faceRtPupilJoint
+PASS real VMD/physics finite faceRtHighlightJoint
+PASS real VMD/physics finite faceRtHighlight_b_Joint
+PASS real VMD/physics finite eyeRt01Joint
+PASS real VMD/physics finite eyeRt02Joint
+PASS real VMD/physics finite eyeRt02EyelashJoint
+PASS real VMD/physics finite eyeRt01EyelashJoint
+PASS real VMD/physics finite eyeRt03Joint
+PASS real VMD/physics finite eyeRt03EyelashJoint
+PASS real VMD/physics finite eyeRt03IrissdJoint
+PASS real VMD/physics finite eyeRt04Joint
+PASS real VMD/physics finite eyeRt04EyelashJoint
+PASS real VMD/physics finite eyeRt05Joint
+PASS real VMD/physics finite eyeRt05EyelashJoint
+PASS real VMD/physics finite eyeRt06Joint
+PASS real VMD/physics finite eyeRt07Joint
+PASS real VMD/physics finite eyeRt08Joint
+PASS real VMD/physics finite eyeLfJoint
+PASS real VMD/physics finite faceLfIrisJoint
+PASS real VMD/physics finite faceLfPupilJoint
+PASS real VMD/physics finite faceLfHighlightJoint
+PASS real VMD/physics finite faceLfHighlight_b_Joint
+PASS real VMD/physics finite eyeLf01Joint
+PASS real VMD/physics finite eyeLf02Joint
+PASS real VMD/physics finite eyeLf02EyelashJoint
+PASS real VMD/physics finite eyeLf01EyelashJoint
+PASS real VMD/physics finite eyeLf03Joint
+PASS real VMD/physics finite eyeLf03EyelashJoint
+PASS real VMD/physics finite eyeLf03IrissdJoint
+PASS real VMD/physics finite eyeLf04Joint
+PASS real VMD/physics finite eyeLf04EyelashJoint
+PASS real VMD/physics finite eyeLf05Joint
+PASS real VMD/physics finite eyeLf05EyelashJoint
+PASS real VMD/physics finite eyeLf06Joint
+PASS real VMD/physics finite eyeLf07Joint
+PASS real VMD/physics finite eyeLf08Joint
+PASS real VMD/physics finite browRt01Joint
+PASS real VMD/physics finite browRt02Joint
+PASS real VMD/physics finite browRt03Joint
+PASS real VMD/physics finite browRt04Joint
+PASS real VMD/physics finite browRt05Joint
+PASS real VMD/physics finite browLf01Joint
+PASS real VMD/physics finite browLf02Joint
+PASS real VMD/physics finite browLf03Joint
+PASS real VMD/physics finite browLf04Joint
+PASS real VMD/physics finite browLf05Joint
+PASS real VMD/physics finite faceLfCheekOtJoint
+PASS real VMD/physics finite faceLfCheekOtDnJoint
+PASS real VMD/physics finite faceMdJawDnJoint
+PASS real VMD/physics finite faceMdToothDnJoint
+PASS real VMD/physics finite faceMdToothUpJoint
+PASS real VMD/physics finite line_toothJoint
+PASS real VMD/physics finite faceRtCheekOtJoint
+PASS real VMD/physics finite faceRtCheekOtDnJoint
+PASS real VMD/physics finite NoseMd01Joint
+PASS real VMD/physics finite lipRup1Joint
+PASS real VMD/physics finite lipRup2Joint
+PASS real VMD/physics finite lipRup3Joint
+PASS real VMD/physics finite lipRup4Joint
+PASS real VMD/physics finite lipMupJoint
+PASS real VMD/physics finite lipLup4Joint
+PASS real VMD/physics finite lipLup3Joint
+PASS real VMD/physics finite lipLup2Joint
+PASS real VMD/physics finite lipLup1Joint
+PASS real VMD/physics finite lipRdn1Joint
+PASS real VMD/physics finite lipRdn2Joint
+PASS real VMD/physics finite lipRdn3Joint
+PASS real VMD/physics finite lipRdn4Joint
+PASS real VMD/physics finite lipMdnJoint
+PASS real VMD/physics finite lipLdn4Joint
+PASS real VMD/physics finite lipLdn3Joint
+PASS real VMD/physics finite lipLdn2Joint
+PASS real VMD/physics finite lipLdn1Joint
+PASS real VMD/physics finite jawJoint
+PASS real VMD/physics finite TongueMd01Joint
+PASS real VMD/physics finite TongueMd02Joint
+PASS real VMD/physics finite TongueMd03Joint
+PASS real VMD/physics finite TongueMd04Joint
+PASS real VMD/physics finite faceLfCheekOtUpJoint
+PASS real VMD/physics finite faceLfCheekOtInJoint
+PASS real VMD/physics finite faceRtCheekOtInJoint
+PASS real VMD/physics finite faceRtCheekOtUpJoint
+PASS real VMD/physics finite lineJoint
+PASS real VMD/physics finite browLineRt03Joint_a
+PASS real VMD/physics finite browLineRt02Joint_a
+PASS real VMD/physics finite browLineRt01Joint_a
+PASS real VMD/physics finite browLineLf03Joint_a
+PASS real VMD/physics finite browLineLf02Joint_a
+PASS real VMD/physics finite browLineLf01Joint_a
+PASS real VMD/physics finite Bip001_L_Clavicle
+PASS real VMD/physics finite Bip001_L_UpperArm
+PASS real VMD/physics finite Bip001_L_Forearm
+PASS real VMD/physics finite Bip001_L_Hand
+PASS real VMD/physics finite Bip001_L_Finger0
+PASS real VMD/physics finite Bip001_L_Finger01
+PASS real VMD/physics finite Bip001_L_Finger02
+PASS real VMD/physics finite Bip001_L_Finger0Nub
+PASS real VMD/physics finite Bip001_L_Finger1
+PASS real VMD/physics finite Bip001_L_Finger11
+PASS real VMD/physics finite Bip001_L_Finger12
+PASS real VMD/physics finite Bip001_L_Finger1Nub
+PASS real VMD/physics finite Bip001_L_Finger2
+PASS real VMD/physics finite Bip001_L_Finger21
+PASS real VMD/physics finite Bip001_L_Finger22
+PASS real VMD/physics finite Bip001_L_Finger2Nub
+PASS real VMD/physics finite Bip001_L_Finger3
+PASS real VMD/physics finite Bip001_L_Finger31
+PASS real VMD/physics finite Bip001_L_Finger32
+PASS real VMD/physics finite Bip001_L_Finger3Nub
+PASS real VMD/physics finite Bip001_L_Finger4
+PASS real VMD/physics finite Bip001_L_Finger41
+PASS real VMD/physics finite Bip001_L_Finger42
+PASS real VMD/physics finite Bip001_L_Finger4Nub
+PASS real VMD/physics finite wep_L
+PASS real VMD/physics finite Bip001_L_Hand_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_Hand_corrective_ty_minus
+PASS real VMD/physics finite Bip001_L_ForeTwist
+PASS real VMD/physics finite Bip001_L_ForeTwist1
+PASS real VMD/physics finite Bip001_L_Forearm_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_Forearm_corrective_ty_minus
+PASS real VMD/physics finite cloth_L_cuff_a_01_jnt
+PASS real VMD/physics finite cloth_L_cuff_a_02_jnt
+PASS real VMD/physics finite cloth_L_cuff_b_01_jnt
+PASS real VMD/physics finite cloth_L_cuff_b_02_jnt
+PASS real VMD/physics finite cloth_L_cuff_b_03_jnt
+PASS real VMD/physics finite cloth_L_cuff_c_01_jnt
+PASS real VMD/physics finite cloth_L_cuff_c_02_jnt
+PASS real VMD/physics finite cloth_L_cuff_c_03_jnt
+PASS real VMD/physics finite cloth_L_cuff_e_01_jnt
+PASS real VMD/physics finite cloth_L_cuff_e_02_jnt
+PASS real VMD/physics finite cloth_L_cuff_e_03_jnt
+PASS real VMD/physics finite cloth_L_cuff_d_01_jnt
+PASS real VMD/physics finite cloth_L_cuff_d_02_jnt
+PASS real VMD/physics finite cloth_L_cuff_d_03_jnt
+PASS real VMD/physics finite Bip001_LUpArmTwist
+PASS real VMD/physics finite Bip001_LUpArmTwist1
+PASS real VMD/physics finite cloth_L_UpperArm_b_01_jnt
+PASS real VMD/physics finite cloth_L_sleeve_b_01_jnt
+PASS real VMD/physics finite cloth_L_sleeve_c_01_jnt
+PASS real VMD/physics finite cloth_L_sleeve_a_01_jnt
+PASS real VMD/physics finite cloth_L_sleeve_d_01_jnt
+PASS real VMD/physics finite cloth_L_UpperArm_a_01_jnt
+PASS real VMD/physics finite Bip001_L_UpperArm_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_UpperArm_corrective_tz_plus
+PASS real VMD/physics finite Bip001_L_UpperArm_corrective_ty_minus
+PASS real VMD/physics finite Bip001_L_UpperArm_corrective_tz_minus
+PASS real VMD/physics finite cloth_L_UpperArm_c_01_jnt
+PASS real VMD/physics finite Bip001_R_Clavicle
+PASS real VMD/physics finite Bip001_R_UpperArm
+PASS real VMD/physics finite Bip001_R_Forearm
+PASS real VMD/physics finite Bip001_R_Hand
+PASS real VMD/physics finite Bip001_R_Finger0
+PASS real VMD/physics finite Bip001_R_Finger01
+PASS real VMD/physics finite Bip001_R_Finger02
+PASS real VMD/physics finite Bip001_R_Finger0Nub
+PASS real VMD/physics finite Bip001_R_Finger1
+PASS real VMD/physics finite Bip001_R_Finger11
+PASS real VMD/physics finite Bip001_R_Finger12
+PASS real VMD/physics finite Bip001_R_Finger1Nub
+PASS real VMD/physics finite Bip001_R_Finger2
+PASS real VMD/physics finite Bip001_R_Finger21
+PASS real VMD/physics finite Bip001_R_Finger22
+PASS real VMD/physics finite Bip001_R_Finger2Nub
+PASS real VMD/physics finite Bip001_R_Finger3
+PASS real VMD/physics finite Bip001_R_Finger31
+PASS real VMD/physics finite Bip001_R_Finger32
+PASS real VMD/physics finite Bip001_R_Finger3Nub
+PASS real VMD/physics finite Bip001_R_Finger4
+PASS real VMD/physics finite Bip001_R_Finger41
+PASS real VMD/physics finite Bip001_R_Finger42
+PASS real VMD/physics finite Bip001_R_Finger4Nub
+PASS real VMD/physics finite wep_R
+PASS real VMD/physics finite Bip001_R_Hand_corrective_ty_minus
+PASS real VMD/physics finite Bip001_R_Hand_corrective_ty_plus
+PASS real VMD/physics finite Bip001_R_ForeTwist
+PASS real VMD/physics finite Bip001_R_ForeTwist1
+PASS real VMD/physics finite Bip001_R_Forearm_corrective_ty_plus
+PASS real VMD/physics finite Bip001_R_Forearm_corrective_ty_minus
+PASS real VMD/physics finite cloth_R_cuff_a_01_jnt
+PASS real VMD/physics finite cloth_R_cuff_a_02_jnt
+PASS real VMD/physics finite cloth_R_cuff_c_01_jnt
+PASS real VMD/physics finite cloth_R_cuff_c_02_jnt
+PASS real VMD/physics finite cloth_R_cuff_c_03_jnt
+PASS real VMD/physics finite cloth_R_cuff_b_01_jnt
+PASS real VMD/physics finite cloth_R_cuff_b_02_jnt
+PASS real VMD/physics finite cloth_R_cuff_b_03_jnt
+PASS real VMD/physics finite cloth_R_cuff_e_01_jnt
+PASS real VMD/physics finite cloth_R_cuff_e_02_jnt
+PASS real VMD/physics finite cloth_R_cuff_e_03_jnt
+PASS real VMD/physics finite cloth_R_cuff_d_01_jnt
+PASS real VMD/physics finite cloth_R_cuff_d_02_jnt
+PASS real VMD/physics finite cloth_R_cuff_d_03_jnt
+PASS real VMD/physics finite Bip001_RUpArmTwist
+PASS real VMD/physics finite Bip001_RUpArmTwist1
+PASS real VMD/physics finite cloth_R_UpperArm_b_01_jnt
+PASS real VMD/physics finite cloth_R_sleeve_b_01_jnt
+PASS real VMD/physics finite cloth_R_sleeve_c_01_jnt
+PASS real VMD/physics finite cloth_R_sleeve_a_01_jnt
+PASS real VMD/physics finite cloth_R_sleeve_d_01_jnt
+PASS real VMD/physics finite cloth_R_UpperArm_a_01_jnt
+PASS real VMD/physics finite Bip001_R_UpperArm_corrective_ty_plus
+PASS real VMD/physics finite Bip001_R_UpperArm_corrective_tz_plus
+PASS real VMD/physics finite Bip001_R_UpperArm_corrective_tz_minus
+PASS real VMD/physics finite Bip001_R_UpperArm_corrective_ty_minus
+PASS real VMD/physics finite cloth_R_UpperArm_c_01_jnt
+PASS real VMD/physics finite Head_Lookat_Joints
+PASS real VMD/physics finite wep_M
+PASS real VMD/physics finite cloth_R_coat_c_01_jnt
+PASS real VMD/physics finite cloth_R_coat_c_02_jnt
+PASS real VMD/physics finite cloth_R_coat_b_01_jnt
+PASS real VMD/physics finite cloth_R_coat_b_02_jnt
+PASS real VMD/physics finite cloth_R_coat_a_01_jnt
+PASS real VMD/physics finite cloth_R_coat_a_02_jnt
+PASS real VMD/physics finite cloth_L_coat_c_01_jnt
+PASS real VMD/physics finite cloth_L_coat_c_02_jnt
+PASS real VMD/physics finite cloth_L_coat_b_01_jnt
+PASS real VMD/physics finite cloth_L_coat_b_02_jnt
+PASS real VMD/physics finite cloth_L_coat_a_01_jnt
+PASS real VMD/physics finite cloth_L_coat_a_02_jnt
+PASS real VMD/physics finite breast_base_R_a_01_jnt
+PASS real VMD/physics finite breast_base_R_a_02_jnt
+PASS real VMD/physics finite breast_base_L_a_01_jnt
+PASS real VMD/physics finite breast_base_L_a_02_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_01_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_02_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_03_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_04_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_05_jnt
+PASS real VMD/physics finite acc_R_Gadget_a_06_jnt
+PASS real VMD/physics finite slot_M_potentialEffect_01_vfx
+PASS real VMD/physics finite acc_M_pouch_a_01_jnt
+PASS real VMD/physics finite acc_M_pouch_a_02_jnt
+PASS real VMD/physics finite acc_L_beltBag_a_01_jnt
+PASS real VMD/physics finite acc_L_beltBag_a_02_jnt
+PASS real VMD/physics finite acc_L_beltBag_a_03_jnt
+PASS real VMD/physics finite acc_L_beltBag_a_04_jnt
+PASS real VMD/physics finite tail_M_stone_a_01_jnt
+PASS real VMD/physics finite tail_M_stone_a_02_jnt
+PASS real VMD/physics finite tail_M_stone_a_03_jnt
+PASS real VMD/physics finite tail_M_stone_a_04_jnt
+PASS real VMD/physics finite tail_M_stone_a_05_jnt
+PASS real VMD/physics finite tail_M_stone_a_06_jnt
+PASS real VMD/physics finite tail_M_stone_a_07_jnt
+PASS real VMD/physics finite tail_M_stone_a_08_jnt
+PASS real VMD/physics finite skirt_base_R_c_01_jnt
+PASS real VMD/physics finite skirt_base_R_c_02_jnt
+PASS real VMD/physics finite skirt_base_R_c_03_jnt
+PASS real VMD/physics finite skirt_base_R_c_04_jnt
+PASS real VMD/physics finite skirt_base_R_b_01_jnt
+PASS real VMD/physics finite skirt_base_R_b_02_jnt
+PASS real VMD/physics finite skirt_base_R_b_03_jnt
+PASS real VMD/physics finite skirt_base_R_b_04_jnt
+PASS real VMD/physics finite cloth_R_bag_a_01_jnt
+PASS real VMD/physics finite cloth_R_bag_a_02_jnt
+PASS real VMD/physics finite cloth_R_bag_a_03_jnt
+PASS real VMD/physics finite skirt_base_R_a_01_jnt
+PASS real VMD/physics finite skirt_base_R_a_02_jnt
+PASS real VMD/physics finite skirt_base_R_a_03_jnt
+PASS real VMD/physics finite skirt_base_R_a_04_jnt
+PASS real VMD/physics finite skirt_base_M_a_01_jnt
+PASS real VMD/physics finite skirt_base_M_a_02_jnt
+PASS real VMD/physics finite skirt_base_M_a_03_jnt
+PASS real VMD/physics finite skirt_base_M_a_04_jnt
+PASS real VMD/physics finite skirt_base_L_c_01_jnt
+PASS real VMD/physics finite skirt_base_L_c_02_jnt
+PASS real VMD/physics finite skirt_base_L_c_03_jnt
+PASS real VMD/physics finite skirt_base_L_c_04_jnt
+PASS real VMD/physics finite skirt_base_L_b_01_jnt
+PASS real VMD/physics finite skirt_base_L_b_02_jnt
+PASS real VMD/physics finite skirt_base_L_b_03_jnt
+PASS real VMD/physics finite skirt_base_L_b_04_jnt
+PASS real VMD/physics finite cloth_L_bag_a_01_jnt
+PASS real VMD/physics finite cloth_L_bag_a_02_jnt
+PASS real VMD/physics finite cloth_L_bag_a_03_jnt
+PASS real VMD/physics finite skirt_base_L_a_01_jnt
+PASS real VMD/physics finite skirt_base_L_a_02_jnt
+PASS real VMD/physics finite skirt_base_L_a_03_jnt
+PASS real VMD/physics finite skirt_base_L_a_04_jnt
+PASS real VMD/physics finite cloth_R_rope_a_01_jnt
+PASS real VMD/physics finite cloth_R_rope_a_02_jnt
+PASS real VMD/physics finite cloth_R_rope_a_03_jnt
+PASS real VMD/physics finite cloth_L_rope_a_01_jnt
+PASS real VMD/physics finite cloth_L_rope_a_02_jnt
+PASS real VMD/physics finite cloth_L_rope_a_03_jnt
+PASS real VMD/physics finite Bip001_L_Thigh
+PASS real VMD/physics finite Bip001_L_Calf
+PASS real VMD/physics finite Bip001_L_Foot
+PASS real VMD/physics finite Bip001_L_Toe0
+PASS real VMD/physics finite Bip001_L_Toe0Nub
+PASS real VMD/physics finite Bip001_L_Foot_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_Foot_corrective_ty_minus
+PASS real VMD/physics finite Bip001_LCalfTwist
+PASS real VMD/physics finite Bip001_LCalfTwist1
+PASS real VMD/physics finite Bip001_L_Calf_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_Calf_corrective_ty_minus
+PASS real VMD/physics finite Bip001_LThighTwist
+PASS real VMD/physics finite Bip001_LThighTwist1
+PASS real VMD/physics finite Bip001_L_Thigh_corrective_ty_minus
+PASS real VMD/physics finite Bip001_L_Thigh_corrective_ty_plus
+PASS real VMD/physics finite Bip001_L_Thigh_corrective_tz_minus
+PASS real VMD/physics finite Bip001_R_Thigh
+PASS real VMD/physics finite Bip001_R_Calf
+PASS real VMD/physics finite Bip001_R_Foot
+PASS real VMD/physics finite Bip001_R_Toe0
+PASS real VMD/physics finite Bip001_R_Toe0Nub
+PASS real VMD/physics finite Bip001_R_Foot_corrective_ty_plus
+PASS real VMD/physics finite Bip001_R_Foot_corrective_ty_minus
+PASS real VMD/physics finite Bip001_RCalfTwist
+PASS real VMD/physics finite Bip001_RCalfTwist1
+PASS real VMD/physics finite Bip001_R_Calf_corrective_ty_plus
+PASS real VMD/physics finite Bip001_R_Calf_corrective_ty_minus
+PASS real VMD/physics finite Bip001_RThighTwist
+PASS real VMD/physics finite Bip001_RThighTwist1
+PASS real VMD/physics finite Bip001_R_Thigh_corrective_tz_minus
+PASS real VMD/physics finite Bip001_R_Thigh_corrective_ty_minus
+PASS real VMD/physics finite Bip001_R_Thigh_corrective_ty_plus
+PASS real VMD/physics finite IK_Foot_L_001
+PASS real VMD/physics finite IK_Foot_R_001
+PASS real VMD/physics finite IK_Root
+PASS real VMD/physics finite IK_Hand_L_001
+PASS real VMD/physics finite IK_Hand_R_001
+PASS real VMD/physics finite IK_Weapon_L_001
+PASS real VMD/physics finite IK_Weapon_R_001
+PASS real VMD/physics finite IK_Knee_L_001
+PASS real VMD/physics finite IK_Knee_R_001
+PASS real VMD/physics finite ActorRef_Root
+PASS real VMD/physics finite ActorRef_01
+PASS real VMD/physics finite ActorRef_02
+PASS real VMD/physics finite ActorRef_03
+PASS real VMD/physics finite ActorRef_04
+PASS real VMD/physics finite ActorRef_05
+PASS real VMD/physics finite PropBone_Root
+PASS real VMD/physics finite PropBone_01
+PASS real VMD/physics finite PropBone_02
+PASS real VMD/physics finite PropBone_03
+PASS real VMD/physics finite PropBone_04
+PASS real VMD/physics finite PropBone_05
+PASS real VMD/physics finite Mesh_all
+PASS real VMD/physics finite lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_03_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_04_lod0
+PASS real VMD/physics finite S_actor_typhoea_hairshadow_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_hair_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_face_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_eyeshadow_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_body_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_iris_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_05_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_06_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_07_lod0
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_03_lod0
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_02_lod0
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_02_lod0
+PASS real VMD/physics finite S_actor_typhoea_brow_01_lod0
+PASS real VMD/physics finite lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_02_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_03_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_04_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_05_lod1
+PASS real VMD/physics finite S_actor_typhoea_body_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_face_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_eyeshadow_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_iris_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_06_lod1
+PASS real VMD/physics finite S_actor_typhoea_cloth_07_lod1
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_02_lod1
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_03_lod1
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_brow_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_hair_01_lod1
+PASS real VMD/physics finite S_actor_typhoea_hairshadow_01_lod1
+PASS real VMD/physics finite lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_02_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_01_lod2
+PASS real VMD/physics finite S_actor_typhoea_body_01_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_03_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_04_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_05_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_06_lod2
+PASS real VMD/physics finite S_actor_typhoea_cloth_07_lod2
+PASS real VMD/physics finite S_actor_typhoea_iris_01_lod2
+PASS real VMD/physics finite S_actor_typhoea_hair_01_lod2
+PASS real VMD/physics finite S_actor_typhoea_face_01_lod2
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_02_lod2
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_01_lod2
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_03_lod2
+PASS real VMD/physics finite S_actor_typhoea_brow_01_lod2
+PASS real VMD/physics finite lod3
+PASS real VMD/physics finite S_actor_typhoea_iris_01_lod3
+PASS real VMD/physics finite S_actor_typhoea_hair_01_lod3
+PASS real VMD/physics finite S_actor_typhoea_cloth_06_lod3
+PASS real VMD/physics finite S_actor_typhoea_body_01_lod3
+PASS real VMD/physics finite S_actor_typhoea_cloth_01_lod3
+PASS real VMD/physics finite S_actor_typhoea_cloth_02_lod3
+PASS real VMD/physics finite S_actor_typhoea_cloth_04_lod3
+PASS real VMD/physics finite S_actor_typhoea_cloth_05_lod3
+PASS real VMD/physics finite S_actor_typhoea_face_01_lod3
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_03_lod3
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_02_lod3
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_01_lod3
+PASS real VMD/physics finite S_actor_typhoea_brow_01_lod3
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_01_lod0
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_02_lod0
+PASS real VMD/physics finite S_actor_Typhoea_vfxpart_03_lod0
+PASS real VMD/physics finite S_actor_typhoea_body_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_brow_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_02_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_03_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_04_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_05_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_06_lod0
+PASS real VMD/physics finite S_actor_typhoea_cloth_07_lod0
+PASS real VMD/physics finite S_actor_typhoea_eyeshadow_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_face_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_hair_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_hairshadow_01_lod0
+PASS real VMD/physics finite S_actor_typhoea_iris_01_lod0
+PASS dispose restores owned joint hair_R_base_a_01_jnt
+PASS dispose restores owned joint hair_R_base_a_02_jnt
+PASS dispose restores owned joint hair_R_base_a_03_jnt
+PASS dispose restores owned joint hair_R_base_a_04_jnt
+PASS dispose restores owned joint hair_R_base_a_05_jnt
+PASS dispose restores owned joint hair_L_base_a_01_jnt
+PASS dispose restores owned joint hair_L_base_a_02_jnt
+PASS dispose restores owned joint hair_L_base_a_03_jnt
+PASS dispose restores owned joint hair_L_base_a_04_jnt
+PASS dispose restores owned joint hair_L_base_a_05_jnt
+PASS dispose restores owned joint skirt_base_R_c_01_jnt
+PASS dispose restores owned joint skirt_base_R_c_02_jnt
+PASS dispose restores owned joint skirt_base_R_b_01_jnt
+PASS dispose restores owned joint skirt_base_R_b_02_jnt
+PASS dispose restores owned joint skirt_base_R_a_01_jnt
+PASS dispose restores owned joint skirt_base_R_a_02_jnt
+PASS dispose restores owned joint skirt_base_M_a_01_jnt
+PASS dispose restores owned joint skirt_base_M_a_02_jnt
+PASS dispose restores owned joint skirt_base_L_c_01_jnt
+PASS dispose restores owned joint skirt_base_L_c_02_jnt
+PASS dispose restores owned joint skirt_base_L_b_01_jnt
+PASS dispose restores owned joint skirt_base_L_b_02_jnt
+PASS dispose restores owned joint skirt_base_L_a_01_jnt
+PASS dispose restores owned joint skirt_base_L_a_02_jnt
+PASS dispose restores owned joint tail_M_stone_a_01_jnt
+PASS dispose restores owned joint tail_M_stone_a_02_jnt
+PASS dispose restores owned joint tail_M_stone_a_03_jnt
+PASS dispose restores owned joint tail_M_stone_a_04_jnt
+PASS dispose restores owned joint tail_M_stone_a_05_jnt
+PASS dispose restores owned joint tail_M_stone_a_06_jnt
+PASS actual MMD Studio load creates shared physics session
+PASS Studio parameter change invalidates previous physics history
+PASS actual head-amplitude change affects replayed physics
+PASS Studio floor correction and physics preserve segment lengths
+PASS Studio floor-option change reconstructs physical history
+PASS actual Studio export begins
+PASS actual Studio export writes frame
+PASS actual export uses same physics state as preview
+PASS Studio close restores original mesh S_actor_Typhoea_vfxpart_01_lod0
+PASS Studio close restores original mesh S_actor_Typhoea_vfxpart_02_lod0
+PASS Studio close restores original mesh S_actor_Typhoea_vfxpart_03_lod0
+PASS Studio close restores original mesh S_actor_typhoea_body_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_brow_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_02_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_03_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_04_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_05_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_06_lod0
+PASS Studio close restores original mesh S_actor_typhoea_cloth_07_lod0
+PASS Studio close restores original mesh S_actor_typhoea_eyeshadow_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_face_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_hair_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_hairshadow_01_lod0
+PASS Studio close restores original mesh S_actor_typhoea_iris_01_lod0
+RESULT PASS checks=752; alternate secondary physics, NOT certified official solver.

@@ -439,11 +439,11 @@ namespace EndfieldShaderPack
                 if (secondaryMotion != null)
                 {
                     EditorGUI.BeginChangeCheck();
-                    secondaryMotionEnabled = EditorGUILayout.Toggle("长发/裙摆物理（替代求解）", secondaryMotionEnabled);
+                    secondaryMotionEnabled = EditorGUILayout.Toggle("长发/裙摆/尾链物理（替代求解）", secondaryMotionEnabled);
                     if (EditorGUI.EndChangeCheck()) ApplyAt(time);
                     if (GUILayout.Button("重置物理并重放到当前时间"))
                     { secondaryMotion.ResetTimeline(); ApplyAt(time); }
-                    EditorGUILayout.HelpBox("固定120Hz；拖动时间会从起点重放。仅长发/裙摆24关节，不是官方物理算法，也未保证所有动作无穿模。", MessageType.None);
+                    EditorGUILayout.HelpBox("固定120Hz；拖动时间会从起点重放。长发10 + 裙摆14 + 尾链6，共30关节；不是官方物理算法，也未保证所有动作无穿模。", MessageType.None);
                 }
                 EditorApplication.QueuePlayerLoopUpdate();
             }

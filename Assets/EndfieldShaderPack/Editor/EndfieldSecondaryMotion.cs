@@ -25,7 +25,7 @@ namespace EndfieldShaderPack
     /// Verlet/rotation core adapted from UniVRM v0.99.4 VRMSpringBoneLogic (MIT).
     /// See docs/implementation/secondary-motion-20261001/ for license and differences.
     /// Fixed simulation ticks use the same animated pose callback for seek/play/export.
-    /// Only reviewed, actually weighted long-hair/skirt edges are owned; no fake tips.
+    /// Only reviewed, actually weighted long-hair/skirt/tail edges are owned; no fake tips.
     /// </summary>
     public sealed class EndfieldSecondaryMotion : IDisposable
     {
@@ -53,7 +53,7 @@ namespace EndfieldShaderPack
             var map=new Dictionary<string,Transform>();
             foreach(var t in root.GetComponentsInChildren<Transform>(true))
             {
-                if(!t.name.StartsWith("Bip001_")&&!t.name.StartsWith("hair_")&&!t.name.StartsWith("skirt_base_"))continue;
+                if(!t.name.StartsWith("Bip001_")&&!t.name.StartsWith("hair_")&&!t.name.StartsWith("skirt_base_")&&!t.name.StartsWith("tail_M_stone_a_"))continue;
                 if(!map.TryAdd(t.name,t)) throw new InvalidOperationException("Ambiguous rig name: "+t.name);
             }
             Transform Get(string name) => map.TryGetValue(name,out var t)?t:throw new InvalidOperationException("Missing physics bone: "+name);
@@ -91,6 +91,10 @@ namespace EndfieldShaderPack
             // fallback is not a reliable bind position. No guessed end offsets.
             Chain("hair_R_base_a_",6,true);Chain("hair_L_base_a_",6,true);
             foreach(string side in new[]{"R_c","R_b","R_a","M_a","L_c","L_b","L_a"}) Chain("skirt_base_"+side+"_",3,false);
+            // Seven weighted bind nodes; 08 is unweighted/missing bind. The six
+            // actual edges use authored cloth-preview defaults, NOT official tail
+            // configuration. Both cloth04 and its VFX companion share these bones.
+            Chain("tail_M_stone_a_",7,false);
             driven=new Transform[joints.Count];for(int i=0;i<driven.Length;i++)driven[i]=joints[i].bone;
         }
         public void ResetTimeline() {ThrowIfDisposed();RestorePose();tick=-1;}

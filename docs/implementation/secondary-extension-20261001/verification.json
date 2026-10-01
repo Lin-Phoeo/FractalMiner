@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-01",
+  "scope": "Add six weighted tail edges to existing alternate MMD Studio physics; not original Endfield solver",
+  "parent_record_commit": "b20d7b6b7cb4c535c0bcea2484f08179e4471196",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "driven_joints": { "hair": 10, "skirt": 14, "tail": 6, "total": 30 },
+  "tail": {
+    "weighted_bind_nodes": "tail_M_stone_a_01_jnt through 07_jnt",
+    "driven_nodes": "01 through 06",
+    "missing_bind_tip_excluded": "08",
+    "stiffness": 2.2,
+    "drag": 0.28,
+    "gravity": 0.03,
+    "max_swing_degrees": 24,
+    "parameters": "Existing authored cloth-preview defaults, not extracted official configuration",
+    "cloth04_max_mesh_displacement_m": 0.229393691,
+    "vfxpart01_max_mesh_displacement_m": 0.229735255
+  },
+  "validation": {
+    "unity_physics_checks": 752,
+    "unity_shadow_temporal_checks": 64,
+    "unity_wetness_checks": 513,
+    "python_passed": 474,
+    "python_historical_skipped": 3,
+    "python_subtests": 80,
+    "python_existing_warnings": 2,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "whole_project_csharp_hlsl_coverage": null,
+    "motion": "Kimagure / @kimagure_video; UNFORGIVEN CHALLENGE; not redistributed",
+    "full_motion_fixed_step_evaluation": true,
+    "full_motion_collision_certification": false,
+    "studio_preview_export_consistency": true,
+    "video": { "frames": 61, "fps": 30, "width": 960, "height": 600, "seconds": 2.033333, "audio": false, "ai_generated": false }
+  },
+  "retained_failures": ["Validation/secondary-extension-20261001-01-red/report.txt", "Validation/secondary-extension-20261001-02/report.txt"],
+  "second_failure_reason": "Test omitted driven ancestors outside the mesh's direct bone palette; corrected classification without relaxing zero-displacement gate",
+  "unchanged_raw_sha256": {
+    "Assets/Typhoeus/_typhoea_model_data.json": "008b95e54768515b621ce0775e96f8b133b7089b1ac33da7cf9c9e3ed121d860",
+    "Assets/EndfieldShaderPack/EndfieldCharacterShadowFeature.cs": "ef00dc474075d9b785ee8b7489bf24636174b5f24bc2d6747e3e2d1b900fbf57",
+    "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader": "7bcf6af71d64ddf4dcfe77803731c9bd72e2c3dd120922487bbaaf99fc76ffe0",
+    "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "Assets/Scenes/Typhoeus_MMD_Stage.unity": "b7a3d627497234d676cddbf038b047434a85de68d8aa0b8b19a9c47414324c61",
+    "ProjectSettings/QualitySettings.asset": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "ProjectSettings/GraphicsSettings.asset": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68",
+    "docs/research/character-shadow-evidence-20260923.md": "7ec85b0632c46108779e77be54417975e096d898e41739ef79444f34c0137a1a"
+  },
+  "artifact_raw_sha256": {
+    "Assets/EndfieldShaderPack/Editor/EndfieldSecondaryMotion.cs": "cbfdbbb09b6b3d10e4186b615fce8490de3ba418cc56ac0ca978177952a18eae",
+    "Assets/EndfieldShaderPack/Editor/EndfieldSecondaryMotionValidation.cs": "ddd8a82a1c128cc3e700a87b57efebf86471ffbdbc8a0c489e6ce1c63a0d86dc",
+    "Assets/EndfieldShaderPack/Editor/EndfieldMmdStudio.cs": "0b50873e833c6d340a87a1eeccc5d5f6ddae6f507d61c00dad9378b4c605fa3b",
+    "Validation/secondary-extension-20261001-03/report.txt": "b494bc95b211d53843255a0adc2fee584cd58af2d51e4a932697182de7f461ec",
+    "Validation/secondary-extension-20261001-03/mmd-tail-physics-wet-preview.mp4": "b88ea5fecb3596932b02cee6d57d035233c03cc8a02f7506b4509ad93637b459",
+    "Validation/shadow-tail-regression-20261001-01/report.txt": "9eb2ca3539592912339ab3d90c3da238d0fb6a06491ad1d86154d97d5f881ba5",
+    "Validation/wetness-tail-regression-20261001-01/report.txt": "6df02585fd62414c124686c46acc80eaa2a484a0378cfec7715cccdde89d285c"
+  }
+}

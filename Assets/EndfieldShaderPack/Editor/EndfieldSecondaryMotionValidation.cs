@@ -46,8 +46,8 @@ namespace EndfieldShaderPack
                     try
                     {
                         var bones=Bones(solver);var rest=Rotations(bones);
-                        Check(bones.Length==24,"exact reviewed 10 long-hair + 14 skirt joints; nine unweighted tips excluded");
-                        foreach(var bone in bones) Check(bone.name.StartsWith("hair_")||bone.name.StartsWith("skirt_base_"),"secondary-only ownership "+bone.name);
+                        Check(bones.Length==30,"exact reviewed 10 long-hair + 14 skirt + 6 tail joints; unweighted tips excluded");
+                        foreach(var bone in bones) Check(bone.name.StartsWith("hair_")||bone.name.StartsWith("skirt_base_")||bone.name.StartsWith("tail_M_stone_a_"),"secondary-only ownership "+bone.name);
                         Action<float> pose=t=>head.localRotation=baseHead*Quaternion.Euler(0,30*Mathf.Sin(t*4),0);
                         Evaluate(solver,1,pose);
                         var direct=Rotations(bones);
@@ -110,6 +110,15 @@ namespace EndfieldShaderPack
                             var mesh=new Mesh();smr.BakeMesh(mesh);float max=0;var v=mesh.vertices;
                             for(int i=0;i<v.Length;i++) max=Mathf.Max(max,Vector3.Distance(v[i],dryVertices[smr][i]));
                             if(max>.001f) movedMeshes++;
+                            if(smr.name=="S_actor_typhoea_cloth_04_lod0")
+                                Check(max>.001f,"weighted tail cloth04 actually deforms, not only unused helper bones");
+                            // A weighted descendant follows a driven ancestor even
+                            // when that ancestor is not directly in this mesh palette.
+                            bool ownedMesh=false;
+                            foreach(var bone in smr.bones)
+                                for(var ancestor=bone;ancestor!=null&&ancestor!=session.Root.parent;ancestor=ancestor.parent)
+                                    ownedMesh|=Array.IndexOf(bones,ancestor)>=0;
+                            if(!ownedMesh)Check(max<1e-6f,"secondary motion does not deform unrelated mesh "+smr.name);
                             lines.Add("MESH "+smr.name+" maxDisplacement="+max.ToString("R"));Object.DestroyImmediate(mesh);
                         }
                         Check(movedMeshes>=2,"real weighted hair/skirt mesh vertices move, not only unused helper bones");

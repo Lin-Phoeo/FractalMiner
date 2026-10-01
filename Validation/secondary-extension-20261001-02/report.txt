@@ -1,0 +1,122 @@
+PASS secondary-motion implementation exists
+PASS exact reviewed 10 long-hair + 14 skirt + 6 tail joints; unweighted tips excluded
+PASS secondary-only ownership hair_R_base_a_01_jnt
+PASS secondary-only ownership hair_R_base_a_02_jnt
+PASS secondary-only ownership hair_R_base_a_03_jnt
+PASS secondary-only ownership hair_R_base_a_04_jnt
+PASS secondary-only ownership hair_R_base_a_05_jnt
+PASS secondary-only ownership hair_L_base_a_01_jnt
+PASS secondary-only ownership hair_L_base_a_02_jnt
+PASS secondary-only ownership hair_L_base_a_03_jnt
+PASS secondary-only ownership hair_L_base_a_04_jnt
+PASS secondary-only ownership hair_L_base_a_05_jnt
+PASS secondary-only ownership skirt_base_R_c_01_jnt
+PASS secondary-only ownership skirt_base_R_c_02_jnt
+PASS secondary-only ownership skirt_base_R_b_01_jnt
+PASS secondary-only ownership skirt_base_R_b_02_jnt
+PASS secondary-only ownership skirt_base_R_a_01_jnt
+PASS secondary-only ownership skirt_base_R_a_02_jnt
+PASS secondary-only ownership skirt_base_M_a_01_jnt
+PASS secondary-only ownership skirt_base_M_a_02_jnt
+PASS secondary-only ownership skirt_base_L_c_01_jnt
+PASS secondary-only ownership skirt_base_L_c_02_jnt
+PASS secondary-only ownership skirt_base_L_b_01_jnt
+PASS secondary-only ownership skirt_base_L_b_02_jnt
+PASS secondary-only ownership skirt_base_L_a_01_jnt
+PASS secondary-only ownership skirt_base_L_a_02_jnt
+PASS secondary-only ownership tail_M_stone_a_01_jnt
+PASS secondary-only ownership tail_M_stone_a_02_jnt
+PASS secondary-only ownership tail_M_stone_a_03_jnt
+PASS secondary-only ownership tail_M_stone_a_04_jnt
+PASS secondary-only ownership tail_M_stone_a_05_jnt
+PASS secondary-only ownership tail_M_stone_a_06_jnt
+PASS animated head produces measurable hair/skirt secondary rotation
+PASS solver does not overwrite primary animated head
+PASS direct seek and incremental playback agree at fixed 120 Hz
+PASS repeat same timestamp does not advance simulation
+PASS backward scrub replays deterministically from zero
+PASS same 120Hz result from 30fps sampling
+PASS same 120Hz result from 60fps sampling
+PASS disable removes simulated local rotations immediately
+PASS re-enable reconstructs timeline, not dirty physical rest
+PASS finite after 2400 substeps hair_R_base_a_01_jnt
+PASS bounded swing hair_R_base_a_01_jnt
+PASS finite after 2400 substeps hair_R_base_a_02_jnt
+PASS bounded swing hair_R_base_a_02_jnt
+PASS finite after 2400 substeps hair_R_base_a_03_jnt
+PASS bounded swing hair_R_base_a_03_jnt
+PASS finite after 2400 substeps hair_R_base_a_04_jnt
+PASS bounded swing hair_R_base_a_04_jnt
+PASS finite after 2400 substeps hair_R_base_a_05_jnt
+PASS bounded swing hair_R_base_a_05_jnt
+PASS finite after 2400 substeps hair_L_base_a_01_jnt
+PASS bounded swing hair_L_base_a_01_jnt
+PASS finite after 2400 substeps hair_L_base_a_02_jnt
+PASS bounded swing hair_L_base_a_02_jnt
+PASS finite after 2400 substeps hair_L_base_a_03_jnt
+PASS bounded swing hair_L_base_a_03_jnt
+PASS finite after 2400 substeps hair_L_base_a_04_jnt
+PASS bounded swing hair_L_base_a_04_jnt
+PASS finite after 2400 substeps hair_L_base_a_05_jnt
+PASS bounded swing hair_L_base_a_05_jnt
+PASS finite after 2400 substeps skirt_base_R_c_01_jnt
+PASS bounded swing skirt_base_R_c_01_jnt
+PASS finite after 2400 substeps skirt_base_R_c_02_jnt
+PASS bounded swing skirt_base_R_c_02_jnt
+PASS finite after 2400 substeps skirt_base_R_b_01_jnt
+PASS bounded swing skirt_base_R_b_01_jnt
+PASS finite after 2400 substeps skirt_base_R_b_02_jnt
+PASS bounded swing skirt_base_R_b_02_jnt
+PASS finite after 2400 substeps skirt_base_R_a_01_jnt
+PASS bounded swing skirt_base_R_a_01_jnt
+PASS finite after 2400 substeps skirt_base_R_a_02_jnt
+PASS bounded swing skirt_base_R_a_02_jnt
+PASS finite after 2400 substeps skirt_base_M_a_01_jnt
+PASS bounded swing skirt_base_M_a_01_jnt
+PASS finite after 2400 substeps skirt_base_M_a_02_jnt
+PASS bounded swing skirt_base_M_a_02_jnt
+PASS finite after 2400 substeps skirt_base_L_c_01_jnt
+PASS bounded swing skirt_base_L_c_01_jnt
+PASS finite after 2400 substeps skirt_base_L_c_02_jnt
+PASS bounded swing skirt_base_L_c_02_jnt
+PASS finite after 2400 substeps skirt_base_L_b_01_jnt
+PASS bounded swing skirt_base_L_b_01_jnt
+PASS finite after 2400 substeps skirt_base_L_b_02_jnt
+PASS bounded swing skirt_base_L_b_02_jnt
+PASS finite after 2400 substeps skirt_base_L_a_01_jnt
+PASS bounded swing skirt_base_L_a_01_jnt
+PASS finite after 2400 substeps skirt_base_L_a_02_jnt
+PASS bounded swing skirt_base_L_a_02_jnt
+PASS finite after 2400 substeps tail_M_stone_a_01_jnt
+PASS bounded swing tail_M_stone_a_01_jnt
+PASS finite after 2400 substeps tail_M_stone_a_02_jnt
+PASS bounded swing tail_M_stone_a_02_jnt
+PASS finite after 2400 substeps tail_M_stone_a_03_jnt
+PASS bounded swing tail_M_stone_a_03_jnt
+PASS finite after 2400 substeps tail_M_stone_a_04_jnt
+PASS bounded swing tail_M_stone_a_04_jnt
+PASS finite after 2400 substeps tail_M_stone_a_05_jnt
+PASS bounded swing tail_M_stone_a_05_jnt
+PASS finite after 2400 substeps tail_M_stone_a_06_jnt
+PASS bounded swing tail_M_stone_a_06_jnt
+PASS fixed segment length after long run
+PASS invalid timestamp rejected before pose writes: NaN
+PASS invalid timestamp rejected before pose writes: Infinity
+PASS invalid timestamp rejected before pose writes: -1
+PASS collision projection preserves both bone length and sphere exclusion
+PASS zero length collision input rejected
+PASS actual VMD calibration before physics
+MESH S_actor_Typhoea_vfxpart_01_lod0 maxDisplacement=0.229735255
+PASS secondary motion does not deform unrelated mesh S_actor_Typhoea_vfxpart_02_lod0
+MESH S_actor_Typhoea_vfxpart_02_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_Typhoea_vfxpart_03_lod0
+MESH S_actor_Typhoea_vfxpart_03_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_body_01_lod0
+MESH S_actor_typhoea_body_01_lod0 maxDisplacement=0
+PASS secondary motion does not deform unrelated mesh S_actor_typhoea_brow_01_lod0
+MESH S_actor_typhoea_brow_01_lod0 maxDisplacement=0
+MESH S_actor_typhoea_cloth_01_lod0 maxDisplacement=0.02132949
+MESH S_actor_typhoea_cloth_02_lod0 maxDisplacement=0.0140372245
+FAIL System.InvalidOperationException: secondary motion does not deform unrelated mesh S_actor_typhoea_cloth_03_lod0
+  at EndfieldShaderPack.EndfieldSecondaryMotionValidation.Check (System.Boolean ok, System.String why) [0x0002b] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldSecondaryMotionValidation.cs:20 
+  at EndfieldShaderPack.EndfieldSecondaryMotionValidation.RunBatch () [0x008ac] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldSecondaryMotionValidation.cs:116 

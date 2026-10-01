@@ -20,6 +20,7 @@ def test_reviewed_edge_endpoints_have_real_weights_not_identity_tip_fallback():
     for prefix, end in [
         ("hair_R_base_a_", 6),
         ("hair_L_base_a_", 6),
+        ("tail_M_stone_a_", 7),
         *[(f"skirt_base_{part}_", 3) for part in ("R_c", "R_b", "R_a", "M_a", "L_c", "L_b", "L_a")],
     ]:
         for i in range(1, end):
@@ -29,7 +30,7 @@ def test_reviewed_edge_endpoints_have_real_weights_not_identity_tip_fallback():
             assert parent in weighted and child in weighted
             edges += 1
         assert names[f"{prefix}{end+1:02}_jnt"] not in weighted
-    assert edges == 24
+    assert edges == 30
 
 
 def test_solver_owns_only_secondary_rotations_and_has_no_wall_clock_driver():
@@ -40,6 +41,7 @@ def test_solver_owns_only_secondary_rotations_and_has_no_wall_clock_driver():
     assert "localPosition=" not in code and "localScale=" not in code
     assert 'Chain("hair_R_base_a_",6,true)' in code
     assert 'Chain("skirt_base_"+side+"_",3,false)' in code
+    assert 'Chain("tail_M_stone_a_",7,false)' in code
     assert "RestorePose();applyAnimatedPose" in code
     assert "wanted<tick" in code and "tick=-1" in code
 
