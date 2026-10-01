@@ -1,0 +1,71 @@
+PASS fresh projection observer camera / target=True
+PASS resolve VP matches actual URP raster VP; target=True actualFlip=True error=0
+PASS G ownership cleared after target=True
+PASS fresh projection observer camera / target=False
+PASS resolve VP matches actual URP raster VP; target=False actualFlip=True error=0
+PASS G ownership cleared after target=False
+PASS fresh projection observer camera / target=True
+PASS resolve VP matches actual URP raster VP; target=True actualFlip=True error=0
+PASS G ownership cleared after target=True
+PASS fresh projection observer camera / target=False
+PASS resolve VP matches actual URP raster VP; target=False actualFlip=True error=0
+PASS G ownership cleared after target=False
+PASS production atlas metadata warm
+PASS production atlas selects nearest light depth independent of submission order; nearFirst=True actual=0.8
+PASS production atlas selects nearest light depth independent of submission order; nearFirst=False actual=0.8
+RAW (320, 200) index=RGBA(0.252199, 0.000000, 0.000000, 0.000000) depth=RGBA(0.020108, 0.000000, 0.000000, 1.000000) world=RGBA(0.050592, 0.772151, 0.052727, 1.000000) reconstructed=(0.050591, 0.772149, 0.052728, 1.000000)
+RAW (320, 133) index=RGBA(0.252199, 0.000000, 0.000000, 0.000000) depth=RGBA(0.020873, 0.000000, 0.000000, 1.000000) world=RGBA(0.112560, 0.494409, 0.113521, 1.000000) reconstructed=(0.112562, 0.494409, 0.113519, 1.000000)
+RAW (213, 200) index=RGBA(0.000000, 0.000000, 0.000000, 0.000000) depth=RGBA(0.000000, 0.000000, 0.000000, 1.000000) world=RGBA(0.000000, 0.000000, 0.000000, 0.000000) reconstructed=(-56.323380, 0.858553, -81.785990, 1.000000)
+PASS independent raster world position vs depth unprojection frame=0 samples=2807 median=4.35503625E-06 oppositeY=0.5362616
+PASS independent raster world position vs depth unprojection frame=1 samples=2807 median=4.35503625E-06 oppositeY=0.5362616
+PASS identical frozen pose re-render mask k=1 changed=0 max=0
+PASS frozen light-box matrix k=1
+PASS independent raster world position vs depth unprojection frame=2 samples=2807 median=4.35503625E-06 oppositeY=0.5362616
+PASS identical frozen pose re-render mask k=2 changed=0 max=0
+PASS frozen light-box matrix k=2
+PASS independent raster world position vs depth unprojection frame=3 samples=2807 median=4.35503625E-06 oppositeY=0.5362616
+PASS identical frozen pose re-render mask k=3 changed=0 max=0
+PASS frozen light-box matrix k=3
+PASS independent raster world position vs depth unprojection frame=4 samples=2807 median=4.35503625E-06 oppositeY=0.5362616
+PASS identical frozen pose re-render mask k=4 changed=0 max=0
+PASS frozen light-box matrix k=4
+PASS pose transition first/repeat same mask t=2 changed=0 matrixDelta=0
+TRANSITION 2 atlas=0 depth=0 index=0
+PASS independent raster world position vs depth unprojection frame=14 samples=2833 median=4.41527845E-06 oppositeY=0.5538291
+PASS pose transition first/repeat same mask t=0.5 changed=0 matrixDelta=0
+TRANSITION 0.5 atlas=0 depth=0 index=0
+PASS independent raster world position vs depth unprojection frame=11 samples=2670 median=4.32239631E-06 oppositeY=0.5212862
+PASS pose transition first/repeat same mask t=1.5 changed=0 matrixDelta=0
+TRANSITION 1.5 atlas=0 depth=0 index=0
+PASS independent raster world position vs depth unprojection frame=13 samples=2625 median=4.188711E-06 oppositeY=0.5409372
+PASS continuous motion first draw equals repeat; frame=0 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=1 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=2 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=3 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=4 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=5 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=6 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=7 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=8 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=9 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=10 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=11 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=12 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=13 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=14 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=15 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=16 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=17 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=18 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=19 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=20 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=21 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=22 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=23 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=24 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=25 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=26 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=27 standardRequest=False
+PASS continuous motion first draw equals repeat; frame=28 standardRequest=True
+PASS continuous motion first draw equals repeat; frame=29 standardRequest=False
+RESULT PASS checks=64 failures=0

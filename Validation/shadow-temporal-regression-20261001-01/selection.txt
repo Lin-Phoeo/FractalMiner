@@ -1,0 +1,15 @@
+Official shadow consumer contract; synthetic known inputs, no image fitting. tolerance=2E-06
+Captured parameter upload: six draws / 12 float4 / 48 components from raw descriptors to production GPU.
+Synthetic selection: cases=216 failures=0; distinct native R8G8 maps, integer pixel Load, no size/filter dependency, CP1.z once, strength before ignore; default fallback explicitly legacy.
+PASS independent ownership R=0 G=0
+PASS independent ownership R=0 G=1
+PASS independent ownership R=1 G=0
+PASS independent ownership R=1 G=1
+Actual frame R is uniformly 255 (fully lit); nonuniform R/strength is tested by independent synthetic inputs, not invented captured shadows.
+PASS actual native mask integer pixel=(0,0) R=1 G=1 error=0
+PASS actual native mask integer pixel=(2559,0) R=1 G=1 error=0
+PASS actual native mask integer pixel=(0,1599) R=1 G=1 error=0
+PASS actual native mask integer pixel=(2559,1599) R=1 G=1 error=0
+PASS actual native mask integer pixel=(1280,800) R=1 G=1 error=0
+PASS actual native mask integer pixel=(1336,87) R=1 G=0.956862748 error=2.5711806E-09
+RESULT PASS cases=238 failures=0; no full directional producer certificate; no scene/settings/material save.

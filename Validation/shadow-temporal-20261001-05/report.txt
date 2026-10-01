@@ -1,0 +1,37 @@
+PASS fresh projection observer camera / target=True
+PASS resolve VP matches actual URP raster VP; target=True actualFlip=True error=0
+PASS G ownership cleared after target=True
+PASS fresh projection observer camera / target=False
+PASS resolve VP matches actual URP raster VP; target=False actualFlip=True error=0
+PASS G ownership cleared after target=False
+PASS fresh projection observer camera / target=True
+PASS resolve VP matches actual URP raster VP; target=True actualFlip=True error=0
+PASS G ownership cleared after target=True
+PASS fresh projection observer camera / target=False
+PASS resolve VP matches actual URP raster VP; target=False actualFlip=True error=0
+PASS G ownership cleared after target=False
+PASS production atlas metadata warm
+PASS production atlas selects nearest light depth independent of submission order; nearFirst=True actual=0.8
+PASS production atlas selects nearest light depth independent of submission order; nearFirst=False actual=0.8
+RAW (320, 200) index=RGBA(0.000000, 0.000000, 0.000000, 0.000000) depth=RGBA(0.020108, 1.000000, 1.000000, 1.000000) world=RGBA(0.050592, 0.772151, 0.052727, 1.000000) reconstructed=(0.050591, 0.772149, 0.052728, 1.000000)
+RAW (320, 133) index=RGBA(0.000000, 0.000000, 0.000000, 0.000000) depth=RGBA(0.020873, 1.000000, 1.000000, 1.000000) world=RGBA(0.112560, 0.494409, 0.113521, 1.000000) reconstructed=(0.112562, 0.494409, 0.113519, 1.000000)
+RAW (213, 200) index=RGBA(0.000000, 0.000000, 0.000000, 0.000000) depth=RGBA(0.000000, 1.000000, 1.000000, 1.000000) world=RGBA(0.000000, 0.000000, 0.000000, 0.000000) reconstructed=(-56.323380, 0.858553, -81.785990, 1.000000)
+FAIL independent raster world position vs depth unprojection frame=0 samples=0 median=Infinity oppositeY=Infinity
+FAIL independent raster world position vs depth unprojection frame=1 samples=0 median=Infinity oppositeY=Infinity
+PASS identical frozen pose re-render mask k=1 changed=0 max=0
+PASS frozen light-box matrix k=1
+FAIL independent raster world position vs depth unprojection frame=2 samples=0 median=Infinity oppositeY=Infinity
+PASS identical frozen pose re-render mask k=2 changed=0 max=0
+PASS frozen light-box matrix k=2
+FAIL independent raster world position vs depth unprojection frame=3 samples=0 median=Infinity oppositeY=Infinity
+PASS identical frozen pose re-render mask k=3 changed=0 max=0
+PASS frozen light-box matrix k=3
+FAIL independent raster world position vs depth unprojection frame=4 samples=0 median=Infinity oppositeY=Infinity
+PASS identical frozen pose re-render mask k=4 changed=0 max=0
+PASS frozen light-box matrix k=4
+FAIL pose transition first/repeat same mask t=2 changed=8410 matrixDelta=0
+FAIL pose transition first/repeat same mask t=0.5 changed=12496 matrixDelta=0
+FAIL pose transition first/repeat same mask t=1.5 changed=16398 matrixDelta=0
+RESULT FAIL checks=31 failures=8
+ERROR System.InvalidOperationException: Shadow temporal failures=8
+  at EndfieldShaderPack.EndfieldShadowTemporalValidation.RunBatch () [0x000c7] in A:\Hypergryph Launcher\games\Arknights Endfield\FractalMiner\Assets\EndfieldShaderPack\Editor\EndfieldShadowTemporalValidation.cs:46 

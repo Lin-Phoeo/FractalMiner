@@ -80,6 +80,16 @@ namespace EndfieldShaderPack
             renderer.EnqueuePass(pass);
         }
 
+        public override void OnCameraPreCull(ScriptableRenderer renderer, in CameraData cameraData)
+        {
+            if (pass == null || !pass.IsReady || cameraData.cameraType != CameraType.Game ||
+                cameraData.renderType != CameraRenderType.Base || !cameraData.resolveFinalTarget ||
+                cameraData.xrRendering || cameraData.cameraTargetDescriptor.useDynamicScale ||
+                cameraData.cameraTargetDescriptor.msaaSamples > 1 || QualitySettings.activeColorSpace != ColorSpace.Linear)
+                return;
+            pass.PrepareShadowBindings();
+        }
+
         protected override void Dispose(bool disposing)
         {
             pass?.Dispose();
@@ -235,6 +245,33 @@ namespace EndfieldShaderPack
         // stale registry entry and came out byte-identical to the ON render.)
         readonly System.Collections.Generic.List<EndfieldCharacterShadowCaster> enabledCasters =
             new System.Collections.Generic.List<EndfieldCharacterShadowCaster>(EndfieldCharacterShadowCaster.MaxSlots);
+        readonly Dictionary<EndfieldCharacterShadowCaster, EndfieldCharacterShadowProjection.LightBox> preparedBoxes =
+            new Dictionary<EndfieldCharacterShadowCaster, EndfieldCharacterShadowProjection.LightBox>();
+        Vector3 preparedTravel;
+
+        public void PrepareShadowBindings()
+        {
+            preparedBoxes.Clear();
+            if (EndfieldCharacterShadowCaster.Active.Count == 0) EndfieldCharacterShadowCaster.Refresh();
+            enabledCasters.Clear();
+            foreach (var caster in EndfieldCharacterShadowCaster.Active)
+                if (caster != null && caster.isActiveAndEnabled) enabledCasters.Add(caster);
+            if (light == null || !light.isActiveAndEnabled)
+            {
+                light = null;
+                foreach (var candidate in Object.FindObjectsOfType<Endfield.EndfieldCharacterLight>())
+                    if (candidate.isActiveAndEnabled) { light = candidate; break; }
+            }
+            // Cull snapshots renderer property blocks. Changing the atlas matrix in
+            // Execute is too late: the atlas then uses the previous pose's matrix
+            // while the resolve uses this pose's matrix. Pre-cull also runs for URP
+            // SingleCameraRequest, unlike beginCameraRendering callbacks.
+            if (light != null)
+            {
+                preparedTravel = -light.transform.forward;
+                ApplyPerRendererShadowState(enabledCasters, preparedTravel);
+            }
+        }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -259,6 +296,12 @@ namespace EndfieldShaderPack
                 EndfieldCharacterShadowFeature.LastSkipReason = "no active character light";
                 return;
             }
+            foreach (var caster in casters)
+                if (!preparedBoxes.ContainsKey(caster))
+                {
+                    EndfieldCharacterShadowFeature.LastSkipReason = "caster has no pre-cull shadow snapshot";
+                    return;
+                }
 
             int slots = 0;
             foreach (var caster in casters) slots = Mathf.Max(slots, caster.slot + 1);
@@ -275,9 +318,8 @@ namespace EndfieldShaderPack
                     // ALONG the travel, so travel is -forward here, and the box z axis
                     // ends up toward the source (z=1 on the light side), matching the
                     // frame-6411 decomposition.
-                    Vector3 travel = -light.transform.forward;
+                    Vector3 travel = preparedTravel;
                     FillSlotArrays(casters, travel, slots);
-                    ApplyPerRendererShadowState(casters, travel);
 
                     var sorting = new SortingSettings(renderingData.cameraData.camera);
                     var filtering = new FilteringSettings(RenderQueueRange.opaque);
@@ -285,11 +327,12 @@ namespace EndfieldShaderPack
                     // DrawRenderers submits immediately, so each target's bind and clear
                     // has to reach the GPU before its draw call.
                     cmd.SetRenderTarget(atlasColor);
-                    // Unity's reversed-Z path flips depth values into the buffer
-                    // (buffer = 1 - clip.z) even for the custom light matrix, so the
-                    // classic non-reversed clear value 1 is what "empty" means here.
-                    // The R16 colour still carries the authored clip.z, so an empty
-                    // texel stays 0 for the resolve regardless.
+                    cmd.SetViewport(new Rect(0, 0, atlasResolution, atlasResolution));
+                    // Measured D3D11 contract: ShaderLab LEqual + clear depth 1
+                    // selects the maximum authored light z (nearest to the source),
+                    // independently of draw order. Do not infer a 1-z colour/depth
+                    // conversion; Unity also adapts depth state for reversed Z.
+                    // Empty R16 colour remains zero for the resolve.
                     cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0x00);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
@@ -298,7 +341,8 @@ namespace EndfieldShaderPack
 
                     cmd.SetRenderTarget(new RenderTargetIdentifier[] { indexTarget, normalTarget, depthTarget },
                         new RenderTargetIdentifier(indexTarget));
-                    // Same as the atlas: the buffer holds 1 - clip.z, so "empty" is 1.
+                    cmd.SetViewport(new Rect(0, 0, indexTarget.width, indexTarget.height));
+                    // Unity's camera depth state uses the same clear-depth contract.
                     cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0x00);
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
@@ -329,9 +373,9 @@ namespace EndfieldShaderPack
             for (int i = 0; i < slots; i++) rectValues[i] = new Vector4(0f, 0f, 1f, 1f);
             foreach (var caster in casters)
             {
-                var box = EndfieldCharacterShadowProjection.Fit(
-                    EndfieldCharacterShadowProjection.TowardLight(travel),
-                    caster.WorldBounds(), caster.paddingFraction);
+                // The very same pre-cull fit supplies the raster property block and
+                // the resolve buffer. Do not refit from potentially refreshed bounds.
+                var box = preparedBoxes[caster];
                 Matrix4x4 matrix = EndfieldCharacterShadowProjection.WorldToShadow(box);
                 for (int column = 0; column < 4; column++)
                     matrices[caster.slot * 4 + column] = matrix.GetColumn(column);
@@ -359,6 +403,7 @@ namespace EndfieldShaderPack
                 var box = EndfieldCharacterShadowProjection.Fit(
                     EndfieldCharacterShadowProjection.TowardLight(travel),
                     caster.WorldBounds(), caster.paddingFraction);
+                preparedBoxes[caster] = box;
                 Matrix4x4 clip = EndfieldCharacterShadowProjection.WorldToShadowClip(box);
                 Vector4 encode = IndexEncode(caster.slot);
                 foreach (var renderer in caster.Casters)

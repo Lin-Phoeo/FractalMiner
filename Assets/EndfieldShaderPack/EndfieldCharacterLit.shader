@@ -1341,15 +1341,11 @@ Shader "Endfield/CharacterLit"
 
             Cull Off
             ZWrite On
-            // Unity's reversed-Z handling flips the depth VALUE on the way to the
-            // buffer (buffer = 1 - clip.z) for every target, custom matrices
-            // included; only the colour output keeps the authored clip.z. So this
-            // pass behaves like a classic non-reversed shadow map: clear the depth
-            // to 1 and keep smaller values with LEqual, which selects the maximum
-            // light-space z, the surface nearest the light, exactly what the
-            // official resolve reads. (Measured across runs 13-17: GEqual+clear0
-            // kept the FAR side, systematic -(thickness) atlas/receiver error;
-            // LEqual+clear0 rejected every fragment.)
+            // Measured on D3D11 with the authored reversed light z: ShaderLab
+            // LEqual + clear depth 1 selects z=0.8 over z=0.2 in either draw order.
+            // Unity adapts reversed-Z depth state; this does not establish that
+            // the raw SV_POSITION depth VALUE is rewritten as 1-z. Keep the tested
+            // state, and retain the authored lightClip.z in the colour output.
             ZTest LEqual
             ColorMask R
 

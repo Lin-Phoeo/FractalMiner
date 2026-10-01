@@ -1,0 +1,7 @@
+Synthetic production resolve atlas sampler gate
+actual PS2261 hlsl sha256=f96c291b3839ec500bda03d1ba5b6d58c3b3d336232e23aded3eb7c8062bf9ad
+profile=0 (pattern / zero occluders / all occluders)
+profile=1 (pattern / zero occluders / all occluders)
+profile=2 (pattern / zero occluders / all occluders)
+checks=3072 failures=0 tolerance=0.0002
+PASS
