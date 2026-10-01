@@ -1,0 +1,20 @@
+Original runtime RED-01: 13 top-level scenarios, 12 failed, Unity exit 1.
+7 skip guards, setup, cleanup, owned disposal and resize exposed stale/live
+bindings or released-but-not-destroyed RTs. Other-owner disposal passed.
+The integration failure also included missing new completion diagnostics;
+it is not evidence of a shader formula failure.
+Original: D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/red-01.txt
+
+Intermediate GREEN attempts are not success certificates:
+01: 12 direct scenarios passed; preview-scene fixture was not suitable.
+02: additive scene creation rejected an unsaved untitled scene.
+03/04: direct cases passed; diagnostic logging showed caster active/found,
+       but no fresh pipeline execution (registry required explicit refresh).
+05/06: asset selected, but scene creation had reset the live pipeline instance.
+07: SubmitRenderRequest explicitly warned there was no active SRP instance.
+08: Prepare after scene creation; 13/13 passed with actual camera sequence.
+green-final: added CPU callback observer rejected unsubmitted GPU globals.
+green-final-02: queued GPU compute observer after opaques; 13/13 passed,
+               actual active/inactive/early-return/recovery phases verified.
+All intermediate logs/reports retained locally; no relaxed thresholds.
+No production reflection/pipeline-switch workaround added.

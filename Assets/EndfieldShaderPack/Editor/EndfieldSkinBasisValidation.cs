@@ -112,14 +112,17 @@ namespace EndfieldShaderPack.EditorTools
             var profile = camera != null ? camera.GetComponent<EndfieldCapturedPostProfile>() : null;
             if (profile == null || !profile.IsConfigured) throw new InvalidOperationException("Dance post profile missing/unconfigured.");
             int previousFrames = profile.executedFrames;
+            long previousShadowSequence = CharacterShadowPass.LastRenderSequence;
             string framePath = Path.Combine(frameDirectory, frameName + ".png");
             EndfieldVmdBatchRender.SaveFrame(camera, framePath, 640, 400, false);
             if (profile.executedFrames <= previousFrames || !profile.lastFrameUsedDynamicBloom)
                 throw new InvalidOperationException("Captured post/dynamic Bloom did not execute for " + frameName);
             if (!string.IsNullOrEmpty(EndfieldCharacterShadowFeature.LastSkipReason)
                 || CharacterShadowPass.LastResolved == null || CharacterShadowPass.LastAtlas == null
-                || Shader.GetGlobalFloat(CharacterShadowPass.SelfShadowGateName) < .5f)
+                || CharacterShadowPass.LastRenderSequence <= previousShadowSequence || CharacterShadowPass.LastRenderedCamera != camera)
                 throw new InvalidOperationException("Live self-shadow did not execute: " + EndfieldCharacterShadowFeature.LastSkipReason);
+            if (Shader.GetGlobalFloat(CharacterShadowPass.SelfShadowGateName) != 0f)
+                throw new InvalidOperationException("Self-shadow gate leaked past camera cleanup.");
             CheckRealBindings(root); // Rendering must not erase the post-pose root data.
             foreach (var renderer in root.GetComponentsInChildren<SkinnedMeshRenderer>())
             for (int slot = 0; slot < renderer.sharedMaterials.Length; slot++)

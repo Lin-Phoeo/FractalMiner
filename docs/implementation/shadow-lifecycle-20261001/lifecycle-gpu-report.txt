@@ -1,0 +1,25 @@
+PASS missing resolve guard clears stale G
+PASS skip guard SceneView
+PASS skip guard Overlay
+PASS skip guard nonfinal
+PASS skip guard MSAA
+PASS skip guard dynamic
+PASS skip guard no casters
+PASS queued setup reset precedes early-return paths
+PASS queued camera cleanup clears G only
+PASS owned disposal clears bindings, diagnostic refs and destroys RT
+PASS unowned disposal leaves other producer state intact
+PASS resize destroys old owned RT
+Fixture caster: enabled=True active=True isActiveAndEnabled=True registry=0 found=1 scene=
+Fixture pipeline: selected=True rendererFeatures=2 refreshed casters=1
+Fixture active instance=UniversalRenderPipeline
+PASS fresh render LifecycleCameraA seq=1
+PASS fresh render LifecycleCameraA seq=2
+PASS fresh render LifecycleCameraB seq=3
+PASS fresh render LifecycleCameraA seq=4
+PASS feature disabled camera B
+PASS no-caster skip camera B
+PASS disabled-light early return camera A
+PASS recovered render after early return
+PASS actual URP multi-camera / disable / early return sequence
+RESULT PASS cases=13 failures=0; lifecycle only, no source-formula/full-scene/MMD certificate.

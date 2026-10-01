@@ -9,7 +9,8 @@ class PoseApplyPostContractTests(unittest.TestCase):
         profile = (root / "Assets/EndfieldShaderPack/EndfieldCapturedPostProfile.cs").read_text("utf-8")
         pose = (root / "Assets/EndfieldShaderPack/Editor/EndfieldPoseApplyValidation.cs").read_text("utf-8")
         expected = re.search(r"sharpenStrength\s*=\s*([0-9.]+)f", profile)
-        self.assertIsNotNone(expected)
+        if expected is None:
+            self.fail("Frozen post profile has no sharpenStrength.")
         self.assertIn(
             "new Vector4(" + expected.group(1) + "f, 1f, 1f, 0f)", pose,
             "Manual pose post must not amplify sharpness beyond the frozen captured profile.",
@@ -46,6 +47,16 @@ class PoseApplyPostContractTests(unittest.TestCase):
         self.assertIn("charRoot.gameObject.AddComponent<EndfieldCharacterShadowCaster>()", pose)
         self.assertIn("EndfieldCharacterShadowCaster.Refresh()", pose)
         self.assertIn("DestroyImmediate(transientShadowCaster)", pose)
+
+    def test_render_validators_require_fresh_shadow_submission_not_a_leaked_gate(self):
+        root = Path(__file__).resolve().parents[2]
+        for name in ("EndfieldPoseApplyValidation.cs", "EndfieldSkinBasisValidation.cs", "EndfieldAnimRenderValidation.cs"):
+            with self.subTest(validator=name):
+                source = (root / "Assets/EndfieldShaderPack/Editor" / name).read_text("utf-8")
+                self.assertIn("long previousShadowSequence = CharacterShadowPass.LastRenderSequence", source)
+                self.assertIn("CharacterShadowPass.LastRenderSequence <= previousShadowSequence", source)
+                self.assertIn("CharacterShadowPass.LastRenderedCamera != camera", source)
+                self.assertIn("gate leaked past camera cleanup", source.lower())
 
 
 if __name__ == "__main__":

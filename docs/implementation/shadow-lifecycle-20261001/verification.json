@@ -1,0 +1,137 @@
+{
+  "phase": "shadow-lifecycle-20261001",
+  "approval": "bounded-live-G-camera-lifecycle-and-resource-ownership-only",
+  "parent_record_commit": "76bdaf41c3609943ff1438f362e0eca585316956",
+  "official_consumer_reference": "../shadow-selection-20261001/verification.json",
+  "source_scope": "URP adaptation lifecycle; official resolve arithmetic, parameters, shaders and post not changed",
+  "installed_urp_source_version": "14.0.11 (local PackageCache); manifest requests 14.0.12; neither changed this turn",
+  "installed_urp_source_sha256": {
+    "Library/PackageCache/com.unity.render-pipelines.universal@14.0.11/Runtime/Passes/ScriptableRenderPass.cs": "2eb2f375313efa088b6259fafdb389ce9e47f25545a40ecf7e75b247c5801c9d",
+    "Library/PackageCache/com.unity.render-pipelines.universal@14.0.11/Runtime/UniversalRenderPipeline.cs": "5430bc6494445f8e217b6bd2d2eda5219e70b30355f91299bdefe52476e6d7d9",
+    "Library/PackageCache/com.unity.render-pipelines.universal@14.0.11/Runtime/ScriptableRenderer.cs": "fed0ea2b87ba25a1b331a2f751f76724fccfc106ea253b05ee4747275f131d6e"
+  },
+  "unity_reference": "https://github.com/Unity-Technologies/UnityCsReference/blob/2022.3/Runtime/Export/RenderPipeline/RenderPipelineManager.cs",
+  "red": {
+    "cases": 13,
+    "failures": 12,
+    "exit_code": 1,
+    "report": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/red-01.txt",
+    "sha256": "8a71dadd719a512775b96498e229dc055603108699085dba6ccdccebd1d833d1",
+    "scope": "11 direct lifecycle/resource failures and missing new completion evidence in integration; not official shader math failures"
+  },
+  "green": {
+    "cases": 13,
+    "failures": 0,
+    "exit_code": 0,
+    "report": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/green-final-02.txt",
+    "sha256": "c27b2a1a0036d5b235f79d0ad0d99ed719aaeeb660e70c16ae8a8e7d08793d5e",
+    "actual_urp_requests": 9,
+    "cameras": [
+      [
+        64,
+        48
+      ],
+      [
+        72,
+        48
+      ]
+    ],
+    "sequence": "A,A,B,A; feature off; feature on; caster off; light off; recovery",
+    "during_opaques": "queued compute GPU observation, gate 1 plus size on eligible frames, gate 0 for inactive/skipped/early return",
+    "after_camera": "G gate 0, white texture, zero size",
+    "separate_R": "texture black and gate .75 remain untouched throughout",
+    "completion": "last camera + monotonically increasing submission sequence; not GPU completion fence"
+  },
+  "intermediate_failures_retained": {
+    "reports": "red-and-intermediate-summary.txt",
+    "notes": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/",
+    "passing_scope_before_final": "12 direct tests passed; pipeline fixture and CPU-observer failures not reported as full success",
+    "no_threshold_relaxation": true
+  },
+  "regressions": [
+    {
+      "name": "official-shadow-selection",
+      "cases": 238,
+      "failures": 0,
+      "report": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/regression-selection.txt",
+      "sha256": "cb73135b47369acf3311dd8a34ff0165cd80fb6f1f47aa4e25950599529fb94e"
+    },
+    {
+      "name": "official-light-selection",
+      "cases": 688,
+      "failures": 0,
+      "report": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/regression-light.txt",
+      "sha256": "0a311092950a2e0c466b78de0623e484f2c9ca3187c073a54b1d5596547ac03b"
+    },
+    {
+      "name": "shadow-MPB",
+      "scope": "two material slots x two updates; root/user properties retained",
+      "report": "D:/EndfieldTechLib/notes/shadow-lifecycle-20261001-01/regression-mpb.log",
+      "sha256": "13e01fada716b1b7dca7a2892da15aa6ee710e1b04926212aac2337c0f968a93"
+    }
+  ],
+  "python": {
+    "passed": 416,
+    "historical_skipped": 3,
+    "subtests_passed": 80,
+    "existing_pillow_warnings": 2,
+    "new_test": "fresh-sequence/current-camera/cleanup contracts across three existing callers",
+    "new_test_red": "AnimRender absent freshness check; 1 subtest failure, other 2 passed",
+    "coverage": "C#/compute line coverage not measured; scenario count is not percentage coverage"
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "0 errors",
+    "pip_audit": "no known vulnerabilities in temporary pip-audit tool environment only",
+    "unity_build": "isolated batch compile and actual URP sequence exit0"
+  },
+  "code_sha256": {
+    "Assets/EndfieldShaderPack/Editor/EndfieldAnimRenderValidation.cs": "2bacf90210e40eee16e7567902d275408c94d881c728a9276653b68c6763ef95",
+    "Assets/EndfieldShaderPack/EndfieldCharacterShadowFeature.cs": "1e1a7111f7078445ba9f0a635edceb6e8b0639b43e5a0d870ed659b3341a38c4",
+    "Tools/tests/test_pose_apply_post_contract.py": "00705e8f50f0c59cf8e07fcee92aee6bd3f3faddfcc65a410c00fd546f64001c",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowLifecycleValidation.cs.meta": "99e29781f12e0b24055930cc49186546c1b8c3e237f4d6a3aada57a77d809264",
+    "Assets/EndfieldShaderPack/Editor/EndfieldPoseApplyValidation.cs": "4e14f4978ceb610cdc746de4175873d0e1f7d1d7bfe1ac3fe0357d2b82c864e6",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowLifecycleValidation.cs": "c0617cb79e55788a217df30961047ef27a714ee1afac9879529a452d11eabcd1",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowLifecycleProbe.compute.meta": "1c89271349bfe0270d2030703ee9bc62f431234fd9ff0197606aad56f38f3ad2",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowLifecycleProbe.compute": "9b55b16050476edd3aedcac81bd7bf0af7224a166d86188f245aa7e8253ae750",
+    "Assets/EndfieldShaderPack/Editor/EndfieldSkinBasisValidation.cs": "4bd2a8783a4bb4cecb6bb735300e85dc106ee8e537bafda3ffcf0cd8257227a6"
+  },
+  "hash_domain": "original local file bytes; Git may normalize line endings",
+  "preserved": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "index_entries": 9557,
+    "staged_paths": 9555,
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "source_seals": {
+    "v1_files": 6771,
+    "v1_anchors": 18,
+    "v1_pending": 79,
+    "v2_files": 149,
+    "v2_anchors": 7,
+    "v2_pending": 24,
+    "integrity_ok": false,
+    "complete": false,
+    "not_rewritten": true,
+    "known_v1_drift": [
+      "CODEX-HANDOVER-PROMPT.md"
+    ],
+    "known_v2_drift": [
+      "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+    ]
+  },
+  "not_certified": [
+    "actual 744/748 program identity / atlas-resolve render states",
+    "full official directional R producer",
+    "live C++ light producer",
+    "weather producers / selectors",
+    "final native-input / scene / post lifecycle",
+    "full character pose render and animation/MMD/video fidelity"
+  ],
+  "next": "offline actual 744/748 producer identities, atlas/resolve descriptors, matrices/bias/render-state; then weather/final lifecycle and motion/MMD",
+  "publication": "independent-index explicit 14-file increment; original dirty index and scene/settings preserved"
+}

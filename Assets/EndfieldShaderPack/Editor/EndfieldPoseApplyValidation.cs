@@ -502,6 +502,7 @@ namespace EndfieldShaderPack.EditorTools
 
                 var previousTarget = camera.targetTexture;
                 var previousActive = RenderTexture.active;
+                long previousShadowSequence = CharacterShadowPass.LastRenderSequence;
                 try
                 {
                     camera.targetTexture = litTarget;
@@ -553,8 +554,10 @@ namespace EndfieldShaderPack.EditorTools
                     throw new InvalidOperationException("Character self-shadow chain skipped: " + skipReason);
                 if (!resolvedReady)
                     throw new InvalidOperationException("Character self-shadow resolve RT missing after render.");
-                if (gateValue < 0.5f)
-                    throw new InvalidOperationException("Self-shadow gate global not enabled after render.");
+                if (CharacterShadowPass.LastRenderSequence <= previousShadowSequence || CharacterShadowPass.LastRenderedCamera != camera)
+                    throw new InvalidOperationException("No fresh self-shadow submission for this camera.");
+                if (gateValue != 0f)
+                    throw new InvalidOperationException("Self-shadow sampling gate leaked past camera cleanup.");
             }
             finally
             {

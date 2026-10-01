@@ -41,6 +41,10 @@ namespace EndfieldShaderPack
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            // These reserved G globals belong to this camera's live chain, not
+            // a previous camera. R has a separate owner and is never reset here.
+            CharacterShadowPass.ResetScreenGlobals();
+            CharacterShadowPass.InvalidateDiagnostics();
             CameraData cameraData = renderingData.cameraData;
             if (pass == null || !pass.IsReady)
             {
@@ -114,6 +118,32 @@ namespace EndfieldShaderPack
         public static Matrix4x4 LastWorldToShadow = Matrix4x4.identity;
         public static Matrix4x4 LastViewProj = Matrix4x4.identity;
         public static int LastSlots;
+        // Completion evidence is separate from the G sampling gate, which must
+        // be zero after camera cleanup. Sequence advances only after submission.
+        public static long LastRenderSequence;
+        public static Camera LastRenderedCamera;
+
+        internal static void ResetScreenGlobals()
+        {
+            Shader.SetGlobalFloat(SelfShadowGateName, 0f);
+            Shader.SetGlobalTexture(ScreenTextureName, Texture2D.whiteTexture);
+            Shader.SetGlobalVector(ScreenSizeName, Vector4.zero);
+        }
+
+        static void ResetScreenGlobals(CommandBuffer cmd)
+        {
+            cmd.SetGlobalFloat(SelfShadowGateName, 0f);
+            cmd.SetGlobalTexture(ScreenTextureName, Texture2D.whiteTexture);
+            cmd.SetGlobalVector(ScreenSizeName, Vector4.zero);
+        }
+
+        internal static void InvalidateDiagnostics()
+        {
+            LastAtlas = LastIndex = LastNormal = LastDepth = LastResolved = null;
+            LastWorldToShadow = LastViewProj = Matrix4x4.identity;
+            LastSlots = 0;
+            LastRenderedCamera = null;
+        }
 
         readonly ProfilingSampler sampler = new ProfilingSampler("Endfield character self shadow");
         readonly ComputeShader resolve;
@@ -146,6 +176,9 @@ namespace EndfieldShaderPack
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
+            // GPU-order reset covers Execute guards even if no resolve follows.
+            ResetScreenGlobals(cmd);
+            InvalidateDiagnostics();
             var screen = renderingData.cameraData.cameraTargetDescriptor;
             atlasColor = Ensure(atlasColor, new RenderTextureDescriptor(atlasResolution, atlasResolution,
                 RenderTextureFormat.R16, 16)
@@ -189,6 +222,13 @@ namespace EndfieldShaderPack
             resolved = Ensure(resolved, screenShadow, ScreenTextureName);
         }
 
+        public override void OnCameraCleanup(CommandBuffer cmd)
+        {
+            // Runs for each camera, including a camera in a stack. Keep the
+            // completed diagnostic textures for readback, but stop sampling G.
+            ResetScreenGlobals(cmd);
+        }
+
         // The registry is only refreshed when empty and edit-mode toggles never fire
         // OnDisable, so a disabled caster can linger in it; filter every frame.
         // (Run 19: the live A/B gate's OFF render re-ran the whole chain on the
@@ -203,9 +243,22 @@ namespace EndfieldShaderPack
                 if (caster != null && caster.isActiveAndEnabled)
                     enabledCasters.Add(caster);
             var casters = enabledCasters;
-            if (casters.Count == 0 || atlasColor == null || resolved == null) return;
-            if (light == null) light = Object.FindObjectOfType<Endfield.EndfieldCharacterLight>();
-            if (light == null) return;
+            if (casters.Count == 0 || atlasColor == null || resolved == null)
+            {
+                EndfieldCharacterShadowFeature.LastSkipReason = "no enabled caster or allocated shadow targets";
+                return;
+            }
+            if (light == null || !light.isActiveAndEnabled)
+            {
+                light = null;
+                foreach (var candidate in Object.FindObjectsOfType<Endfield.EndfieldCharacterLight>())
+                    if (candidate.isActiveAndEnabled) { light = candidate; break; }
+            }
+            if (light == null)
+            {
+                EndfieldCharacterShadowFeature.LastSkipReason = "no active character light";
+                return;
+            }
 
             int slots = 0;
             foreach (var caster in casters) slots = Mathf.Max(slots, caster.slot + 1);
@@ -255,6 +308,14 @@ namespace EndfieldShaderPack
                     DispatchResolve(cmd, slots);
                 }
                 context.ExecuteCommandBuffer(cmd);
+                // Do not stamp a recorded-but-unsubmitted or skipped dispatch.
+                LastViewProj = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(), true) * cameraData.GetViewMatrix();
+                LastSlots = slots;
+                LastAtlas = atlasColor; LastIndex = indexTarget; LastNormal = normalTarget;
+                LastDepth = depthTarget; LastResolved = resolved;
+                LastRenderedCamera = renderingData.cameraData.camera;
+                LastRenderSequence++;
+                EndfieldCharacterShadowFeature.LastSkipReason = "";
             }
             finally { CommandBufferPool.Release(cmd); }
         }
@@ -355,13 +416,6 @@ namespace EndfieldShaderPack
             cmd.SetGlobalTexture(ScreenTextureName, resolved);
             cmd.SetGlobalVector(ScreenSizeName, new Vector4(width, height, 1f / width, 1f / height));
             cmd.SetGlobalFloat(SelfShadowGateName, 1f);
-            LastViewProj = viewProj;
-            LastSlots = slots;
-            LastAtlas = atlasColor;
-            LastIndex = indexTarget;
-            LastNormal = normalTarget;
-            LastDepth = depthTarget;
-            LastResolved = resolved;
         }
 
         // Mirrors EndfieldCharacterIndexEncode in EndfieldCharacterShadowEncode.hlsl:
@@ -399,8 +453,8 @@ namespace EndfieldShaderPack
             if (existing != null && existing.width == descriptor.width && existing.height == descriptor.height &&
                 existing.graphicsFormat == descriptor.graphicsFormat &&
                 existing.depth == descriptor.depthBufferBits &&
-                existing.enableRandomWrite == descriptor.enableRandomWrite) return existing;
-            if (existing != null) existing.Release();
+                existing.enableRandomWrite == descriptor.enableRandomWrite && existing.IsCreated()) return existing;
+            Release(existing);
             var texture = new RenderTexture(descriptor)
             {
                 name = name,
@@ -413,6 +467,10 @@ namespace EndfieldShaderPack
 
         public void Dispose()
         {
+            // An unused/other pass must not clear another producer's binding.
+            if (resolved != null && Shader.GetGlobalTexture(ScreenTextureName) == resolved)
+                ResetScreenGlobals();
+            if (resolved != null && LastResolved == resolved) InvalidateDiagnostics();
             worldToShadow?.Release();
             biases?.Release();
             lightDirs?.Release();
@@ -425,7 +483,9 @@ namespace EndfieldShaderPack
 
         static void Release(RenderTexture texture)
         {
-            if (texture != null) texture.Release();
+            if (texture == null) return;
+            texture.Release();
+            CoreUtils.Destroy(texture);
         }
     }
 }

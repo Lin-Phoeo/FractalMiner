@@ -199,6 +199,7 @@ namespace EndfieldShaderPack.EditorTools
                         // editor batch mode and does not need AnimationMode.
                         clip.SampleAnimation(charRoot.gameObject, t);
 
+                        long previousShadowSequence = CharacterShadowPass.LastRenderSequence;
                         camera.targetTexture = litTarget;
                         camera.Render();
 
@@ -233,6 +234,10 @@ namespace EndfieldShaderPack.EditorTools
                             throw new InvalidOperationException("Self-shadow skipped at frame " + f + ": " + skipReason);
                         if (CharacterShadowPass.LastResolved == null)
                             throw new InvalidOperationException("Self-shadow resolve missing at frame " + f);
+                        if (CharacterShadowPass.LastRenderSequence <= previousShadowSequence || CharacterShadowPass.LastRenderedCamera != camera)
+                            throw new InvalidOperationException("No fresh self-shadow submission at frame " + f);
+                        if (Shader.GetGlobalFloat(CharacterShadowPass.SelfShadowGateName) != 0f)
+                            throw new InvalidOperationException("Self-shadow gate leaked past camera cleanup at frame " + f);
 
                         if (f == 0 || f == frameCount / 2 || f == frameCount - 1)
                         {

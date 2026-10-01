@@ -1,0 +1,15 @@
+#pragma kernel CSProbe
+
+// Test-only observation of queued GPU globals, not CPU Shader.GetGlobal state.
+float _EndfieldCharacterSelfShadow;
+float4 _EndfieldCharacterShadowScreenSize;
+Texture2D<float2> _EndfieldCharacterShadowScreen;
+RWStructuredBuffer<float4> _LifecycleProbe;
+
+[numthreads(1, 1, 1)]
+void CSProbe(uint3 id : SV_DispatchThreadID)
+{
+    _LifecycleProbe[0] = float4(_EndfieldCharacterSelfShadow,
+        _EndfieldCharacterShadowScreenSize.xy,
+        _EndfieldCharacterShadowScreen.Load(int3(0, 0, 0)).g);
+}
