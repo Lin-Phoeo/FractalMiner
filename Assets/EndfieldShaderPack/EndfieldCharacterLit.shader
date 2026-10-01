@@ -362,9 +362,14 @@ Shader "Endfield/CharacterLit"
 
         // Official screen-space character shadow (HGRP ScreenSpaceShadowResolve
         // _Character, G channel), produced by EndfieldCharacterShadowFeature before
-        // opaques. The gate float is 0 whenever that feature did not run, so selfShadow
-        // stays exactly 1 and an unbound texture can never darken a character.
+        // opaques. The producer/owner must reset its gate when no current mask
+        // exists; full per-camera/frame cleanup is not yet certified. Gate 0
+        // keeps selfShadow at 1 without reading an unbound texture.
         TEXTURE2D(_EndfieldCharacterShadowScreen);
+        // Separate ownership from the live G producer (whose R is only 1).
+        TEXTURE2D(_EndfieldDirectionalShadowScreen);
+        float _EndfieldDirectionalScreenShadow;
+        float4 _EndfieldCapturedDirectionalShadowParams;
         float4 _EndfieldCharacterShadowScreenSize;
         float _EndfieldCharacterSelfShadow;
         float _EndfieldDebugValueMode;
@@ -374,11 +379,14 @@ Shader "Endfield/CharacterLit"
         // is involved here.
         float EndfieldCharacterSelfShadow(float2 pixelPosition)
         {
-            float2 uv = pixelPosition * _EndfieldCharacterShadowScreenSize.zw;
+            // The official consumer is mip0 integer Load, not UV Sample.
+            // Never read a missing G resource when the producer did not run.
+            if (_EndfieldCharacterSelfShadow == 0.0) return 1.0;
             return lerp(1.0,
-                SAMPLE_TEXTURE2D(_EndfieldCharacterShadowScreen, sampler_Endfield_PointClamp, uv).g,
+                LOAD_TEXTURE2D(_EndfieldCharacterShadowScreen, int2(pixelPosition)).g,
                 _EndfieldCharacterSelfShadow);
         }
+        #include "EndfieldOfficialCharacterShadow.hlsl"
 
         struct Attributes
         {
@@ -680,11 +688,14 @@ Shader "Endfield/CharacterLit"
                     if (_EndfieldDebugValueMode == 206) return sourceSkin ? _CharacterParams4 : _CharacterParams5;
                     if (_EndfieldDebugValueMode == 207) return _CharacterParams11;
                     if (_EndfieldDebugValueMode == 208) return _CharacterParams12;
-                    // HGRP's two-channel screen shadow buffer is reproduced by
-                    // EndfieldCharacterShadowFeature; its G channel is the official
-                    // selfShadow argument. The gate keeps scenes without the feature at 1.
-                    float directionalShadow = lerp(shadowAtten, 1.0, _CharacterParams1.z);
+                    // The live feature supplies the G self-shadow input. R has a
+                    // separate owner: the live G producer's constant R=1 does
+                    // not certify the full official directional-shadow producer.
+                    float directionalShadow = EndfieldOfficialDirectionalShadow(input.positionCS.xy, shadowAtten);
                     float selfShadow = EndfieldCharacterSelfShadow(input.positionCS.xy);
+                    if (_EndfieldDebugValueMode == 210) return float4(directionalShadow.xxx, 1);
+                    if (_EndfieldDebugValueMode == 211) return float4(selfShadow.xxx, 1);
+                    if (_EndfieldDebugValueMode == 212) return _EndfieldCapturedDirectionalShadowParams;
 
                     // Debug value visualization
                     if (_EndfieldDebugValueMode > 0.5)

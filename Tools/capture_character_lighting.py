@@ -143,7 +143,12 @@ def collect(rd, controller, output, plan):
     return records
 
 
-def run():
+def run(
+    prepare_plan=None,
+    schema="endfield-character-light-selection-v1",
+    scope=None,
+    collect_records=None,
+):
     project = Path(os.environ["ENDFIELD_TOOLS_PATH"]).parent
     capture, output = (
         Path(os.environ["ENDFIELD_CAPTURE_PATH"]),
@@ -152,12 +157,14 @@ def run():
     validate_paths(capture, output)
     cap = controller = None
     try:
-        plan = prepare(project)
+        plan = prepare(project) if prepare_plan is None else prepare_plan(project)
         try:
             import renderdoc as rd  # pyright: ignore[reportMissingImports]
 
             cap, controller = open_controller(rd, capture)
-            records = collect(rd, controller, output, plan)
+            records = (collect if collect_records is None else collect_records)(
+                rd, controller, output, plan
+            )
         finally:
             try:
                 if controller is not None:
@@ -170,9 +177,10 @@ def run():
             {
                 "status": "ok",
                 "frame": 6411,
-                "schema": "endfield-character-light-selection-v1",
+                "schema": schema,
                 "records": records,
-                "scope": "six reviewed float4 global inputs per draw only; no whole-render/weather certificate",
+                "scope": scope
+                or "six reviewed float4 global inputs per draw only; no whole-render/weather certificate",
             },
         )
     except BaseException:

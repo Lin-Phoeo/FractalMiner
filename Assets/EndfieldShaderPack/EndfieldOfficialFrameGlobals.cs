@@ -43,6 +43,10 @@ namespace Endfield
             Shader.SetGlobalVector("_EndfieldCapturedDirectionalTravel",
                 new Vector4(.021389273926615715f, -.6427876353263855f, -.765745997428894f, 0));
             Shader.SetGlobalVector("_EndfieldCapturedDirectionalColor", Vector4.one);
+            // Actual ShadowData set0/b15 offset544 (c34); .x selects screen R
+            // shadow strength before CP1.z. Do not claim a missing R producer.
+            Shader.SetGlobalVector("_EndfieldCapturedDirectionalShadowParams",
+                new Vector4(1f, 2f, .0007716049440205097f, 3600f));
             // Event 875: ShaderVariablesGlobal set0/b16, offset416 (_child16).
             // Private scalar avoids overwriting URP's unrelated _GlobalMipBias.
             Shader.SetGlobalFloat("_EndfieldCapturedGlobalMipBias", -1f);

@@ -1,0 +1,254 @@
+{
+  "phase": "shadow-selection-20261001",
+  "approval": "bounded-six-draw-official-screen-shadow-consumer-only",
+  "parent_record_commit": "42f885434da2c1731103602bbd3f5b4ac9494b28",
+  "source_provenance_sha256": "a6f177b4cfc56a24abd4f4560efe083bee50291181fda27be331e76f43c1a2ec",
+  "source_identity_reference": "../material-uniforms-20261001/verification.json",
+  "private_package": "Validation/Captures/shadow-selection-20261001-01",
+  "final_replay_package": "Validation/Captures/shadow-selection-20261001-final",
+  "manifest_sha256": "b74ed7d0c64485ad4f72979020d2566b547a73a977da3ae46396ae55e767f819",
+  "final_replay": "fresh complete after successful controller/capture shutdown; byte-identical",
+  "raw_blocks": {
+    "events": [
+      776,
+      786,
+      835,
+      850,
+      860,
+      875
+    ],
+    "b15": {
+      "bytes": 11440,
+      "sha256": "f7ce5d5218607b0ddab46cc1b919f83c3c342dc53f6304eb5e42fe1f26686fb1",
+      "selected": "_DirectionalShadowParams",
+      "offset": 544,
+      "value": [
+        1,
+        2,
+        0.0007716049440205097,
+        3600
+      ]
+    },
+    "b16": {
+      "bytes": 3200,
+      "sha256": "6e65fa13c1e8107bbf9a8383179332d78b1e14418b7f9f8aa5ffa3baf115384b",
+      "selected": "_CharacterParams1",
+      "offset": 1728,
+      "value": [
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    "scope": "two selected float4 per draw; not all full raw block members"
+  },
+  "screen_mask": {
+    "set": 0,
+    "binding": 22,
+    "resource": "ResourceId::58932",
+    "view": "ResourceId::58934",
+    "format": "R8G8_UNORM",
+    "width": 2560,
+    "height": 1600,
+    "mips": 1,
+    "slices": 1,
+    "swizzle": "identity",
+    "bytes": 8192000,
+    "sha256": "f1bf21317afb41147cef9745cb80f2da59bddee289d4e3b2a1fda690dc7c2b06",
+    "sampling": "integer SV_POSITION Load mip0; no sampler/UV/export flip",
+    "raw_distribution": {
+      "R": {
+        "min": 255,
+        "max": 255,
+        "non_255": 0
+      },
+      "G": {
+        "min": 0,
+        "max": 255,
+        "non_255": 122626,
+        "below_250": 113636
+      }
+    },
+    "scope": "input byte distribution only, not a screenshot comparison"
+  },
+  "red": {
+    "cases": 220,
+    "failures": 91,
+    "synthetic_failures": 88,
+    "ownership_failures": 3,
+    "report": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/shadow-red-01.txt",
+    "sha256": "45719b77e2c4ee23522a020795d038641ce25ba8ca37c69356332501cf18852b"
+  },
+  "intermediate_failed_premise": {
+    "run": "shadow-green-02",
+    "reason": "fixture wrongly required nontrivial R; actual frame R uniformly 255",
+    "report_generated": false,
+    "correction": "require fractional G, report constant R; independent synthetic nonuniform R inputs retained",
+    "tolerance_unchanged": true
+  },
+  "green": {
+    "cases": 238,
+    "failures": 0,
+    "captured_float4_cases": 12,
+    "captured_channels": 48,
+    "synthetic_selection": 216,
+    "independent_ownership": 4,
+    "native_points": 6,
+    "native_fractional_G_pixel": [
+      1336,
+      87
+    ],
+    "native_fractional_G": 0.956862748,
+    "max_native_error": 2.5711806e-9,
+    "tolerance": 0.000002,
+    "report": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/shadow-green-03.txt",
+    "sha256": "cb73135b47369acf3311dd8a34ff0165cd80fb6f1f47aa4e25950599529fb94e"
+  },
+  "regressions": [
+    {
+      "sha256": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13",
+      "tail": "CharacterLit default-keyword passes=5 | RESULT PASS kernel=32 production=16; no real mip/view/sampler certification",
+      "name": "regression-cloth-emission",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-cloth-emission.txt"
+    },
+    {
+      "sha256": "51039dc78d44e52910d78ddd074628566b70e1da98f21046b7bd46e560a2ffe9",
+      "tail": "CharacterLit native BC6H consumption / missing-input gate PASS | RESULT PASS defaultPasses=5; bounded native environment path, not full scene/post/motion certification.",
+      "name": "regression-cloth-environment",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-cloth-environment.txt"
+    },
+    {
+      "sha256": "618f2f41462b5b1c9137db566cef808b55ae59bd19678e0392dce63bee9ce658",
+      "tail": "Production source-off diagnostic isolation PASS | RESULT PASS kernel=31 maxError=1.3564337875138222E-07 production=14 passes=5; native fetch/mip/import equivalence NOT certified",
+      "name": "regression-cloth-normal",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-cloth-normal.txt"
+    },
+    {
+      "sha256": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34",
+      "tail": "CharacterLit PASS passes=5 | RESULT PASS probes=18 maxError=4.059186498039935E-08",
+      "name": "regression-hair-split",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-hair-split.txt"
+    },
+    {
+      "sha256": "0a311092950a2e0c466b78de0623e484f2c9ca3187c073a54b1d5596547ac03b",
+      "tail": "PASS full-family zero-intensity continuity family=3 zero=(0.0040051, 0.0660840, 0.0480611) near=(0.0040070, 0.0661157, 0.0480841) delta=3.92176153E-05 | RESULT PASS cases=688 failures=0; globals restored; no material/scene/settings save; bounded dry light selection only.",
+      "name": "regression-light",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-light.txt"
+    },
+    {
+      "sha256": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+      "tail": "Actual recovered character native material+normal bind PASS slots=2 dirtyStateUnchanged=true; no scene save/full frame render/settings changes | RESULT PASS defaultPasses=5; only these two dry opaque cloth input variants, not all uniforms/weather/final scene/MMD.",
+      "name": "regression-native-cloth",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-native-cloth.txt"
+    },
+    {
+      "sha256": "fdd4a3de72f0af7ce764fd40fa29ccb291ce8ab355193fd66b6e179642505b4f",
+      "tail": "Actual recovered four-family simultaneous native binding PASS slots=2+2+2, dirty unchanged; no scene save/full frame/settings changes | RESULT PASS defaultPasses=5; bounded dry inputs/sampling, not all uniforms/weather/final scene/MMD.",
+      "name": "regression-native-hair-eye",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-native-hair-eye.txt"
+    },
+    {
+      "sha256": "1365acaf89a784a78634df458bc44369d34567c4ffcf59e571bbc52424a3360c",
+      "tail": "Actual recovered body/face bind PASS slots=2 dirty unchanged; no scene save/full frame render/settings change | RESULT PASS defaultPasses=5; bounded dry body/face inputs, not all uniforms/weather/final scene/MMD.",
+      "name": "regression-native-skin",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-native-skin.txt"
+    },
+    {
+      "sha256": "3f5707a41c33c3988c333840fc114c95ede293e09a72c23ed1f988cea6b03035",
+      "tail": "eye root-projected light L=(0.00, 0.60, -0.80) angles=(45.00, 37.00, 0.00) rampAlpha=0.1076199 viewAlpha=0.9960938 gpu=(0.14, 0.22, 0.31) expected=(0.14, 0.22, 0.31) error=9.02933E-06 | cloth emission gpu=(0.394740, 0.655319, 0.972662) expected=(0.394740, 0.655319, 0.972662) error=2.98023E-08",
+      "name": "regression-official",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-official.txt"
+    },
+    {
+      "sha256": "57a98891fec5375f72800b635dd0a4078072cf880be2d385d9dc4360aeea6f77",
+      "tail": "shader/after-render: Warning: use of potentially uninitialized variable (EFMaterialUniformProbe) (Assets/EndfieldShaderPack/EndfieldMaterialUniformProbe.hlsl:32) | Result: 28/28 passed.",
+      "name": "regression-skin",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-skin.txt"
+    },
+    {
+      "sha256": "dcceb71a23a73d1ee7fa225090424fc81afb66b32569ee477cac8aed77085ddc",
+      "tail": "Independent ordinary Color / HDR fixtures PASS: low/high RGB transfer and alpha=.37 unchanged; production UPM readback, eight channels. | RESULT PASS draws=6 fields=126 channels=225 failures=0; excluded dry weather fields=6; no scene/settings/material save, no whole-render certificate.",
+      "name": "regression-uniform",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-uniform.txt"
+    },
+    {
+      "sha256": "ddf665ed01fead4c6a1154263d52958926e61c4ccb74b195338ebefec415666a",
+      "name": "regression-eye-policy",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-eye-policy.log",
+      "marker": [
+        "[EyePassValidation] PASS: eight family/outline states, iris has no generic outline"
+      ]
+    },
+    {
+      "sha256": "d40d1f64105292222af2e7767de1592d0507615bb7dd90f4358048e7d1657eac",
+      "name": "regression-shadow-blocks",
+      "file": "D:/EndfieldTechLib/notes/shadow-selection-20261001-01/regression-shadow-blocks.log",
+      "marker": [
+        "[ShadowPropertyBlockValidation] PASS: two slots x two shadow updates; root/user data retained at both levels"
+      ]
+    }
+  ],
+  "python": {
+    "passed": 415,
+    "historical_skipped": 3,
+    "subtests_passed": 77,
+    "existing_pillow_warnings": 2,
+    "new_shadow_tests": 15,
+    "combined_new_and_shared_module_tests": 37,
+    "combined_executable_statements": 146,
+    "line_coverage_percent": 100,
+    "scope": "capture_character_shadows.py and capture_character_lighting.py only, not C#/HLSL or whole-project coverage"
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "pass",
+    "pip_audit": "no known vulnerabilities in temporary pip-audit tool environment only",
+    "shader_warnings": "existing potentially uninitialized EFMaterialUniformProbe warning observed by Skin regression; no compile errors"
+  },
+  "code_sha256": {
+    "Tools/tests/test_capture_character_shadows.py": "a63e0387a698f91bf6886934bcd9534d1920fa21e905b0b8c8586b7dba865c53",
+    "Assets/EndfieldShaderPack/EndfieldOfficialCharacterShadow.hlsl.meta": "fe8de7b14bdbd91777056b3ce0da6e7fd099e55ed009cbf217ca14b89ab1ecc7",
+    "Assets/EndfieldShaderPack/EndfieldOfficialCharacterShadow.hlsl": "9156b9072e102a0fbb35390174716a4494c79c25278e1b9abe2d827d1c014442",
+    "Assets/EndfieldShaderPack/EndfieldOfficialFrameGlobals.cs": "219fa75a1c1f6c674eea4a84fed0b0a2feaec43392999b402d6b36550c11fc34",
+    "Tools/capture_character_lighting.py": "6cc5a11ca8f0dda4694dc2e3ce6e57ce52ba995e74c714ee5cf420ec6064c9b0",
+    "Tools/capture_character_shadows.py": "c5adac5bc4801c6e06032b99950b34607d7ad476e9b3378f9a4abb01ef619c33",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowSelectionValidation.cs": "2ada77ded6430d6667d4398feb0c3c21b1252de9b98e39aa05bf7e917449631f",
+    "Assets/EndfieldShaderPack/Editor/EndfieldShadowSelectionValidation.cs.meta": "50601604a56d0e405d8088a9268845067616bd669ea2074484e4e66d381a23ad",
+    "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader": "03815febc7aa832a292f10430f4eb3b8e832b2f22e3f80d40bdbb0bb80b3382e"
+  },
+  "hash_domain": "original local file bytes; Git may normalize line endings",
+  "preserved": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "index_entries": 9557,
+    "staged_paths": 9555,
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "source_seals": {
+    "v1_pending": 79,
+    "v2_pending": 24,
+    "not_rewritten": true,
+    "known_v1_drift": [
+      "CODEX-HANDOVER-PROMPT.md"
+    ],
+    "known_v2_drift": [
+      "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+      "Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+    ],
+    "integrity_ok": false,
+    "complete": false
+  },
+  "not_certified": [
+    "full live directional-shadow producer (URP fallback retained)",
+    "G producer source identity / full dynamic lifecycle",
+    "live official C++ light producer",
+    "weather/render-state/final-scene packaging",
+    "full captured pose render",
+    "MMD/animation video delivery"
+  ],
+  "next": "verify actual producer identities 744/748 and per-camera/per-frame gate/texture cleanup before render-state/weather/final lifecycle",
+  "publication": "independent index, explicit 14-file increment only; raw capture files not published"
+}

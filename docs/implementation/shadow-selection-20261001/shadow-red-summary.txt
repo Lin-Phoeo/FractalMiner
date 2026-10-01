@@ -1,0 +1,21 @@
+RED: old consumer implementation, 220 cases / 91 failures.
+216 synthetic cases: 88 failures (R source/strength/ignore and G integer address).
+4 independent R/G ownership cases: 3 failures.
+Original local report: D:/EndfieldTechLib/notes/shadow-selection-20261001-01/shadow-red-01.txt
+Original bytes SHA256: 45719b77e2c4ee23522a020795d038641ce25ba8ca37c69356332501cf18852b
+Original red Unity exit: 1 (expected validation exception, fresh report).
+
+GREEN-01: after consumer fix, 220 cases / 0 failures (before captured-input tests).
+GREEN-02: added native fixture incorrectly required nontrivial R as well as G.
+Actual capture R is uniformly 255; validation threw before writing a report.
+No passing result was recorded for that run. This was a test-premise error.
+Full raw R inspection and prior official shadow evidence agree on constant R.
+Corrected premise: require fractional G; report constant R honestly; test varying
+R/strength with separate synthetic fixtures, not fabricated captured data.
+Tolerance remained 2e-6 throughout; no relaxed threshold or tuned material.
+
+GREEN-03: 238 cases / 0 failures (12 uploads + 216 selection + 4 gates + 6 native points).
+Original local report: D:/EndfieldTechLib/notes/shadow-selection-20261001-01/shadow-green-03.txt
+Original bytes SHA256: cb73135b47369acf3311dd8a34ff0165cd80fb6f1f47aa4e25950599529fb94e
+The checked-in GPU report preserves its content; Git may normalize CRLF bytes.
+This certifies bounded shadow consumers, not a complete live directional producer.
