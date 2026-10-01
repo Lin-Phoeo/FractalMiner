@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <Target Name="ValidateLocalTools" BeforeTargets="Restore;Build">
+    <Error Condition="!Exists('$(SceneProbeRoot)/Program.cs')" Text="Pass -p:SceneProbeRoot=&lt;existing EndfieldSceneProbe sources&gt;." />
+    <Error Condition="!Exists('$(AnimeStudioBin)/AnimeStudio.dll')" Text="Pass -p:AnimeStudioBin=&lt;local compatible AnimeStudio DLL directory&gt;." />
+  </Target>
+  <ItemGroup>
+    <Compile Include="$(SceneProbeRoot)/Program.cs" Link="SceneProbe/Program.cs" />
+    <Compile Include="$(SceneProbeRoot)/DecalProjectorRecord.cs" Link="SceneProbe/DecalProjectorRecord.cs" />
+    <Compile Include="$(SceneProbeRoot)/MaterialRenderState.cs" Link="SceneProbe/MaterialRenderState.cs" />
+    <Compile Include="$(SceneProbeRoot)/ShaderReference.cs" Link="SceneProbe/ShaderReference.cs" />
+    <Compile Include="$(SceneProbeRoot)/../Shared/HelperProgress.cs" Link="SceneProbe/HelperProgress.cs" />
+    <Reference Include="AnimeStudio"><HintPath>$(AnimeStudioBin)/AnimeStudio.dll</HintPath></Reference>
+    <Reference Include="AnimeStudio.Utility"><HintPath>$(AnimeStudioBin)/AnimeStudio.Utility.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(AnimeStudioBin)/Newtonsoft.Json.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

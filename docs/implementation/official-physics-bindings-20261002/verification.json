@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline original Transform and physics PPtr binding recovery only; no Unity runtime changes",
+  "parent_record_commit": "ba59b3d8ce670843cc7041b31a5e0e65f0325522",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "audit": {
+    "game_objects": 556,
+    "transforms": 556,
+    "mono_behaviours": 48,
+    "id_qualified_raw_dumps": 1160,
+    "duplicate_bone_names_retained": true,
+    "parent_child_reciprocity_and_acyclicity": true,
+    "raw_trs_finite_quaternion_normalized_scale_nonsingular": true,
+    "reviewed_groups": 11,
+    "root_references": 31,
+    "ignored_references": 33,
+    "collider_references": 35,
+    "unique_referenced_colliders": 25,
+    "referenced_capsule_field_components": 23,
+    "referenced_size_only_components": 2,
+    "all_source_capsule_field_components": 25,
+    "avatar_external_file_2_equals_prefab_source": true,
+    "prefab_serialized_file": "CAB-f859e4fe0ae8ddbe9e3aac716c534e11",
+    "critical_metadata_reader_warnings": 0,
+    "unvalidated_metadata_reader_warnings": 1,
+    "unvalidated_component_path_id_decimal": "7923281468339408687",
+    "unvalidated_component_scope": "Animation event handlers/managed references; not cloth/collider/Transform/GameObject",
+    "external_mono_script_classes_resolved": false,
+    "basis_conversion_or_runtime_injection": false,
+    "official_solver_or_clock_restored": false
+  },
+  "manifest_local_only": {
+    "path": "D:/EndfieldTechLib/notes/official-physics-bindings-20261002-01/official-physics-bindings-03.json",
+    "bytes": 32988805,
+    "sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "game_data_published_to_git": false
+  },
+  "validation": {
+    "dotnet_build_errors": 0,
+    "dotnet_build_warnings": 0,
+    "python_suite_passed": 508,
+    "python_historical_skipped": 3,
+    "python_subtests_passed": 114,
+    "existing_pillow_warnings": 2,
+    "new_tool_tests": 25,
+    "new_tool_coverage_including_branches_percent": 87.73,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "unity_rerun": false,
+    "unity_code_or_assets_modified": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/export_official_physics_bindings.py": "3dd42a8ca738a14659f7a1c59687680d02f1ef7d73fccd4ab7a5f6d410c5afde",
+    "Tools/tests/test_export_official_physics_bindings.py": "0cc38143eab5cbbb6f58307f9018c24a3cedc24e62f5d8877059939edecf32b2",
+    "Tools/EndfieldPhysicsProbe/SerializedMetadata.cs": "38fd7a164814ce4bd7e3e285e0b064315470f8be6444f9df99feb1481f1f5aec",
+    "Tools/EndfieldPhysicsProbe/EndfieldPhysicsProbe.csproj": "767725259b2ba7c33e2df7e9e552e8ec4fa6708562759e6659b0845d03ed277e"
+  },
+  "local_reused_dependency_sha256": {
+    "AnimeStudio-net10/bin/AnimeStudio.dll": "e6f9a8123097164f4386e24436e20209f29f3958ab64bb0e03c395bd346f074f",
+    "AnimeStudio-net10/bin/AnimeStudio.Utility.dll": "35595d3aa7a1e0293285194993eec51327a91eb3bf8c34687be407c4020f55f3",
+    "EndfieldSceneProbe/Program.cs": "4ea16c2a34721afe5e85bf54c38ad2a745ecff56a949f0b8675db87eb03f173f",
+    "EndfieldSceneProbe/DecalProjectorRecord.cs": "4128414fc339150f78adbb5e370534d343147b018e5e14dc246fb27e1818b147",
+    "EndfieldSceneProbe/ShaderReference.cs": "ab8d6a79dde83d84eeb5ee46752a0aafabda6f54cd701ba66fbcd91af86dee8d",
+    "EndfieldSceneProbe/MaterialRenderState.cs": "2ad5471a65663beac94a294f59ad7ee38044fd9afde19d3cd4a6494806ddeb14",
+    "Shared/HelperProgress.cs": "c8ccf39571bd5fea50f563d1ca974a129386c5e8c1724cbfdbb8619db1fdb69b"
+  },
+  "protected_runtime_sha256": {
+    "Assets/Typhoeus/_typhoea_model_data.json": "008b95e54768515b621ce0775e96f8b133b7089b1ac33da7cf9c9e3ed121d860",
+    "Assets/EndfieldShaderPack/Editor/EndfieldSecondaryMotion.cs": "cbfdbbb09b6b3d10e4186b615fce8490de3ba418cc56ac0ca978177952a18eae",
+    "Assets/Scenes/Typhoeus_OfficialFrame_Recovered.unity": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "Assets/Scenes/Typhoeus_MMD_Stage.unity": "b7a3d627497234d676cddbf038b047434a85de68d8aa0b8b19a9c47414324c61",
+    "Assets/EndfieldShaderPack/EndfieldCharacterLit.shader": "7bcf6af71d64ddf4dcfe77803731c9bd72e2c3dd120922487bbaaf99fc76ffe0",
+    "ProjectSettings/QualitySettings.asset": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "ProjectSettings/GraphicsSettings.asset": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  }
+}
