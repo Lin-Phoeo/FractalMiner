@@ -33,14 +33,18 @@ namespace EndfieldShaderPack
             public bool GradientRamp, UseSdf;
             public bool OverrideBasis;
             public float BasisYaw;
+            public bool IndexLut;
+            public Vector3 SampleAlbedo;
 
             public Case(string name, float normalWeight, float sdfGradient, float baseAlpha,
-                        bool gradientRamp = true, float constantRampAlpha = 1f, bool useSdf = true, float? basisYaw = null)
+                        bool gradientRamp = true, float constantRampAlpha = 1f, bool useSdf = true, float? basisYaw = null,
+                        bool indexLut = false, Vector3? sampleAlbedo = null)
             {
                 Name = name; NormalWeight = normalWeight; SdfGradient = sdfGradient;
                 BaseAlpha = baseAlpha; GradientRamp = gradientRamp; ConstantRampAlpha = constantRampAlpha;
                 UseSdf = useSdf;
                 OverrideBasis = basisYaw.HasValue; BasisYaw = basisYaw ?? 0f;
+                IndexLut = indexLut; SampleAlbedo = sampleAlbedo ?? Albedo;
             }
         }
 
@@ -55,7 +59,7 @@ namespace EndfieldShaderPack
                 foreach (string name in new[] { "_EnvironmentGlobalParams0", "_ExposureWithMiscParams",
                     "_CharacterLightDir", "_CharacterLightColor", "_CharacterAmbient" }) SaveVector(name);
                 foreach (string name in new[] { "_EndfieldOfficialFrameEnabled", "_EndfieldOfficialShadingEnabled",
-                    "_EndfieldCapturedLightIntensity" })
+                    "_EndfieldCapturedLightIntensity", "_EndfieldCapturedGlobalMipBias" })
                 {
                     int id = Shader.PropertyToID(name); floats.Add(id, Shader.GetGlobalFloat(id));
                 }
@@ -82,17 +86,26 @@ namespace EndfieldShaderPack
             return t * t * (3f - 2f * t);
         }
 
-        // Independently model a repeat/bilinear texture read at texel centers.
-        // This also checks the SDF ramp coordinates that cross the repeat seam.
+        // Independently model the actual s6 Clamp/bilinear texel read.
+        // SDF can yield ramp coordinates beyond [0,1]; do not wrap those.
         static float GradientAlpha(float u)
         {
             float texel = u * RampWidth - .5f;
             int left = Mathf.FloorToInt(texel);
             float fraction = texel - left;
-            int first = ((left % RampWidth) + RampWidth) % RampWidth;
-            int second = (first + 1) % RampWidth;
+            int first = Mathf.Clamp(left, 0, RampWidth - 1);
+            int second = Mathf.Clamp(left + 1, 0, RampWidth - 1);
             return Mathf.Lerp((first + .5f) / RampWidth, (second + .5f) / RampWidth, fraction);
         }
+
+        // Synthetic LUT stores an affine function of integer 32^3 lattice
+        // coordinates. CPU expected value follows color-domain conversion,
+        // not the shader's flattened address expression; this detects swapped
+        // axes/slices, wrong index domain and omitted blue interpolation.
+        static float IndexDomain(float value) => Mathf.Clamp01(value <= .0031308f
+            ? value * 12.92f : 1.055f * Mathf.Pow(Mathf.Abs(value), 1f / 2.4f) - .055f);
+        static Vector3 IndexedLutColor(Vector3 value) => new Vector3(
+            .05f + .1f * IndexDomain(value.x), .06f + .1f * IndexDomain(value.y), .07f + .1f * IndexDomain(value.z));
 
         // b138 dry reduction: N=(0,0,1), identity object transform, CP12.x=1,
         // CP6=0, both shadow inputs=1, white ramp RGB, zero rim/spec/highlight.
@@ -115,8 +128,8 @@ namespace EndfieldShaderPack
             rampAlpha = item.GradientRamp ? GradientAlpha(rampX) : item.ConstantRampAlpha;
 
             float litMask = Mathf.Min(item.BaseAlpha, rampAlpha);
-            Vector3 diffuse = Albedo * .96f;
-            Vector3 deep = LutColor * (.96f * .65f);
+            Vector3 diffuse = item.SampleAlbedo * .96f;
+            Vector3 deep = (item.IndexLut ? IndexedLutColor(item.SampleAlbedo) : LutColor) * (.96f * .65f);
             Vector3 shadowSelection = Vector3.Lerp(Saturation(deep * .65f, 1.2f), deep,
                                                    Mathf.Clamp01(item.BaseAlpha + rampAlpha));
             Vector3 baseSelection = Vector3.Lerp(shadowSelection, diffuse, litMask);
@@ -151,6 +164,8 @@ namespace EndfieldShaderPack
             result.Add(new Case("body-no-sdf/ramp-alpha=.35", 1f, .05f, 1f, false, .35f, false));
             foreach (float yaw in new[] { -90f, 0f, 90f, 180f })
                 result.Add(new Case("explicit-shading-basis-yaw=" + yaw, 0f, .05f, 1f, basisYaw: yaw));
+            foreach (var value in new[] { new Vector3(0,.003f,.01f), new Vector3(.2f,.3f,.4f), new Vector3(.99f,1.1f,1f) })
+                result.Add(new Case("LUT-index=" + value, 1, .05f, 0, false, 1, false, indexLut: true, sampleAlbedo: value));
             return result;
         }
 
@@ -186,6 +201,7 @@ namespace EndfieldShaderPack
             Shader.SetGlobalFloat("_EndfieldOfficialFrameEnabled", 1);
             Shader.SetGlobalFloat("_EndfieldOfficialShadingEnabled", 1);
             Shader.SetGlobalFloat("_EndfieldCapturedLightIntensity", LightIntensity);
+            Shader.SetGlobalFloat("_EndfieldCapturedGlobalMipBias", -1);
         }
 
         static void CheckShader(Shader shader, StringBuilder report, string stage)
@@ -217,7 +233,10 @@ namespace EndfieldShaderPack
                 || !SystemInfo.SupportsTextureFormat(TextureFormat.RGBAFloat))
                 throw new InvalidOperationException("This test requires RGBAFloat textures and an ARGBFloat render target.");
 
-            string reportPath = Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/official-skin-shading-numerical.txt"));
+            string freshReport = Environment.GetEnvironmentVariable("ENDFIELD_SKIN_NUMERICAL_REPORT");
+            if (freshReport != null && (freshReport.Length == 0 || File.Exists(freshReport)))
+                throw new InvalidOperationException("Fresh skin numerical report required.");
+            string reportPath = freshReport ?? Path.GetFullPath(Path.Combine(Application.dataPath, "../Logs/official-skin-shading-numerical.txt"));
             var report = new StringBuilder();
             report.AppendLine($"Device={SystemInfo.graphicsDeviceType}; colorSpace={QualitySettings.activeColorSpace}; tolerance={Tolerance}");
             report.AppendLine("Synthetic RGBAFloat inputs; N=+Z; CP6=0; rim/spec/highlight disabled; opaque output.");
@@ -272,6 +291,11 @@ namespace EndfieldShaderPack
                 var mask = Constant(owned, "SkinMask", Color.clear);
                 var sdf = Constant(owned, "SkinSDF", Color.clear);
                 var lut = Constant(owned, "SkinLUT", new Color(LutColor.x, LutColor.y, LutColor.z, 1), 1024, 32);
+                var indexedLut = Constant(owned, "SkinLUTIndependentIndexFixture", Color.clear, 1024, 32);
+                var indexedPixels = new Color[1024 * 32];
+                for (int blue = 0; blue < 32; blue++) for (int green = 0; green < 32; green++) for (int red = 0; red < 32; red++)
+                    indexedPixels[green * 1024 + blue * 32 + red] = new Color(.05f + .1f * red / 31, .06f + .1f * green / 31, .07f + .1f * blue / 31, 1);
+                indexedLut.SetPixels(indexedPixels); indexedLut.Apply(false, false);
                 var black = Constant(owned, "SkinHighlightBlack", Color.clear);
                 var constantRamp = Constant(owned, "SkinConstantRamp", Color.white);
                 var gradientRamp = Constant(owned, "SkinGradientRamp", Color.white, RampWidth, 1);
@@ -291,7 +315,8 @@ namespace EndfieldShaderPack
                 var cases = Cases();
                 foreach (Case item in cases)
                 {
-                    Fill(baseMap, new Color(Albedo.x, Albedo.y, Albedo.z, item.BaseAlpha));
+                    Fill(baseMap, new Color(item.SampleAlbedo.x, item.SampleAlbedo.y, item.SampleAlbedo.z, item.BaseAlpha));
+                    material.SetTexture("_ShadowLutTex", item.IndexLut ? indexedLut : lut);
                     Fill(mask, new Color(0, item.NormalWeight, 0, 0));
                     Fill(sdf, new Color(item.SdfGradient, item.SdfGradient, .5f, 1));
                     Fill(constantRamp, new Color(1, 1, 1, item.ConstantRampAlpha));
@@ -339,7 +364,9 @@ namespace EndfieldShaderPack
                 {
                     globals.Dispose();
                     Directory.CreateDirectory(Path.GetDirectoryName(reportPath));
-                    File.WriteAllText(reportPath, report.ToString());
+                    if (freshReport == null) File.WriteAllText(reportPath, report.ToString());
+                    else using (var stream = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write))
+                        using (var writer = new StreamWriter(stream)) writer.Write(report.ToString());
                 }
             }
         }

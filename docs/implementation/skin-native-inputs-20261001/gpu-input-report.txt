@@ -1,0 +1,9 @@
+Native captured body/face inputs; no official-image/per-pixel fitting.
+GPU=Direct3D11 / NVIDIA GeForce RTX 3060 Laptop GPU
+Native view PASS images=10 mipLevels=86 cases=430 maxError=0; SampleLevel+Load; sRGB RGB exactly once / linear alpha / no UV flip
+Native payload/mip partition and fail-closed null/corruption=20 PASS
+Production decoded native Base/N/SDFMask/SDF/Highlight/Emotion fixtures PASS cases=4; actual native LUT/ramp retained; Base ST once, legacy aux ST ignored
+Production implicit mip/bias PASS independent expected mip2 at bias=-1 and mip3 at bias=0; negative control effective
+Scoped ownership PASS inheritance/slot merge/restoration/foreign writer/no dangling textures/reject before mutation
+Actual recovered body/face bind PASS slots=2 dirty unchanged; no scene save/full frame render/settings change
+RESULT PASS defaultPasses=5; bounded dry body/face inputs, not all uniforms/weather/final scene/MMD.

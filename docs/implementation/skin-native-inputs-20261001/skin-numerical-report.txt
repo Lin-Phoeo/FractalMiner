@@ -1,0 +1,31 @@
+Device=Direct3D11; colorSpace=Linear; tolerance=0.003
+Synthetic RGBAFloat inputs; N=+Z; CP6=0; rim/spec/highlight disabled; opaque output.
+PASS sdf=0.05/maskG=0.0: rampX=0.556250 rampA=0.556250 gpu=(0.253167, 0.340672, 0.456599) cpu=(0.253168, 0.340674, 0.456601) alpha=1.000000 maxError=2.5332E-06
+PASS sdf=0.05/maskG=0.5: rampX=0.703125 rampA=0.703125 gpu=(0.285570, 0.387396, 0.517609) cpu=(0.285570, 0.387396, 0.517609) alpha=1.000000 maxError=5.96046E-08
+PASS sdf=0.05/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.318258, 0.434284, 0.578792) cpu=(0.318257, 0.434282, 0.578789) alpha=1.000000 maxError=2.5034E-06
+PASS sdf=0.14/maskG=0.0: rampX=1.184000 rampA=0.998047 gpu=(0.351493, 0.481706, 0.640631) cpu=(0.351493, 0.481706, 0.640631) alpha=1.000000 maxError=5.96046E-08
+PASS sdf=0.14/maskG=0.5: rampX=1.017000 rampA=0.998047 gpu=(0.351493, 0.481706, 0.640631) cpu=(0.351493, 0.481706, 0.640631) alpha=1.000000 maxError=5.96046E-08
+PASS sdf=0.14/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.318258, 0.434284, 0.578792) cpu=(0.318257, 0.434282, 0.578789) alpha=1.000000 maxError=2.5034E-06
+PASS constant-ramp-alpha=0.00: rampX=0.556250 rampA=0.000000 gpu=(0.133035, 0.165203, 0.227104) cpu=(0.133035, 0.165203, 0.227104) alpha=1.000000 maxError=1.49012E-08
+PASS constant-ramp-alpha=0.35: rampX=0.556250 rampA=0.350000 gpu=(0.208148, 0.275339, 0.371220) cpu=(0.208148, 0.275339, 0.371220) alpha=1.000000 maxError=0
+PASS constant-ramp-alpha=1.00: rampX=0.556250 rampA=1.000000 gpu=(0.351933, 0.482333, 0.641448) cpu=(0.351933, 0.482333, 0.641448) alpha=1.000000 maxError=2.98023E-08
+PASS base-alpha=0.00/maskG=0.0: rampX=0.556250 rampA=0.556250 gpu=(0.110081, 0.139793, 0.195653) cpu=(0.110082, 0.139794, 0.195654) alpha=1.000000 maxError=4.32134E-07
+PASS base-alpha=0.25/maskG=0.0: rampX=0.556250 rampA=0.556250 gpu=(0.178946, 0.235431, 0.319620) cpu=(0.178946, 0.235431, 0.319620) alpha=1.000000 maxError=3.27826E-07
+PASS base-alpha=0.55/maskG=0.0: rampX=0.556250 rampA=0.556250 gpu=(0.251795, 0.338689, 0.454009) cpu=(0.251795, 0.338689, 0.454009) alpha=1.000000 maxError=2.98023E-08
+PASS base-alpha=1.00/maskG=0.0: rampX=0.556250 rampA=0.556250 gpu=(0.253167, 0.340672, 0.456599) cpu=(0.253168, 0.340674, 0.456601) alpha=1.000000 maxError=2.5332E-06
+PASS base-alpha=0.00/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.125276, 0.156614, 0.216474) cpu=(0.125276, 0.156614, 0.216473) alpha=1.000000 maxError=4.47035E-07
+PASS base-alpha=0.25/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.186522, 0.243777, 0.329944) cpu=(0.186522, 0.243777, 0.329944) alpha=1.000000 maxError=1.49012E-08
+PASS base-alpha=0.55/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.251795, 0.338689, 0.454009) cpu=(0.251795, 0.338689, 0.454009) alpha=1.000000 maxError=2.98023E-08
+PASS base-alpha=1.00/maskG=1.0: rampX=0.850000 rampA=0.850000 gpu=(0.318258, 0.434284, 0.578792) cpu=(0.318257, 0.434282, 0.578789) alpha=1.000000 maxError=2.5034E-06
+PASS both-alpha-low: rampX=0.703125 rampA=0.200000 gpu=(0.136314, 0.180597, 0.249533) cpu=(0.136314, 0.180597, 0.249533) alpha=1.000000 maxError=1.49012E-08
+PASS body-no-sdf/full-alpha: rampX=0.850000 rampA=0.850000 gpu=(0.318258, 0.434284, 0.578792) cpu=(0.318257, 0.434282, 0.578789) alpha=1.000000 maxError=2.5034E-06
+PASS body-no-sdf/base-alpha=.25: rampX=0.850000 rampA=0.850000 gpu=(0.186522, 0.243777, 0.329944) cpu=(0.186522, 0.243777, 0.329944) alpha=1.000000 maxError=1.49012E-08
+PASS body-no-sdf/ramp-alpha=.35: rampX=0.850000 rampA=0.350000 gpu=(0.208148, 0.275339, 0.371220) cpu=(0.208148, 0.275339, 0.371220) alpha=1.000000 maxError=0
+PASS explicit-shading-basis-yaw=-90: rampX=0.000000 rampA=0.001953 gpu=(0.133449, 0.165815, 0.227906) cpu=(0.133449, 0.165815, 0.227906) alpha=1.000000 maxError=0
+PASS explicit-shading-basis-yaw=0: rampX=0.556250 rampA=0.556250 gpu=(0.253167, 0.340672, 0.456599) cpu=(0.253168, 0.340674, 0.456601) alpha=1.000000 maxError=2.5332E-06
+PASS explicit-shading-basis-yaw=90: rampX=0.342969 rampA=0.342969 gpu=(0.206623, 0.273118, 0.368316) cpu=(0.206623, 0.273117, 0.368315) alpha=1.000000 maxError=1.2517E-06
+PASS explicit-shading-basis-yaw=180: rampX=0.000000 rampA=0.001953 gpu=(0.133449, 0.165815, 0.227906) cpu=(0.133449, 0.165815, 0.227906) alpha=1.000000 maxError=0
+PASS LUT-index=(0.00, 0.00, 0.01): rampX=0.850000 rampA=1.000000 gpu=(0.055431, 0.065958, 0.082568) cpu=(0.055431, 0.065953, 0.082568) alpha=1.000000 maxError=5.20796E-06
+PASS LUT-index=(0.20, 0.30, 0.40): rampX=0.850000 rampA=1.000000 gpu=(0.109144, 0.122229, 0.140927) cpu=(0.109147, 0.122233, 0.140927) alpha=1.000000 maxError=3.72529E-06
+PASS LUT-index=(0.99, 1.10, 1.00): rampX=0.850000 rampA=1.000000 gpu=(0.165804, 0.165203, 0.175490) cpu=(0.165804, 0.165203, 0.175490) alpha=1.000000 maxError=1.93715E-07
+Result: 28/28 passed.

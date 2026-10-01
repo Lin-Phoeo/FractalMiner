@@ -1,0 +1,107 @@
+{
+  "phase": "skin-native-inputs-20261001",
+  "approval": "bounded-input-and-consumer-only",
+  "frame": 6411,
+  "events": [
+    786,
+    860
+  ],
+  "programs": [
+    22250,
+    37671
+  ],
+  "private_package": "Validation/Captures/native-skin-inputs-20261001-01",
+  "manifest_sha256": "e5dda0870d25bbe7411e95597ff2835c9086ae82b8612313c668d6ac4eb1840b",
+  "payloads": {
+    "786-ShadowLUT.raw": "8b4782f6485be2d361f29743eccaee900c269512c659fe69e4bb3f9f2a733828",
+    "786-DiffRamp.raw": "4b06cc25fd7266c6c8bf83d6946f4ee7c94458e8d08f5bc9d41e1d3202c28f6b",
+    "786-Normal.raw": "4f34bb4177e7ccf9db28cb065f340d7b65aa2cda3bed160a6b0bf10a1a1bc07e",
+    "786-Base.raw": "0563c228ea706da12b9f796983dd5787bd246362ef679f9267d4fe19a3ce7ef9",
+    "860-SDFMask.raw": "3ab55f5b4f76fba4ce5824b05c5c63569551503c5bcacf198a0678e201bd9192",
+    "860-SDF.raw": "7284db29e3edaafb0585385a033207b1bdc56580a73ceb0097cac430b1c6bfad",
+    "860-Highlight.raw": "8cf0e8d95fdbf17a7f393353a32585a32473465b5f067130bf122bc67fb49114",
+    "860-Emotion.raw": "601e9c612d9a36024d86673f857a25bce73eb137ad90df2ebd2c0e012b46b6a3",
+    "860-Normal.raw": "314159f16c55cf8f7a16388c00191498994ef094bd11e8e44c532aba3e5f0e11",
+    "860-Base.raw": "e0f29a84f05e74b1cf52d73466bb2f2c73954d0a37c1ff4a13c5cf36369de6e2"
+  },
+  "gpu": {
+    "api": "Direct3D11",
+    "device": "NVIDIA GeForce RTX 3060 Laptop GPU",
+    "draw_bindings": 12,
+    "unique_images": 10,
+    "mips": 86,
+    "native_sample_cases": 430,
+    "sample_level_max_error": 0,
+    "integer_load_error_bound": 0.000002,
+    "production_decoded_fixture_cases": 4,
+    "independent_bias_cases": 2,
+    "numerical_skin_cases": 28,
+    "original_numerical_tolerance": 0.003,
+    "independent_lut_index_cases": 3,
+    "default_passes": 5,
+    "actual_character_slots": 2,
+    "full_pose_scene_render_run": false
+  },
+  "reports_sha256": {
+    "gpu-input-report-02.txt": "1365acaf89a784a78634df458bc44369d34567c4ffcf59e571bbc52424a3360c",
+    "skin-numerical-03.txt": "f78b59bb40400328ff9667ab749e9c66366b8d536ac306d0fcda886b1eb94d75",
+    "regression-native-cloth-materials.txt": "b87bfa2508e700b1490dd6f6d548a472bb0366bc8e11f551539803ba58b1ab5e",
+    "regression-native-bc5.txt": "1168fd524e97060384b4ef96dfed40b2c361f1192ee608bded5414c7f6e3a193",
+    "regression-cube.txt": "51039dc78d44e52910d78ddd074628566b70e1da98f21046b7bd46e560a2ffe9",
+    "regression-cloth-normal.txt": "4a02dee14f11e3933cd1699627edfdef12d64590e6ff30ffe2b30fe6f3fadf6c",
+    "regression-cloth-emission.txt": "b13fcede4eaae9b6ce05a1fdfc223782ccafec37020441a79e109bf0a4cebf13",
+    "regression-hair.txt": "83eb85c10d9369c93fd3c6672d77ddcf344fa16e2e5b7e3327b7f7e20064ff34"
+  },
+  "python": {
+    "passed": 332,
+    "historical_skipped": 3,
+    "subtests": 77,
+    "existing_warnings": 2,
+    "exporter_api_io_line_coverage_percent": 97.08,
+    "skin_wrapper_coverage_percent": 100,
+    "csharp_hlsl_coverage_claim": false
+  },
+  "checks": {
+    "ruff": "pass",
+    "pyright": "pass",
+    "pip_audit": "No known vulnerabilities found; uv temporary tool environment only, no project dependency additions"
+  },
+  "sealed_baselines": {
+    "v1": {
+      "integrity_ok": false,
+      "files": 6771,
+      "anchors": 18,
+      "pending": 79,
+      "errors": [
+        "changed:project:CODEX-HANDOVER-PROMPT.md"
+      ]
+    },
+    "v2": {
+      "integrity_ok": false,
+      "files": 149,
+      "anchors": 7,
+      "pending": 24,
+      "errors": [
+        "changed:project:Assets/EndfieldShaderPack/EndfieldCharacterLit.shader",
+        "changed:project:Assets/EndfieldShaderPack/EndfieldOfficialHair.hlsl"
+      ]
+    }
+  },
+  "protected": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "scene_sha256": "4d4d43d5e2990ff0d8b4888ff4775073db58e3ba15ee96bcc7d07817d2881a7a",
+    "quality_sha256": "e61ecbd3b831c8356df6283d012e330ac34ddc4d552a993b7778a910c83c2163",
+    "graphics_sha256": "e2ead59bedd2ad92492703f6e907829744e51d0608fcadc4905d7e2840252e68"
+  },
+  "not_certified": [
+    "all_material_uniforms",
+    "hair_and_eye_native_inputs",
+    "weather_and_spatial_variants",
+    "all_render_states",
+    "full_scene_post_lifecycle",
+    "player_packaging",
+    "unpacked_motion_and_mmd_completion"
+  ]
+}

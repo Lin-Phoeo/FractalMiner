@@ -30,7 +30,7 @@ def level_bytes(width, height, format_name):
     if any(type(v) is not int or v < 1 for v in (width, height)):
         raise ValueError("Positive integer native extents required")
     family = format_name.replace("_SRGB", "_UNORM")
-    if family in ("BC1_UNORM", "BC3_UNORM", "BC7_UNORM"):
+    if family in ("BC1_UNORM", "BC3_UNORM", "BC5_UNORM", "BC7_UNORM"):
         return (
             ((width + 3) // 4)
             * ((height + 3) // 4)
@@ -85,15 +85,21 @@ def validate_sampler(record, number):
         raise ValueError("Unreviewed material sampler")
 
 
-def collect(rd, controller, output):
+def collect(
+    rd, controller, output, roles_by_event=None, programs=None, role_samplers=None
+):
+    roles_by_event = ROLES if roles_by_event is None else roles_by_event
+    programs = PROGRAMS if programs is None else programs
+    if set(roles_by_event) != set(programs):
+        raise ValueError("Every reviewed draw requires an exact PS identity")
     if controller.GetFrameInfo().frameNumber != 6411:
         raise ValueError("Requires frame6411")
     textures = {str(t.resourceId): t for t in controller.GetTextures()}
     results = []
-    for event, roles in ROLES.items():
+    for event, roles in roles_by_event.items():
         controller.SetFrameEvent(event, True)
         state, stage = controller.GetPipelineState(), rd.ShaderStage.Pixel
-        if str(state.GetShader(stage)) != "ResourceId::" + str(PROGRAMS[event]):
+        if str(state.GetShader(stage)) != "ResourceId::" + str(programs[event]):
             raise ValueError("PS identity mismatch")
         reflection = state.GetShaderReflection(stage)
         resources = {}
@@ -199,7 +205,7 @@ def collect(rd, controller, output):
             results.append(
                 {
                     "event": event,
-                    "shader": PROGRAMS[event],
+                    "shader": programs[event],
                     "shader_sha256": hashlib.sha256(
                         bytes(reflection.rawBytes)
                     ).hexdigest(),
@@ -210,7 +216,11 @@ def collect(rd, controller, output):
                     "image": image,
                     "view": view,
                     "binding": record,
-                    "sampler": samplers[6 if role.endswith("Ramp") else 4],
+                    "sampler": samplers[
+                        role_samplers[role]
+                        if role_samplers is not None
+                        else (6 if role.endswith("Ramp") else 4)
+                    ],
                     "levels": levels,
                     "sample_cast": str(sample_cast),
                     "native_samples": samples,
@@ -219,7 +229,7 @@ def collect(rd, controller, output):
     return results
 
 
-def run():
+def run(roles_by_event=None, programs=None, role_samplers=None):
     capture = Path(os.environ["ENDFIELD_CAPTURE_PATH"]).resolve()
     output = Path(os.environ["ENDFIELD_CAPTURE_OUTPUT"]).resolve()
     validate_paths(capture, output)
@@ -230,7 +240,9 @@ def run():
             import renderdoc as rd  # pyright: ignore[reportMissingImports]
 
             cap, controller = open_controller(rd, capture)
-            results = collect(rd, controller, output)
+            results = collect(
+                rd, controller, output, roles_by_event, programs, role_samplers
+            )
         finally:
             try:
                 if controller is not None:

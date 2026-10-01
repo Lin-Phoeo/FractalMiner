@@ -443,6 +443,7 @@ namespace EndfieldShaderPack.EditorTools
             // BC5 textures; never saves scene/material/texture-import assets.
             using var nativeCloth = EndfieldCapturedClothInputs.BindIfRequested(charRoot, report);
             using var nativeClothMaterials = EndfieldCapturedClothMaterialInputs.BindIfRequested(charRoot, report);
+            using var nativeSkinMaterials = EndfieldCapturedSkinMaterialInputs.BindIfRequested(charRoot, report);
             // B of the A/B: the same pose/camera with the captured lighting branch live.
             RenderPng(camera, Path.Combine(OutDir, "pose-applied-lit.png"));
 

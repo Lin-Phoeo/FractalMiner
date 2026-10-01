@@ -8,8 +8,10 @@
 // source light direction L and intensity-scaled lightColorI, plus albedo after
 // EmotionMap but BEFORE the legacy skin-rim tint. Return is linear RGB after
 // source saturation, before VFX adjustment, exposure and fog.
-// Auxiliary textures use original UVs; only BaseMap applies its imported ST.
-// Implicit-LOD fetches assume a zero source _GlobalMipBias.
+// Actual frame6411 PS22250/37671: UV is the captured VS BaseMap-transformed
+// UV, shared by Base/N/SDFMask/Emotion and view-offset Highlight. s4 is
+// bilinear Repeat / mip-point, s6 is bilinear Clamp / mip-point. SampleBias
+// uses captured global bias (-1), while LUT/ramp/SDF use explicit LOD0.
 
 float3 EndfieldSkinSafeNormalize(float3 v)
 {
@@ -26,7 +28,7 @@ float2 EndfieldSkinSafeNormalize(float2 v)
 float3 EndfieldSkinShadowLUT(float3 albedo)
 {
     // b138:429-438. The 32^3 LUT indexes sRGB values, and both fetches are
-    // explicitly level 0 / repeat. Do not use a post-rim albedo as the index.
+    // explicitly level 0 / captured s6 Clamp. Do not use post-rim albedo as index.
     float3 low = albedo * 12.92;
     float3 high = pow(abs(albedo), 0.4166666567325592) * 1.055 - 0.055;
     float3 indexColor = saturate(float3(
@@ -38,8 +40,8 @@ float3 EndfieldSkinShadowLUT(float3 albedo)
     float2 lutUV = indexColor.rg * 31.0 * float2(1.0 / 1024.0, 1.0 / 32.0)
                  + float2(0.5 / 1024.0, 0.5 / 32.0);
     lutUV.x += slice / 32.0;
-    float3 first = SAMPLE_TEXTURE2D_LOD(_ShadowLutTex, sampler_Endfield_LinearRepeat, lutUV, 0).rgb;
-    float3 second = SAMPLE_TEXTURE2D_LOD(_ShadowLutTex, sampler_Endfield_LinearRepeat,
+    float3 first = SAMPLE_TEXTURE2D_LOD(_ShadowLutTex, sampler_Endfield_LinearClamp, lutUV, 0).rgb;
+    float3 second = SAMPLE_TEXTURE2D_LOD(_ShadowLutTex, sampler_Endfield_LinearClamp,
                                        lutUV + float2(1.0 / 32.0, 0), 0).rgb;
     return lerp(first, second, blue - slice);
 }
@@ -53,12 +55,12 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
 
     // b138:424-426,439-442,450-475. Alpha is a lighting mask even on an
     // opaque face, and is not multiplied by BaseColor.a or EmotionMap.a.
-    float baseAlpha = SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp,
-                                      uv * _BaseMap_ST.xy + _BaseMap_ST.zw).a;
+    float baseAlpha = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearRepeat,
+                                      uv, _EndfieldCapturedGlobalMipBias).a;
     // Body b114 has no SDF descriptors. It is the normal-weight=1 skin path,
     // NOT the cloth b401 variant suggested by the old buffer-size matcher.
     bool hasSDF = _UseSDFLightmap > 0.5;
-    float4 mask = hasSDF ? SAMPLE_TEXTURE2D(_SDFMask, sampler_Endfield_LinearRepeat, uv)
+    float4 mask = hasSDF ? SAMPLE_TEXTURE2D_BIAS(_SDFMask, sampler_Endfield_LinearClamp, uv, _EndfieldCapturedGlobalMipBias)
                         : float4(1.0, 1.0, 1.0, 0.0);
     float normalWeight = mask.y; // 0 selects SDF; 1 selects normal-based light.
     float4x4 objectToWorld = EndfieldCharacterRootToWorld();
@@ -108,7 +110,7 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
         lightHorizontalOS = EndfieldSkinSafeNormalize(lightHorizontalOS);
         float side = lightHorizontalOS.x > 0.0 ? 1.0 : 0.0;
         float2 sdfUV = float2(lerp(1.0 - uv.x, uv.x, side), uv.y);
-        float4 sdf = SAMPLE_TEXTURE2D_LOD(_SDFLightmap, sampler_Endfield_LinearRepeat, sdfUV, 0);
+        float4 sdf = SAMPLE_TEXTURE2D_LOD(_SDFLightmap, sampler_Endfield_LinearClamp, sdfUV, 0);
         // sdf.z supplies _1529 only for excluded rim/punctual-light branches.
         // sdf.a (_1530) is likewise only consumed by punctual lighting (line 1110).
         float lightFront = lightHorizontalOS.z;
@@ -126,7 +128,7 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
         float sdfLight = lerp(-1.0, 1.0, abs(-sdfTransition - sdfBack * ceil(sdfBack)));
         rampX = lerp(sdfLight, normalLight, normalWeight) * 0.5 + 0.5;
     }
-    float4 ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearRepeat, float2(rampX, 0.5), 0);
+    float4 ramp = SAMPLE_TEXTURE2D_LOD(_DiffRampMap, sampler_Endfield_LinearClamp, float2(rampX, 0.5), 0);
 
     // b138:758-777. Ramp alpha is the lit-mask gate; RGB supplies chroma.
     float rampChroma = max(max(ramp.r, ramp.g), ramp.b) - min(min(ramp.r, ramp.g), ramp.b);
@@ -171,7 +173,7 @@ float3 EndfieldShadeOfficialSkin(float2 uv, float3 albedo, float3 N, float3 V,
     float visibility = 0.5 / (2.0 * NdotV + roughness * ((1.0 + NdotV) - NdotV) + 0.0001);
     float specular = clamp(distribution * visibility - horizontalEpsilon, 0.0, 20.0);
     float2 highlightUV = uv + mul(V, objectBasis).xy * _HighlightMapVector.xy;
-    float3 highlight = hasSDF ? SAMPLE_TEXTURE2D(_HighlightMap, sampler_Endfield_LinearClamp, highlightUV).rgb
+    float3 highlight = hasSDF ? SAMPLE_TEXTURE2D_BIAS(_HighlightMap, sampler_Endfield_LinearRepeat, highlightUV, _EndfieldCapturedGlobalMipBias).rgb
                               : 0.0.xxx;
     float3 color = lightTerm * diffuseTerm
                  + specColor * specular * specLight * _CharacterParams13.w

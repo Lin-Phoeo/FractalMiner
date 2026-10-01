@@ -567,11 +567,12 @@ Shader "Endfield/CharacterLit"
                     uv -= (h - 0.5) * _ParallaxScale * viewDirTS.xy;
                 }
 
+                bool sourceSkin = sourceShading && _MaterialFamily > 0.5 && _MaterialFamily < 1.5;
                 bool sourceClamp = sourceShading && (_MaterialFamily < 1.5 || _MaterialFamily > 2.5);
                 bool sourceHair = sourceShading && _MaterialFamily > 1.5 && _MaterialFamily < 2.5;
                 bool sourceCloth = sourceShading && _MaterialFamily < 0.5;
-                // Captured VS output applies BaseMap_ST once. Hair shares base/P/HN;
-                // cloth shares base/P/N/emission and the captured s4 sampler.
+                // Captured VS output applies BaseMap_ST once. Skin shares all
+                // material UV inputs; hair shares base/P/HN; cloth base/P/N/E.
                 float2 sourceUV = TRANSFORM_TEX(uv, _BaseMap);
                 float4 hairBaseMap = 0;
                 if (sourceHair)
@@ -581,7 +582,11 @@ Shader "Endfield/CharacterLit"
                 if (sourceCloth)
                     clothBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_BumpMap,
                         sourceUV, _EndfieldCapturedGlobalMipBias);
-                half4 baseMap = sourceHair ? hairBaseMap : sourceCloth ? clothBaseMap : sourceClamp
+                float4 skinBaseMap = 0;
+                if (sourceSkin)
+                    skinBaseMap = SAMPLE_TEXTURE2D_BIAS(_BaseMap, sampler_Endfield_LinearRepeat,
+                        sourceUV, _EndfieldCapturedGlobalMipBias);
+                half4 baseMap = sourceHair ? hairBaseMap : sourceCloth ? clothBaseMap : sourceSkin ? skinBaseMap : sourceClamp
                     ? SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BaseMap))
                     : SAMPLE_TEXTURE2D(_BaseMap, sampler_Endfield_LinearRepeat, TRANSFORM_TEX(uv, _BaseMap));
                 half3 albedo  = baseMap.rgb * _BaseColor.rgb;
@@ -593,8 +598,9 @@ Shader "Endfield/CharacterLit"
                 // (对应官方 characternpr_skin: fmod(idx,2)*0.5 / floor(idx*0.5)*0.5 定格子, 0.5*uv 定格内坐标)
                 if (_UseEmotionMap > 0.5)
                 {
-                    half2 euv = half2(fmod(_EmotionIndex, 2.0) * 0.5, floor(_EmotionIndex * 0.5) * 0.5) + 0.5 * uv;
-                    half4 emo = sourceClamp ? SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearClamp, euv)
+                    float2 euv = float2(fmod(_EmotionIndex, 2.0) * 0.5, floor(_EmotionIndex * 0.5) * 0.5) + 0.5 * (sourceSkin ? sourceUV : uv);
+                    half4 emo = sourceSkin ? SAMPLE_TEXTURE2D_BIAS(_EmotionMap, sampler_Endfield_LinearRepeat, euv, _EndfieldCapturedGlobalMipBias)
+                        : sourceClamp ? SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearClamp, euv)
                         : SAMPLE_TEXTURE2D(_EmotionMap, sampler_Endfield_LinearRepeat, euv);
                     albedo = lerp(albedo, emo.rgb, emo.a * _EmotionBlend);
                 }
@@ -614,7 +620,7 @@ Shader "Endfield/CharacterLit"
                     half3 normalTS = half3(xy * _BumpScale, sqrt(saturate(1.0 - dot(xy, xy))));
                     N = SafeNormalize(mul(normalTS, CharTBN(input, N)));
                 }
-                else if (_UseBumpMap > 0.5 && !sourceCloth && !(sourceHair && _UseSpecBumpMap > 0.5))
+                else if (_UseBumpMap > 0.5 && !sourceCloth && !sourceSkin && !(sourceHair && _UseSpecBumpMap > 0.5))
                 {
                     half4 normalSample = sourceClamp
                         ? SAMPLE_TEXTURE2D(_BumpMap, sampler_Endfield_LinearClamp, TRANSFORM_TEX(uv, _BumpMap))
@@ -624,6 +630,18 @@ Shader "Endfield/CharacterLit"
                 }
                 // Source enum: 0 flips backface normals; 1 leaves them unchanged.
                 N *= IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip);
+                float3 sourceSkinNormal = N;
+                if (sourceSkin && _UseBumpMap > 0.5)
+                {
+                    float4 skinNormalSample = SAMPLE_TEXTURE2D_BIAS(_BumpMap, sampler_Endfield_LinearRepeat,
+                        sourceUV, _EndfieldCapturedGlobalMipBias);
+                    // PS22250/37671 have the same raw (R*A,G), sqrt guard,
+                    // scale-before-TBN and backface expression as reviewed Cloth.
+                    sourceSkinNormal = EFClothDecodeNormals(skinNormalSample, _BumpScale,
+                        input.normalWS, input.tangentWS,
+                        IS_FRONT_VFACE(frontFace, 1.0, -1.0 + 2.0 * _BackFaceNormalFlip)).mapped;
+                    N = sourceSkinNormal;
+                }
 
                 half3 V = normalize(input.viewDirWS);
 
@@ -641,7 +659,6 @@ Shader "Endfield/CharacterLit"
                     // These are the dry flat-environment character paths, before the
                     // former generic diffuse/specular approximation changes N or albedo.
                     float3 sourceL = lerp(L, _CharacterParams11.xyz, _CharacterParams1.w);
-                    bool sourceSkin = _MaterialFamily > 0.5 && _MaterialFamily < 1.5;
                     float3 sourceLightColor = sourceSkin ? _CharacterParams4.rgb : _CharacterParams5.rgb;
                     float3 sourceLightI = sourceLightColor * lerp(_EndfieldCapturedLightIntensity, 1.0, _CharacterParams12.w);
                     // HGRP's two-channel screen shadow buffer is reproduced by
@@ -688,7 +705,7 @@ Shader "Endfield/CharacterLit"
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     }
                     else if (sourceSkin)
-                        sourceColor = EndfieldShadeOfficialSkin(uv, albedo, N, V,
+                        sourceColor = EndfieldShadeOfficialSkin(sourceUV, albedo, sourceSkinNormal, normalize(input.viewDirWS),
                             input.positionWS, sourceL, sourceLightI, directionalShadow, selfShadow);
                     else
                     {
