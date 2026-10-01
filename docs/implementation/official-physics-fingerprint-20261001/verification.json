@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline original cloth config audit/export only; no solver or Unity runtime changes",
+  "parent_record_commit": "5e9f5a15c97ba00f23e935d612975608f9fa1eb2",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "audit": {
+    "fresh_avatar_dump_matches_historical_sha256": true,
+    "configured_bonecloth_groups": 11,
+    "unique_root_pptr_matches": 11,
+    "full_parameters_and_scalar_lexemes_match": 11,
+    "full_selection_and_scalar_lexemes_match": 11,
+    "prefab_enabled_components": 11,
+    "prefab_active_group_gameobjects": 11,
+    "selection_positions_total": 164,
+    "selection_positions_are_all_movable": false,
+    "avatar_scalar_lexemes": 4074,
+    "capsule_shaped_components_using_same_script": 25,
+    "script_type_external_file_resolution_complete": false,
+    "official_solver_and_clock_restored": false
+  },
+  "manifest_local_only": {
+    "path": "D:/EndfieldTechLib/notes/official-physics-fingerprint-20261001-01/official-cloth-config-04.json",
+    "bytes": 26627663,
+    "sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d",
+    "repeat_export_matches": true,
+    "game_data_published_to_git": false
+  },
+  "validation": {
+    "python_suite_passed": 483,
+    "python_historical_skipped": 3,
+    "python_subtests_passed": 114,
+    "existing_pillow_warnings": 2,
+    "new_tool_tests": 9,
+    "new_tool_subtests": 34,
+    "new_tool_coverage_including_branches_percent": 88.93,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "unity_rerun": false,
+    "unity_runtime_code_modified": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/export_official_cloth_config.py": "7c3b17e202aa778f4f2bac9803c734316b3c465e259e45861aefb77b82d8e461",
+    "Tools/tests/test_export_official_cloth_config.py": "05570ee817b35ac4a23f9d2c3df96a8bfd0e10faa5af2588149ba48d3ea10362"
+  }
+}
