@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-02",
+  "scope": "Source-bound scalar new-selection generation and ordered matching kernel, plus static normal-build center/snapshot source evidence; not full ConvertFrom or live backend",
+  "parent_record_commit": "c23d4a9afe29c5b3c613e6b26b29c1eea7325d41",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "bindings_sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "serialized_config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d"
+  },
+  "native_boundaries": {
+    "generate": {"method_index": 368604, "rva": "0x59dff84", "bytes": 1275, "sha256": "ad3cb449dc0683bba980ac5cec5a627e9ef60102759e16b00b465aa33f428e25"},
+    "match": {"method_index": 369329, "rva": "0x5a1a30c", "bytes": 944, "sha256": "bc11029e29d11dc35c3b24c0c482f213e08f3ae961bb9fdde641ba44d045da33"},
+    "convert_from_inspected_not_fully_ported": {"method_index": 369326, "rva": "0x5a1f270", "bytes": 1422, "sha256": "54a002ab8f429a353fcbe301355064cb09bf40188b50b2c216e1e9bdc92b42bb"},
+    "read_snapshot_inspected_not_ported": {"method_index": 370212, "rva": "0x5a631e4", "bytes": 775, "sha256": "c95b5a6ba761eac5197774b5a0e45562265a321f690f96e351c3ad60b0f17b10"},
+    "get_max_side_length_inspected_not_full_aabb_pipeline": {"method_index": 371097, "rva": "0x5a812cc", "bytes": 102, "sha256": "b4632527a5e8072a3a952f74565923b674e65e488828780e92a2b4bf9abfe86b"}
+  },
+  "gates": {
+    "new_selection_generation_scalar_reference": true,
+    "explicit_root_fixed_not_all_parentless": true,
+    "max_single_parent_edge_distance_not_sum_or_bbox": true,
+    "full_byte_attributes_preserved": true,
+    "ordered_nearest_candidate_scalar_kernel": true,
+    "inclusive_radius_and_later_equal_candidate_overwrite": true,
+    "source_byte_and_static_vertex_flags_authenticated": true,
+    "radius_from_max_side_length_not_max_connection_distance_static": true,
+    "normal_build_component_transform_record_source_static": true,
+    "transform_access_world_getter_identities_static": true,
+    "actual_eleven_build_path_and_center_runtime_proven": false,
+    "live_null_destroyed_reference_semantics_restored": false,
+    "full_aabb_and_grid_build_enumeration_restored": false,
+    "selection_space_preparation_and_saved_reuse_path_restored": false,
+    "full_convert_from_and_proxy_apply_restored": false,
+    "actual_eleven_selection_buffers_generated": false,
+    "actual_world_snapshots_and_scale_import_restored": false,
+    "normal_axis_default_fill_bindpose_team_step_restored": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "full_solver_collision_reset_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-selection-20261002-01",
+    "review.py_sha256": "66a6957e80a58e29d6eb7ad99a7c159334a77937ffefe1ac9ffb2844afa38bf4",
+    "review-08/review.json_sha256": "111d187b39f19efa7d8021e1aaf6b65d36bd95fceee22441625c7ecc69b1122b",
+    "review-08/instructions.json_sha256": "95d23bc02f18a2cf8330d7777fa7e4774ec05765b2ee3fbcc8289901944950cc",
+    "coverage": "coverage-full-02.json",
+    "original_files_full_native_reports_or_commercial_source_published": false,
+    "original_runtime_executed": false,
+    "apply_selection_attribute_decode_incomplete_and_refused": true,
+    "aabb_job_wrapper_inspected_not_full_computation_or_execution": true
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_selection.py": "dbd8ef2685df07216fffe6a812562eb6d5fe1a7f711693885a40b18989eda9ad",
+    "Tools/tests/test_official_physics_selection.py": "3a6e506de92e67314af22ee1e2d6f25e5b0237261c1040797af6086d7d98dc09"
+  },
+  "validation": {
+    "new_tests": 42,
+    "python_suite_passed": 1445,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ten_reference_modules_statements": 800,
+    "ten_reference_modules_branches": 232,
+    "branch_inclusive_coverage_percent": 100,
+    "serialized_user_edit_flags_group_order": [1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0],
+    "serialized_user_edit_true_groups": 7,
+    "serialized_user_edit_false_groups": 4,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tool_environment": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

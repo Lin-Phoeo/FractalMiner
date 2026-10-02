@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[骨骼导入的位置与方向](../official-physics-bone-import-20261002/README.md)。本轮实现 `Tools/official_physics_collection.py`：恢复**有效、存活的骨骼引用域**内的上游收集规则，用原始11组root/ignore和原始556个Transform的孩子顺序进行离线回放。不是完整proxy生成器或官方实时物理。舞台、模型、湿身、阴影、渲染和当前预览物理均未改动。
 
+后续进展见[选择生成与有序位置匹配](../official-physics-selection-20261002/README.md)：新生成/匹配标量规则，以及普通构建中心与快照读取的静态证据已补上；完整空间网格、实际构建分支和真实世界快照仍待接通。本页旧回放的占位center与verification门禁保持历史原义，不追溯改成已完成。
+
 ## 关键纠正：导入Job不是收集器
 
 方法签名、字段身份和直接调用点共同确认：
