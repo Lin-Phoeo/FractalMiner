@@ -215,14 +215,16 @@ class NativeAudit:
     def field_layout(self, owner: str) -> dict[str, Any]:
         row = self.metadata.inventory(owner)
         canonical = self.native_type(row["byval_type_index"])
+        is_value = row["is_value_type"]
         if (
-            canonical["kind"] != 0x12
+            canonical["kind"] != (0x11 if is_value else 0x12)
+            or bool(canonical["valuetype"]) != is_value
             or canonical["definition_index"] != row["definition_index"]
             or canonical["byref"]
             or canonical["num_mods"]
             or canonical["pinned"]
         ):
-            raise ValueError("Native layout owner class identity mismatch")
+            raise ValueError("Native layout owner kind/identity/flags mismatch")
         reg = struct.unpack_from("<16Q", self.pe.data, self.registration["file_offset"])
         table = self.pe.pointers(reg[11], len(self.metadata.types))
         count = len(row["fields"])
@@ -233,6 +235,12 @@ class NativeAudit:
             if offset < 0:
                 raise ValueError("Unavailable/unsupported native field offset")
             native = self.native_type(field["type_index"])
+            is_static = bool(native["attrs"] & 0x10)
+            # PE64 only. IL2CPP registration includes the two-pointer object
+            # header for value-instance fields (Il2CppDumper GetFieldOffsetFromIndex).
+            # Keep the registered offset stable; expose raw struct basis separately.
+            if is_value and not is_static and offset < 16:
+                raise ValueError("Unsupported value-instance boxed field offset")
             definition = native["definition_index"]
             if definition is not None and not 0 <= definition < len(
                 self.metadata.types
@@ -243,7 +251,13 @@ class NativeAudit:
                     **field,
                     "offset": offset,
                     "offset_file_position": p + i * 4,
-                    "is_static": bool(native["attrs"] & 0x10),
+                    "is_static": is_static,
+                    "offset_base": "static_storage"
+                    if is_static
+                    else ("boxed_object" if is_value else "object"),
+                    "unboxed_offset": offset - 16
+                    if is_value and not is_static
+                    else None,
                     "native_type": native,
                     "qualified_type": self.metadata.types[definition]["qualified_name"]
                     if definition is not None
@@ -253,9 +267,10 @@ class NativeAudit:
         return {
             "owner": owner,
             "definition_index": row["definition_index"],
+            "is_value_type": is_value,
             "fields": fields,
             "layout_identity_verified": True,
-            "non_claim": "Static offsets are relative to static storage, instance offsets to the object; not interchangeable. Primitive/generic union data is not labelled a type-definition identity.",
+            "non_claim": "offset preserves registration: static storage, class object or boxed value basis. Only value-instance unboxed_offset subtracts the PE64 two-pointer (16-byte) object header. Primitive/generic union data is not labelled a type-definition identity; no runtime instance or generic instantiation layout proof.",
         }
 
     def type_info_cell(self, va: int, owner: str) -> dict[str, Any]:

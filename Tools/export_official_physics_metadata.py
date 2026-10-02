@@ -94,6 +94,9 @@ class Metadata:
                     "field_count": field_count,
                     "method_start": struct.unpack_from("<i", types, p + 36)[0],
                     "method_count": method_count,
+                    "is_value_type": bool(
+                        struct.unpack_from("<I", types, p + 84)[0] & 1
+                    ),
                     "is_enum": bool(struct.unpack_from("<I", types, p + 84)[0] & 2),
                     "token_hex": f"0x{struct.unpack_from('<I', types, p + 88)[0]:08x}",
                 }

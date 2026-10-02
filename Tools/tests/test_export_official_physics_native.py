@@ -264,6 +264,72 @@ def test_native_field_offset_and_static_attribute_are_separate():
     )
 
 
+def value_layout_sample():
+    meta, data = layout_sample()
+    h = struct.unpack_from("<66I", meta)
+    struct.pack_into("<I", meta, h[40] + 2 * 92 + 84, 1)
+    struct.pack_into("<QI", data, 0x1200 + 33 * 16, 2, 0x80110000)
+    return meta, data
+
+
+def test_value_layout_distinguishes_registration_and_unboxed_offsets():
+    meta, data = value_layout_sample()
+    layout = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+        "BeyondDynamicBone.ClothSerializeData"
+    )
+    assert layout["is_value_type"] is True
+    assert layout["fields"][0]["offset"] == 0x18
+    assert layout["fields"][0]["offset_base"] == "boxed_object"
+    assert layout["fields"][0]["unboxed_offset"] == 8
+    struct.pack_into("<i", data, 0x1E00, 0x10)
+    layout = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+        "BeyondDynamicBone.ClothSerializeData"
+    )
+    assert layout["fields"][0]["unboxed_offset"] == 0
+
+
+def test_value_static_offset_is_never_adjusted_for_object_header():
+    meta, data = value_layout_sample()
+    struct.pack_into("<QI", data, 0x1200 + 37 * 16, 1, 0x80110016)
+    struct.pack_into("<i", data, 0x1E00, 0)
+    field = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+        "BeyondDynamicBone.ClothSerializeData"
+    )["fields"][0]
+    assert field["offset"] == 0
+    assert field["offset_base"] == "static_storage"
+    assert field["unboxed_offset"] is None
+
+
+@pytest.mark.parametrize("change", ["kind", "flag", "byref", "mods", "pinned", "short"])
+def test_value_layout_rejects_mismatched_identity_or_unboxed_basis(change):
+    meta, data = value_layout_sample()
+    bits = {
+        "kind": 0x80120000,
+        "flag": 0x00110000,
+        "byref": 0xA0110000,
+        "mods": 0x81110000,
+        "pinned": 0xC0110000,
+        "short": 0x80110000,
+    }[change]
+    struct.pack_into("<QI", data, 0x1200 + 33 * 16, 2, bits)
+    if change == "short":
+        struct.pack_into("<i", data, 0x1E00, 15)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+            "BeyondDynamicBone.ClothSerializeData"
+        )
+
+
+def test_class_layout_keeps_registered_object_relative_offset():
+    meta, data = layout_sample()
+    layout = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+        "BeyondDynamicBone.ClothSerializeData"
+    )
+    assert layout["is_value_type"] is False
+    assert layout["fields"][0]["offset_base"] == "object"
+    assert layout["fields"][0]["unboxed_offset"] is None
+
+
 @pytest.mark.parametrize("change", ["owner", "table", "offset"])
 def test_field_layout_identity_bounds_and_unsupported_offsets_rejected(change):
     meta, data = layout_sample()

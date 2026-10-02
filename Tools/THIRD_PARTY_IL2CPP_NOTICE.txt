@@ -14,6 +14,10 @@ References: Il2CppDumper/Il2Cpp/Il2CppClass.cs
             Il2CppDumper/Utils/SectionHelper.cs
 It performs bounded independent parsing; no upstream source file is bundled.
 
+Value-instance field bases also reference GetFieldOffsetFromIndex in Il2Cpp.cs:
+on PE64 only, registration offsets include the two-pointer boxed object header;
+the audit preserves those offsets and reports unboxed offsets separately.
+
 audit_official_physics_calls.py uses the separately installed Capstone Python
 package (tested with 5.0.9), https://www.capstone-engine.org/.
 Capstone's distributed license applies to that package; no Capstone source or
