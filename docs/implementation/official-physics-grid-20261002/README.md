@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[选择生成与有序匹配内核](../official-physics-selection-20261002/README.md)。新增 `Tools/official_physics_grid.py`：在**有限数、新建、单Job顺序插入、不扩容、不删除/复用**的域内，连接目标AABB → radius/gridSize → 源点入格 → 范围枚举 → 有序候选 → 上一轮匹配内核。不再要求调用者手工提供每个目标的候选序列。不是完整原生内存分配器、SelectionData.ConvertFrom对象状态变化或Unity实时物理。
 
+后续：[世界/局部快照及 scale](../official-physics-snapshot-20261002/README.md)已实现 getter 输出参考、逆世界旋转后矩阵对角提取及新建 selection/frame 接线。真实 Unity getter、保存 selection 分支、bindpose、完整 proxy/运行后端仍未闭合。
+
 ## 本轮落地规则
 
 | 环节 | 已核实并实现 |
