@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline Transform baseline traversal given original ordered local roots and child enumeration; not a complete proxy/mesh builder or live physics backend",
+  "parent_record_commit": "946af1b11d61234d378ff89526d668ce8ec913ba",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "transform_builder": {
+    "method_index": 371533,
+    "rva": "0x37e9610",
+    "unwind_end_rva": "0x37ec254",
+    "body_bytes": 11332,
+    "body_sha256": "988c8e83ae7e8e05f49548b976c41075502fc06fd2141516f006746602fea2e6",
+    "code_bytes": 11192,
+    "compiler_switch_data_bytes": 140,
+    "switch_tables": 5,
+    "all_35_targets_are_decoded_instruction_boundaries": true,
+    "manually_reviewed_code_data_split": true,
+    "automatic_full_cfg_or_runtime_dispatch_proof": false
+  },
+  "gates": {
+    "root_and_child_order_supplied_not_inferred": true,
+    "two_native_lifo_traversals_recovered": true,
+    "first_vertex_nonmove_remaining_vertices_move_for_this_path": true,
+    "move_candidate_subtree_skipped": true,
+    "started_baseline_does_not_search_nonmove_descendants": true,
+    "root_duplicates_not_deduplicated": true,
+    "include_line_uses_any_included_vertex_lacking_mask128": true,
+    "uint16_wrap_rejected_as_adapter_policy": true,
+    "index_space_adapter_integration_tested": true,
+    "native_hash_map_insertion_equals_enumeration_proved": false,
+    "transform_id_mapping_and_attribute_generation_implemented": false,
+    "all_actual_character_baselines_generated": false,
+    "convert_proxy_mesh_full_decode_proved": false,
+    "mesh_baseline_semantics_implemented": false,
+    "local_pose_generation_implemented": false,
+    "team_allocation_and_step_publication_proved": false,
+    "cross_baseline_job_or_burst_equivalence_proved": false,
+    "independent_native_runtime_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "build_directory": "D:/EndfieldTechLib/notes/official-physics-baseline-build-20261002-01/complete-03",
+    "build-review-01.json": {"bytes": 418815, "sha256": "33d1c23fb6d0a3c79c34b5a03877eeacb73c116db1748e1aa2cea7c0b0493f61"},
+    "private-build-instructions-01.json": {"bytes": 362872, "sha256": "1b01b340722d2066cac506675522c6c812660f4582a1ed0d49a2dca2b4c266d6"},
+    "supplement_directory": "D:/EndfieldTechLib/notes/official-physics-baseline-build-20261002-01/complete-07",
+    "dispatch-review-01.json": {"bytes": 107179, "sha256": "713b9d0304615d2f7aa6f19598b69f5aeaecf03316c9664f39e81b6864e39572"},
+    "reproduction_scripts": ["D:/EndfieldTechLib/notes/official-physics-baseline-build-20261002-01/reproduce.py", "D:/EndfieldTechLib/notes/official-physics-baseline-build-20261002-01/expand.py"],
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-baseline-build-20261002-01/build-coverage-02.json",
+    "incomplete_attempt_directories_preserved": ["complete-01", "complete-02", "complete-04", "complete-05", "complete-06"],
+    "original_binary_metadata_or_full_instructions_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_baseline_build.py": "e191611fef394d6a82b339292056caf5f794dfc50267df5780013845278edc08",
+    "Tools/tests/test_official_physics_baseline_build.py": "9b5bab82b209c7262abe117ae90047fb766022d3ce2bc5309f25772d618cc5bb"
+  },
+  "validation": {
+    "new_tests": 307,
+    "python_suite_passed": 1217,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "five_reference_modules_statements": 508,
+    "five_reference_modules_branches": 138,
+    "five_reference_modules_branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

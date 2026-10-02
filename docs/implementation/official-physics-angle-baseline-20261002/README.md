@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[父子边角度缓存](../official-physics-angle-cache-20261002/README.md)。新增 `Tools/official_physics_angle_baseline.py`，只恢复 **一个已选baseline** 的索引解析、缓存预处理、三轮角度限幅/恢复和内部就地读写。**不是完整物理求解器，也没有接入Unity实时后端。** 舞台、材质、湿身、阴影和当前预览物理不变。
 
+后续：[Transform baseline生成控制流](../official-physics-baseline-build-20261002/README.md)核清该路径首项非Move、两种LIFO及非Move子树边界；输入仍要求原始子表枚举，不代表实际角色全部baseline或实时调度已还原。本文的待办记录保留阶段语境。
+
 ## 本轮实际完成
 
 - 解包step的Int32位型：高16位team ID、低16位**全局baseline ID**；不错误地再加team.baseLineChunk.startIndex。
