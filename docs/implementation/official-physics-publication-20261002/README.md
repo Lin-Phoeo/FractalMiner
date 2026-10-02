@@ -50,3 +50,5 @@ TDD缺模块RED后新增48项通过：复制方向、四数组独立长度、目
 仍缺：实际11组proxy与normalAxis消费；Team/list发布、step/剩余求解、碰撞、惯性/reset；原cross-frame开关、JobHandle完成依赖、何时复制/何时消费、容量扩展及生命周期；实际setter的blend/culling/world-local/relative-sync分支；动画与物理唯一writer的Unity运行回归。
 
 下一阶段优先查调度依赖与模式调用者，明确复制的是哪次完成结果。不要在每次渲染前自动copy，否则last输入会变成current，掩盖跨帧错误。完整运行链未闭合前，继续保留当前预览后端。
+
+2026-10-03后续：[帧钩子与跨帧调度参考](../official-physics-scheduling-20261003/README.md)已静态恢复稳定模式、mapping为空的Transform路径顺序及符号依赖。确认旧master完成→last消费并普通完成→新求解→当前复制至last；原跨帧完成使用独立定制icall。仅调度计划，不执行native Job；Animator委托、mesh mapping、实际setter与完整solver仍未移植，旧门禁为当时状态快照，不改写历史验收。
