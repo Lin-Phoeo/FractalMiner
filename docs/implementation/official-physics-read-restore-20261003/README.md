@@ -49,6 +49,6 @@ GameAssembly SHA256 `c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb77
 
 ## 下一步
 
-1. 继续核查注册init数组、读缓冲和动画唯一writer的关系；Animator读取Job的31字节入口仅是转发到0x5a1dc98，**未移植后续主体**，不能以普通读取Job代替。
+1. 注册init数组已接续[单槽注册、复制与启停核查](../official-physics-registration-20261003/README.md)：Set分别采样init/current/last，Set/Copy保留目标matrix，null注销不清姿态。bulk注册/分配/释放与动画唯一writer仍未闭合；Animator读取Job的31字节入口仅是转发到0x5a1dc98，**未移植后续主体**，不能以普通读取Job代替。
 2. 补齐相对TRS/逆矩阵/矩阵四元数构造、真实11组proxy/Team发布、normalAxis下游，以及step/collision/惯性/reset，保留跨帧调度约束。
 3. 完整候选链具备真实输入后，再在Unity接入可回退后端并验证MMD与解包动画、暂停恢复/跳帧和唯一回写。当前效果保持，不能把本轮数学测试称为新可见效果验收。
