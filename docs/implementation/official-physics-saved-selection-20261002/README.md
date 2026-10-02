@@ -53,3 +53,5 @@ TDD缺模块RED后新增55项通过：有效/无效与userEdit独立、不同点
 ## 后续主线
 
 下一步是原世界快照/实际分支条件/normalAxis与proxy构建接齐，产出11组真实完整输入；随后恢复碰撞、Team/step、剩余求解/惯性/reset及唯一Unity骨骼写入。已有新选择快照→frame捷径仍保留，但不能冒充本模块的实际保存选择路径，也不把现有预览物理静默换成尚未完成的官方后端。
+
+接续记录：[世界与局部骨骼缓冲回写](../official-physics-writeback-20261002/README.md)已恢复有限输入的两项回写计算。真实proxy、normalAxis全部消费、双缓冲发布与Unity setter仍未闭合；本页上述历史验证范围不因此扩展。
