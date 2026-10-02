@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-02",
+  "scope": "Finite fresh serial no-resize grid scalar chain: target AABB, radius, cells, area order, same-key head order and matching composition; not full native allocator or Unity backend",
+  "parent_record_commit": "ed65db1040a91cb1c437a38e9b68736d4fd16311",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "gates": {
+    "finite_target_aabb_double_extent_single_max_reference": true,
+    "radius_and_grid_size_single_preparation": true,
+    "single_division_floor_signed_cell_conversion": true,
+    "inclusive_area_x_fastest_then_y_then_z": true,
+    "fresh_serial_no_resize_same_key_head_order_reference": true,
+    "finite_nonempty_grid_to_matching_composition": true,
+    "actual_methodspec_call_identity_static": true,
+    "full_native_hash_allocator_rehash_reuse_concurrency": false,
+    "generic_grid_enumerator_runtime_field_layout_verified": false,
+    "full_crt_floor_exceptional_values_floating_environment": false,
+    "runtime_generic_pointer_or_job_execution_proven": false,
+    "full_convert_from_mutation_empty_inputs_and_space_preparation": false,
+    "actual_eleven_world_snapshots_scale_and_selection_buffers": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "normal_axis_fill_bindpose_collision_team_step_complete": false,
+    "full_solver_reset_and_bone_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-grid-20261002-01",
+    "review.py_sha256": "06d4873d98de770eca400365a636b3cc8d296975acba48204b2d7dda8bc22f57",
+    "review-08/grid.json_sha256": "33615028e28b7c90ab65eccdb416816a71e894e3018db82d88b9628f12e88fde",
+    "review-08/grid-instructions.json_sha256": "65e3d721c6150b0f59abfe21d9e98de3e5a8868e814870c2cd483a85e0cdcb5c",
+    "pinned_selection_review_script_sha256": "66a6957e80a58e29d6eb7ad99a7c159334a77937ffefe1ac9ffb2844afa38bf4",
+    "coverage": "coverage-full-01.json",
+    "original_runtime_executed": false,
+    "game_files_full_native_reports_or_commercial_source_published": false,
+    "generic_boxed_layout_rejected_not_guessed": true,
+    "floor_crt_leaf_cfg_outside_budget_rejected": true
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_grid.py": "c9765792e5eae92b49e1c1dc863eea9dc311032f1a3eca965838d49eb8aa8503",
+    "Tools/tests/test_official_physics_grid.py": "7b52ae96681419b624eb08e9ddf981b66631653b41ca7ec1331c5a5f3317123f"
+  },
+  "validation": {
+    "new_tests": 35,
+    "python_suite_passed": 1480,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "eleven_reference_modules_statements": 865,
+    "eleven_reference_modules_branches": 248,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
