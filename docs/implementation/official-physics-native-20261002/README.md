@@ -92,3 +92,5 @@ uv run --no-project --python 3.12 --with capstone==5.0.9 python Tools/audit_offi
 4. 补各约束/惯性/碰撞/显示插值数学及 scheduler，再做独立可切回适配。继续保留既有加权 bindpose、18 个额外挂点计划、捕获姿态、MMD 和湿身/阴影基线，不覆盖为猜测值。
 
 目标是忠实且可追溯的官方逻辑；本轮没有逐像素拟合，也没有宣布官方物理完成。
+
+后续重要更正与进展：[热冷块连接、更新门控与时钟初始值](../official-physics-conditions-20261002/README.md)。本页的 30 个有界函数体指入口的 RUNTIME_FUNCTION 范围，不保证完整方法代码；新版通过 CHAININFO 扩展到 90 个相关范围，并补证 TimeManager 直线构造入口写入 90/3/1.0。实际角色的最终频率、开关和求解逻辑仍待查。

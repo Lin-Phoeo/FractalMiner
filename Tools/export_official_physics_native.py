@@ -202,7 +202,7 @@ class NativeAudit:
             "va_hex": f"0x{address:x}",
             "file_offset": offset,
             "data": data,
-            "definition_index": data,
+            "definition_index": data if (bits >> 16) & 255 in (0x11, 0x12) else None,
             "bits_hex": f"0x{bits:08x}",
             "kind": (bits >> 16) & 255,
             "attrs": bits & 65535,
@@ -210,6 +210,76 @@ class NativeAudit:
             "byref": (bits >> 29) & 1,
             "pinned": (bits >> 30) & 1,
             "valuetype": bits >> 31,
+        }
+
+    def field_layout(self, owner: str) -> dict[str, Any]:
+        row = self.metadata.inventory(owner)
+        canonical = self.native_type(row["byval_type_index"])
+        if (
+            canonical["kind"] != 0x12
+            or canonical["definition_index"] != row["definition_index"]
+            or canonical["byref"]
+            or canonical["num_mods"]
+            or canonical["pinned"]
+        ):
+            raise ValueError("Native layout owner class identity mismatch")
+        reg = struct.unpack_from("<16Q", self.pe.data, self.registration["file_offset"])
+        table = self.pe.pointers(reg[11], len(self.metadata.types))
+        count = len(row["fields"])
+        p = self.pe.offset(table[row["definition_index"]], count * 4)
+        fields = []
+        for i, field in enumerate(row["fields"]):
+            offset = struct.unpack_from("<i", self.pe.data, p + i * 4)[0]
+            if offset < 0:
+                raise ValueError("Unavailable/unsupported native field offset")
+            native = self.native_type(field["type_index"])
+            definition = native["definition_index"]
+            if definition is not None and not 0 <= definition < len(
+                self.metadata.types
+            ):
+                raise ValueError("Native field definition index out of range")
+            fields.append(
+                {
+                    **field,
+                    "offset": offset,
+                    "offset_file_position": p + i * 4,
+                    "is_static": bool(native["attrs"] & 0x10),
+                    "native_type": native,
+                    "qualified_type": self.metadata.types[definition]["qualified_name"]
+                    if definition is not None
+                    else None,
+                }
+            )
+        return {
+            "owner": owner,
+            "definition_index": row["definition_index"],
+            "fields": fields,
+            "layout_identity_verified": True,
+            "non_claim": "Static offsets are relative to static storage, instance offsets to the object; not interchangeable. Primitive/generic union data is not labelled a type-definition identity.",
+        }
+
+    def type_info_cell(self, va: int, owner: str) -> dict[str, Any]:
+        offset = self.pe.offset(va, 8)
+        encoded = struct.unpack_from("<Q", self.pe.data, offset)[0]
+        if encoded > 0xFFFFFFFF or not encoded & 1 or (encoded & 0xE0000000) >> 29 != 1:
+            raise ValueError("Not an observed tagged v29 type-info usage cell")
+        index = (encoded & 0x1FFFFFFE) >> 1
+        row = self.metadata.type(owner)
+        native = self.native_type(index)
+        if (
+            index != row["byval_type_index"]
+            or native["kind"] != 0x12
+            or native["definition_index"] != row["definition_index"]
+        ):
+            raise ValueError("Type-info usage owner identity mismatch")
+        return {
+            "va_hex": f"0x{va:x}",
+            "file_offset": offset,
+            "encoded_hex": f"0x{encoded:x}",
+            "type_index": index,
+            "definition_index": row["definition_index"],
+            "owner": owner,
+            "runtime_class_pointer_or_static_storage_inspected": False,
         }
 
     def field_enum(self, owner: str, field: str, enum: str) -> dict[str, Any]:
@@ -334,11 +404,17 @@ class NativeAudit:
         fields = [self.field_enum(**f) for f in spec["fields"]]
         inventories = [self.inventory(name) for name in spec["inventories"]]
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "registration": self.registration,
             "sections": self.pe.sections,
             "image_count": len(self.images),
             "enum_fields": fields,
+            "field_layouts": [
+                self.field_layout(owner) for owner in spec.get("layout_owners", [])
+            ],
+            "type_info_cells": [
+                self.type_info_cell(**cell) for cell in spec.get("type_info_cells", [])
+            ],
             "inventories": inventories,
             "modules": [
                 {k: v for k, v in m.items() if k != "pointers"}
@@ -365,12 +441,23 @@ DEFAULT_SPEC = {
     ]
     + [
         {
+            "owner": "BeyondDynamicBone.TimeManager",
+            "field": "updateLocation",
+            "enum": "BeyondDynamicBone.TimeManager+UpdateLocation",
+        }
+    ]
+    + [
+        {
             "owner": "BeyondDynamicBone.BeyondBoneCapsuleCollider",
             "field": "direction",
             "enum": "BeyondDynamicBone.BeyondBoneCapsuleCollider+Direction",
         }
     ],
     "inventories": METADATA_SPEC["inventories"],
+    "layout_owners": [
+        "BeyondDynamicBone." + name
+        for name in ("MagicaManager", "TimeManager", "ClothManager")
+    ],
 }
 
 
@@ -397,8 +484,27 @@ def main() -> None:
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--type-info-cell",
+        action="append",
+        default=[],
+        metavar="OWNER=VA",
+        help="Optional observed tagged type-info cell, preferred VA in decimal or hex",
+    )
     args = parser.parse_args()
-    export_files(args.binary, args.metadata, args.output)
+    cells = []
+    for value in args.type_info_cell:
+        try:
+            owner, address = value.rsplit("=", 1)
+            cells.append({"owner": owner, "va": int(address, 0)})
+        except ValueError:
+            parser.error("--type-info-cell expects OWNER=VA")
+    export_files(
+        args.binary,
+        args.metadata,
+        args.output,
+        {**DEFAULT_SPEC, "type_info_cells": cells},
+    )
     print(f"Offline physics native identity/entry-point audit: {args.output}")
 
 

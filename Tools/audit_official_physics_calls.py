@@ -14,12 +14,15 @@ from pathlib import Path
 from typing import Any
 
 from capstone import CS_ARCH_X86, CS_MODE_64, Cs
-from capstone.x86_const import X86_OP_IMM
+from capstone.x86_const import X86_OP_IMM, X86_OP_MEM, X86_REG_RCX
 from export_official_physics_native import PE64
 
 
 class FunctionBounds:
     def __init__(self, pe: PE64):
+        self.pe = pe
+        self._families: dict[int, list[int]] | None = None
+        self._roots: dict[int, int] = {}
         pos = struct.unpack_from("<I", pe.data, 60)[0] + 24
         count = struct.unpack_from("<I", pe.data, pos + 108)[0]
         optional_size = struct.unpack_from("<H", pe.data, pos - 4)[0]
@@ -45,6 +48,49 @@ class FunctionBounds:
         if rva not in self.rows:
             raise ValueError("No exact RUNTIME_FUNCTION entry: refuse guessed bounds")
         return self.rows[rva]
+
+    def family(self, rva: int) -> list[int]:
+        """Only group ranges explicitly related by UNW_FLAG_CHAININFO triples.
+
+        Shared UNWIND_INFO addresses alone are NOT a family relation. No claim
+        about stack unwinding operations, leaf bodies or control-flow coverage.
+        """
+        self.exact(rva)
+        if self._families is None:
+            parents = {}
+            for start, (_, unwind) in self.rows.items():
+                p = self.pe.offset(self.pe.base + unwind, 4)
+                header = self.pe.data[p : p + 4]
+                version, flags = header[0] & 7, header[0] >> 3
+                if not flags & 4:
+                    continue
+                if version != 1 or flags & 3:
+                    raise ValueError(
+                        "Unsupported version/illegal handler flags in unwind chain"
+                    )
+                chain_va = self.pe.base + unwind + 4 + 2 * ((header[2] + 1) & ~1)
+                cp = self.pe.offset(chain_va, 12)
+                owner, end, owner_unwind = struct.unpack_from("<III", self.pe.data, cp)
+                if self.rows.get(owner) != (end, owner_unwind):
+                    raise ValueError(
+                        "Unwind chain triple is not an actual RUNTIME_FUNCTION"
+                    )
+                parents[start] = owner
+            families: dict[int, list[int]] = {}
+            for start in self.rows:
+                pending = set()
+                current = start
+                while current in parents and current not in self._roots:
+                    if current in pending:
+                        raise ValueError("Cyclic unwind chain")
+                    pending.add(current)
+                    current = parents[current]
+                root = self._roots.get(current, current)
+                for seen in pending | {start}:
+                    self._roots[seen] = root
+                families.setdefault(root, []).append(start)
+            self._families = families
+        return self._families[self._roots[rva]]
 
 
 def inspect_body(
@@ -116,6 +162,96 @@ def inspect_body(
         "runtime_order_verified": False,
         "non_claim": "Linear instruction call sites only; reachability, branch predicates, virtual dispatch and dynamic order are not resolved.",
     }
+
+
+def inspect_family(
+    pe: PE64, bounds: FunctionBounds, rva: int, aliases: dict[int, list[dict[str, Any]]]
+) -> dict[str, Any]:
+    fragments = [
+        inspect_body(pe, bounds, start, aliases) for start in bounds.family(rva)
+    ]
+    primary = next(f for f in fragments if int(f["rva_hex"], 16) == rva)
+    return {
+        "rva_hex": primary["rva_hex"],
+        "file_offset": primary["file_offset"],
+        "primary_range_bytes": primary["body_bytes"],
+        "body_bytes": sum(f["body_bytes"] for f in fragments),
+        "decoded_bytes": sum(f["decoded_bytes"] for f in fragments),
+        "native_body_inspected": True,
+        "fragment_membership_verified": True,
+        "family_fragments": fragments,
+        "direct_transfers": [e for f in fragments for e in f["direct_transfers"]],
+        "indirect_transfers": [e for f in fragments for e in f["indirect_transfers"]],
+        "conditional_branches": [
+            e for f in fragments for e in f["conditional_branches"]
+        ],
+        "return_sites": [e for f in fragments for e in f["return_sites"]],
+        "full_cfg_verified": False,
+        "runtime_order_verified": False,
+        "non_claim": "Unwind-related ranges, not a contiguous whole-function slice. Branch reachability, stack operations, out-of-family tail targets and leaf functions remain unproved.",
+    }
+
+
+def inspect_leaf_writes(pe: PE64, rva: int, layout: dict[str, Any]) -> dict[str, Any]:
+    """Prove a narrow straight-line MOV32-immediate/RET entry path.
+
+    This is not a general scan-until-ret: any other instruction, branch, call,
+    receiver, width, unknown field or missing terminal immediately rejects it.
+    Only primitive Int32/UInt32/Single initializer writes are accepted.
+    """
+    offset = pe.offset(pe.base + rva, 128, executable=True)
+    allowed = {f["offset"]: f for f in layout["fields"] if not f["is_static"]}
+    md = Cs(CS_ARCH_X86, CS_MODE_64)
+    md.detail = True
+    writes = []
+    for ins in md.disasm(pe.data[offset : offset + 128], rva):
+        if ins.mnemonic == "ret" and not ins.operands and writes:
+            length = ins.address + ins.size - rva
+            return {
+                "rva_hex": f"0x{rva:x}",
+                "file_offset": offset,
+                "body_bytes": length,
+                "decoded_bytes": length,
+                "body_sha256": hashlib.sha256(
+                    pe.data[offset : offset + length]
+                ).hexdigest(),
+                "native_body_inspected": True,
+                "proof_kind": "restricted straight-line immediate primitive field writes ending in RET",
+                "initializer_writes": writes,
+                "runtime_frequency_verified": False,
+                "non_claim": "Constructor entry writes only. Later setters/configuration/zero-filled fields are not certified here.",
+            }
+        if ins.mnemonic != "mov" or len(ins.operands) != 2:
+            raise ValueError("Unsupported instruction in leaf initializer entry path")
+        dest, source = ins.operands
+        if (
+            dest.type != X86_OP_MEM
+            or source.type != X86_OP_IMM
+            or dest.size != 4
+            or dest.mem.base != X86_REG_RCX
+            or dest.mem.index
+            or dest.mem.segment
+            or dest.mem.disp not in allowed
+        ):
+            raise ValueError("Unproved leaf receiver/field/width/immediate")
+        field = allowed[dest.mem.disp]
+        kind = field["native_type"]["kind"]
+        if kind not in (8, 9, 12) or any(w["offset"] == dest.mem.disp for w in writes):
+            raise ValueError("Unsupported or repeated initializer field")
+        raw = struct.pack("<I", source.imm & 0xFFFFFFFF)
+        value = struct.unpack("<f" if kind == 12 else "<i" if kind == 8 else "<I", raw)[
+            0
+        ]
+        writes.append(
+            {
+                "field": field["name"],
+                "offset": dest.mem.disp,
+                "site_rva_hex": f"0x{ins.address:x}",
+                "raw_hex": raw.hex(),
+                "value": value,
+            }
+        )
+    raise ValueError("No proved terminal leaf initializer path within audit bound")
 
 
 DEFAULT_METHODS = (
@@ -211,12 +347,26 @@ def export_files(
                     }
                 )
     bodies = []
+    layouts = {x["owner"]: x for x in manifest.get("field_layouts", [])}
     for key in selections:
         matches = methods.get(key, [])
         if len(matches) != 1 or not matches[0]["rva_hex"]:
             raise ValueError("Missing/ambiguous/null selected native method")
         rva = int(matches[0]["rva_hex"], 16)
         if rva not in bounds.rows:
+            if (
+                key == "BeyondDynamicBone.TimeManager..ctor"
+                and "BeyondDynamicBone.TimeManager" in layouts
+            ):
+                bodies.append(
+                    {
+                        "method": key,
+                        **inspect_leaf_writes(
+                            pe, rva, layouts["BeyondDynamicBone.TimeManager"]
+                        ),
+                    }
+                )
+                continue
             bodies.append(
                 {
                     "method": key,
@@ -226,9 +376,9 @@ def export_files(
                 }
             )
         else:
-            bodies.append({"method": key, **inspect_body(pe, bounds, rva, aliases)})
+            bodies.append({"method": key, **inspect_family(pe, bounds, rva, aliases)})
     result = {
-        "schema_version": 1,
+        "schema_version": 2,
         "binary": str(binary.resolve()),
         "binary_sha256": hashlib.sha256(data).hexdigest(),
         "native_manifest": str(native_manifest.resolve()),

@@ -236,3 +236,63 @@ def test_exclusive_report_and_inputs_are_preserved(tmp_path):
     with pytest.raises(FileExistsError):
         export_files(b, m, out, SPEC)
     assert out.read_bytes() == before
+
+
+def layout_sample():
+    meta, data = samples()
+    struct.pack_into("<QI", data, 0x1200 + 33 * 16, 2, 0x120000)
+    struct.pack_into("<Q", data, 0x1600 + 2 * 8, BASE + 0x3800)
+    struct.pack_into("<i", data, 0x1E00, 0x18)
+    struct.pack_into("<Q", data, 0x2000, 0x20000000 | (33 << 1) | 1)
+    return meta, data
+
+
+def test_native_field_offset_and_static_attribute_are_separate():
+    meta, data = layout_sample()
+    audit = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta)))
+    layout = audit.field_layout("BeyondDynamicBone.ClothSerializeData")
+    assert layout["fields"][0]["offset"] == 0x18
+    assert layout["fields"][0]["is_static"] is False
+    assert layout["fields"][0]["qualified_type"] == "BeyondDynamicBone.ClothUpdateMode"
+    struct.pack_into("<QI", data, 0x1200 + 37 * 16, 1, 0x80110016)
+    audit = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta)))
+    assert (
+        audit.field_layout("BeyondDynamicBone.ClothSerializeData")["fields"][0][
+            "is_static"
+        ]
+        is True
+    )
+
+
+@pytest.mark.parametrize("change", ["owner", "table", "offset"])
+def test_field_layout_identity_bounds_and_unsupported_offsets_rejected(change):
+    meta, data = layout_sample()
+    if change == "owner":
+        struct.pack_into("<Q", data, 0x1200 + 33 * 16, 1)
+    elif change == "table":
+        struct.pack_into("<Q", data, 0x1600 + 2 * 8, BASE + 0x7000)
+    else:
+        struct.pack_into("<i", data, 0x1E00, -1)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).field_layout(
+            "BeyondDynamicBone.ClothSerializeData"
+        )
+
+
+def test_tagged_typeinfo_cell_resolves_owner_not_neighbour_or_name_guess():
+    meta, data = layout_sample()
+    result = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).type_info_cell(
+        BASE + 0x3A00, "BeyondDynamicBone.ClothSerializeData"
+    )
+    assert result["type_index"] == 33
+    assert result["definition_index"] == 2
+
+
+@pytest.mark.parametrize("value", [0x20000042, 0x40000043, 0x20000045, 1 << 40])
+def test_invalid_typeinfo_usage_tag_or_target_rejected(value):
+    meta, data = layout_sample()
+    struct.pack_into("<Q", data, 0x2000, value)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).type_info_cell(
+            BASE + 0x3A00, "BeyondDynamicBone.ClothSerializeData"
+        )

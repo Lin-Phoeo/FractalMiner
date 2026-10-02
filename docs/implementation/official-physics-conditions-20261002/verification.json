@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline unwind-linked code ranges, native field layouts, update gates and restricted constructor entry writes",
+  "parent_record_commit": "e8c7e55785e784971561de9a60a484d59d9abadd",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "gates": {
+    "prior_exact_ranges_do_not_mean_complete_managed_methods": true,
+    "unwind_family_membership_uses_exact_chain_triples": true,
+    "shared_unwind_address_does_not_group_unrelated_methods": true,
+    "selected_methods": 34,
+    "unwind_families_inspected": 30,
+    "family_ranges": 90,
+    "family_bytes": 36436,
+    "restricted_terminal_initializer_paths": 1,
+    "restricted_initializer_bytes": 22,
+    "decoded_bytes_total": 36458,
+    "missing_exact_or_supported_path_pending": 3,
+    "native_field_layout_owners": 3,
+    "native_field_offsets_and_static_attrs": 57,
+    "update_location_identity_definition": 46104,
+    "update_location_enum": {"AfterLateUpdate": 0, "BeforeLateUpdate": 1},
+    "tagged_manager_type_info_cell": {"va": "0x18d050868", "encoded": "0x2003fa53", "type_index": 130345, "definition_index": 45989},
+    "constructor_entry_writes": {"simulationFrequency": 90, "maxSimulationCountPerFrame": 3, "GlobalTimeScale": 1.0},
+    "frame_update_boundary_checks": {"simulationFrequency": [30, 150], "maxSimulationCountPerFrame": [1, 5]},
+    "actual_character_runtime_flags_or_frequency_verified": false,
+    "runtime_call_order_or_full_cfg_verified": false,
+    "job_dependencies_or_solver_math_verified": false,
+    "official_solver_integrated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-conditions-20261002-01",
+    "physics-native-layout-03.json": {"bytes": 324278, "sha256": "91e89d39801a34f5766bbb1a2f9faf40d82ebee4c5fc64f3670c8bc0d1e6a528"},
+    "physics-call-families-03.json": {"bytes": 870662, "sha256": "af66d1d2fde8d8dbaf325a3b24a4dfd02a21ffdeae48d8bd476549a225c45a44"},
+    "game_binary_metadata_bytecode_or_manifests_published": false
+  },
+  "validation": {
+    "new_tests": 24,
+    "native_tool_tests": 42,
+    "call_tool_tests": 35,
+    "branch_inclusive_coverage_percent": {"native": 86.25730994152046, "calls": 93.52226720647774, "combined": 89.30390492359932},
+    "python_suite_passed": 661,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "capstone_version": "5.0.9",
+    "protected_runtime_hashes_verified_unchanged": 7,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "tools_raw_sha256": {
+    "Tools/export_official_physics_native.py": "49dc6a07d39af8fcecc5f2736cd86191cf3f8228b2816b1f3c789b6c41d7a758",
+    "Tools/audit_official_physics_calls.py": "8bafba21f3b452fc0e58a3995e1fc1012e0e3a5ecc9c9f84d6c88476f3480d04",
+    "Tools/tests/test_export_official_physics_native.py": "22ac297c539de04f719b142c60fc43769d5e28e7c71df7d92506f6932ffb59c6",
+    "Tools/tests/test_audit_official_physics_calls.py": "5b1aa23ecf3f304a6618a0ec9cec60e7dcdd1c3dc2ecea86853f9d101adb36fa"
+  }
+}

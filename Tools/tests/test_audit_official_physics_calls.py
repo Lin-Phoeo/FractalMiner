@@ -9,7 +9,13 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from audit_official_physics_calls import FunctionBounds, export_files, inspect_body
+from audit_official_physics_calls import (
+    FunctionBounds,
+    export_files,
+    inspect_body,
+    inspect_family,
+    inspect_leaf_writes,
+)
 from export_official_physics_native import PE64
 from test_export_official_physics_native import BASE, samples
 
@@ -189,3 +195,104 @@ def test_mismatched_or_ambiguous_native_manifest_is_rejected(tmp_path, change):
     with pytest.raises(ValueError):
         export_files(binary, native, out, ["A.M"])
     assert not out.exists()
+
+
+def chained_sample():
+    data = native_sample()
+    # Odd unwind-code count: CHAININFO follows the padded two-slot array.
+    struct.pack_into("<I", data, 0x98 + 112 + 3 * 8 + 4, 48)
+    struct.pack_into(
+        "<6I", data, 0x1C18, 0x1050, 0x1056, 0x3740, 0x1060, 0x1061, 0x3780
+    )
+    data[0x450:0x456] = bytes.fromhex("e8cbffffffc3")
+    data[0x460] = 0xC3
+    data[0x1D40:0x1D44] = bytes([0x21, 0, 1, 0])
+    struct.pack_into("<3I", data, 0x1D48, 0x1000, 0x100A, 0x3700)
+    data[0x1D80:0x1D84] = bytes([0x21, 0, 0, 0])
+    struct.pack_into("<3I", data, 0x1D84, 0x1050, 0x1056, 0x3740)
+    return data
+
+
+def test_chain_family_includes_cold_nested_ranges_but_not_shared_unwind_peer():
+    pe = PE64(bytes(chained_sample()))
+    bounds = FunctionBounds(pe)
+    assert bounds.family(0x1000) == [0x1000, 0x1050, 0x1060]
+    assert bounds.family(0x1050) == [0x1000, 0x1050, 0x1060]
+    assert bounds.family(0x1020) == [0x1020]
+
+
+def test_family_report_reads_extra_call_and_does_not_certify_runtime_order():
+    pe = PE64(bytes(chained_sample()))
+    result = inspect_family(pe, FunctionBounds(pe), 0x1000, {})
+    assert len(result["family_fragments"]) == 3
+    assert result["body_bytes"] == 17
+    assert len(result["direct_transfers"]) == 2
+    assert result["primary_range_bytes"] == 10
+    assert result["fragment_membership_verified"] is True
+    assert result["full_cfg_verified"] is False
+
+
+@pytest.mark.parametrize(
+    "offset,value", [(0x1D48, 0x1010), (0x1D4C, 0x100B), (0x1D50, 0x3780)]
+)
+def test_chained_runtime_triple_must_match_actual_pdata_entry(offset, value):
+    data = chained_sample()
+    struct.pack_into("<I", data, offset, value)
+    with pytest.raises(ValueError, match="chain"):
+        FunctionBounds(PE64(bytes(data))).family(0x1000)
+
+
+def test_chained_unwind_cycle_rejected():
+    data = chained_sample()
+    struct.pack_into("<3I", data, 0x1D48, 0x1060, 0x1061, 0x3780)
+    with pytest.raises(ValueError, match="chain"):
+        FunctionBounds(PE64(bytes(data))).family(0x1000)
+
+
+@pytest.mark.parametrize("header", [0x29, 0x31, 0x22])
+def test_illegal_handler_flags_or_unsupported_chained_version_rejected(header):
+    data = chained_sample()
+    data[0x1D40] = header
+    with pytest.raises(ValueError, match="chain"):
+        FunctionBounds(PE64(bytes(data))).family(0x1000)
+
+
+def leaf_sample():
+    data = native_sample()
+    raw = bytes.fromhex("c741105a000000c7411403000000c3")
+    data[0x480 : 0x480 + len(raw)] = raw
+    fields = [
+        {"name": name, "offset": offset, "is_static": False, "native_type": {"kind": 8}}
+        for name, offset in [("rate", 0x10), ("steps", 0x14)]
+    ]
+    return data, {"fields": fields}
+
+
+def test_leaf_initializer_uses_terminal_path_not_neighbour_distance():
+    data, layout = leaf_sample()
+    result = inspect_leaf_writes(PE64(bytes(data)), 0x1080, layout)
+    assert result["body_bytes"] == 15
+    assert [(x["field"], x["value"]) for x in result["initializer_writes"]] == [
+        ("rate", 90),
+        ("steps", 3),
+    ]
+    assert result["runtime_frequency_verified"] is False
+
+
+@pytest.mark.parametrize(
+    "change", ["branch", "call", "unknown_field", "wrong_receiver", "no_ret"]
+)
+def test_leaf_initializer_rejects_any_unproved_entry_path(change):
+    data, layout = leaf_sample()
+    if change == "branch":
+        data[0x480:0x482] = bytes.fromhex("eb00")
+    elif change == "call":
+        data[0x480:0x485] = bytes.fromhex("e800000000")
+    elif change == "unknown_field":
+        data[0x482] = 0x18
+    elif change == "wrong_receiver":
+        data[0x481] = 0x42
+    else:
+        data[0x48E] = 0x90
+    with pytest.raises(ValueError):
+        inspect_leaf_writes(PE64(bytes(data)), 0x1080, layout)
