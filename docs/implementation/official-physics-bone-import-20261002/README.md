@@ -4,6 +4,8 @@
 
 后续：[原始收集顺序与忽略分支](../official-physics-collection-20261002/README.md)已确认ImportBoneType参数为RenderSetupData，并实现上游collector、回放真实11组root/ignore骨序；长马尾收集14骨，不能直接套用保存的38个选择点。世界快照、selection属性、完整proxy及后端仍未闭合。
 
+进一步：[权重与绑定矩阵](../official-physics-bindpose-20261002/README.md)复用本模块三项输出，补齐同一Job的one-hot weight和inverse(worldTRS)*renderLtoW bindpose，并接快照scale。完整普通/预建导入分支、normalAxis、真实proxy和运行后端仍未闭合。
+
 ## 已实现的原始规则
 
 输入由调用者提供：原始顺序的世界位置/世界四元数快照、列主序float4x4 WtoL。不能直接把prefab local TRS、PPtr PathID顺序或当前恢复FBX的localRotation当成这些输入。

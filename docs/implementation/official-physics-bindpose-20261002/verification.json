@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-02",
+  "scope": "Finite bone vertex five-output reference, world TRS inverse bindpose, one-hot weight, snapshot composition and independent managed math oracle; not complete proxy or live official physics",
+  "parent_record_commit": "0510d044757a1c76265e2efef76bcc54d13c887d",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "gates": {
+    "five_finite_bone_vertex_outputs_reference": true,
+    "one_hot_weight_index_stride_constant_verified_static": true,
+    "world_trs_quaternion_column_scale_reference": true,
+    "full_packed_inverse_single_reference": true,
+    "inverse_bone_trs_times_render_ltow_order_verified": true,
+    "valid_shuffle_selectors_reachable_cfg_tables_verified": true,
+    "snapshot_scale_consumed_by_bindpose_composition": true,
+    "independent_unmodified_managed_math_1501_cases_bitwise": true,
+    "nativearray_generic_runtime_instance_layout_proved": false,
+    "invalid_selector_throw_and_original_fp_environment_restored": false,
+    "original_world_getter_outputs_captured": false,
+    "actual_selection_branch_and_full_space_conversion": false,
+    "normal_axis_and_default_fill_complete": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "collision_team_step_full_solver_reset_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_game_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-bindpose-20261002-01",
+    "review.py_sha256": "f04a241cc8d1237125ae39154a2f3c7c94f4f4714b055079977a937a2835a691",
+    "review-05/bindpose.json_sha256": "2450b87393a078c2ec732a068f13c724c070427745d8e6127f3dafd074045bfa",
+    "review-05/bindpose-instructions.json_sha256": "b5b270becb8595e1aeadc73415f6669b0cf6f36a32414fe52189cb9720df23fc",
+    "oracle-01.json_sha256": "52afcb136f2e646f9dc434f386a0f7d2248ecc8723429ac4853def20fe803db4",
+    "check_oracle.py_sha256": "64cfaa63fbf145241fad9876008f5c40b4207372f2654c52e0519e20a15921fa",
+    "oracle/Program.cs_sha256": "557bc60fb454049819a9efaaaa1cbd7477e3f01c4823ec5069fae861a86aa419",
+    "oracle/Oracle.csproj_sha256": "f5cb2c4ccf3e6c4ddeb4e0ffbc2a46b65655669a2a7385cb58e77f1def1eecdc",
+    "coverage": "coverage-full-01.json",
+    "game_native_runtime_executed": false,
+    "original_files_full_native_reports_commercial_source_or_dependency_library_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_bindpose.py": "09038a00196519c1791138761151b4685f00a05d0deb645f5d7897b76a787c5c",
+    "Tools/tests/test_official_physics_bindpose.py": "e976fd44098d2eacfc33d08d1d53dd9ed9f756abb49b729f85eced26369cc022"
+  },
+  "independent_managed_oracle": {
+    "library_sha256": "5d575d3944c32c88d4b6b7516bedb1fc281a978738c5d1df0b246996cdebd9b7",
+    "library_modified": false,
+    "case_count": 1501,
+    "matrix_elements_checked": 72048,
+    "snapshot_scale_elements_checked": 4503,
+    "bitwise_mismatch_count": 0,
+    "seed": 20261002,
+    "COMPlus_EnableHWIntrinsic": "0",
+    "COMPlus_EnableFMA": "0",
+    "oracle_references_python_implementation": false,
+    "original_game_native_execution_proof": false
+  },
+  "validation": {
+    "new_tests": 26,
+    "python_suite_passed": 1533,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "thirteen_reference_modules_statements": 1010,
+    "thirteen_reference_modules_branches": 262,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "independent_harness_build": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

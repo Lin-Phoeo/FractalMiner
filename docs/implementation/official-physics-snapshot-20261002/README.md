@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[选择网格](../official-physics-grid-20261002/README.md)。新增 `Tools/official_physics_snapshot.py`，按原始 `RenderSetupData.ReadTransformJob.Execute` 的规则恢复六个输出，并接到已有的新建选择和骨骼方向参考。**这是一条离线、有限数参考输入链，不是实际 Unity getter、完整官方物理或新的舞台效果。**
 
+后续：[权重与绑定矩阵](../official-physics-bindpose-20261002/README.md)已消费本轮scale补齐骨骼顶点Job五项有限数输出，并通过1501组独立、未修改的托管数学库位级校验。旧snapshot API保持不变；真实getter、完整proxy和Unity物理后端仍待接入。
+
 ## 本轮实现
 
 输入是原始坐标系、原始收集顺序下，调用者提供的 Unity getter 结果：世界 position、世界 quaternion、世界 localToWorldMatrix、localPosition、localRotation。不能把 prefab local TRS 当作世界输入，也不能用当前恢复 FBX 的骨骼姿态替代尚未采集的官方快照。
