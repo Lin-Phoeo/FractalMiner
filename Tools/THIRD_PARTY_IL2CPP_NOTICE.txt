@@ -6,6 +6,20 @@ Reference: Il2CppDumper/Extensions/BinaryReaderExtensions.cs
 The Python audit is limited to the observed Endfield metadata layout.
 No upstream source files or game data are bundled with it.
 
+export_official_physics_native.py also uses the documented v29 AMD64
+Il2CppMetadataRegistration, Il2CppType and Il2CppCodeGenModule layout and
+image-qualified token-RID method pointer lookup.
+References: Il2CppDumper/Il2Cpp/Il2CppClass.cs
+            Il2CppDumper/Il2Cpp/Il2Cpp.cs
+            Il2CppDumper/Utils/SectionHelper.cs
+It performs bounded independent parsing; no upstream source file is bundled.
+
+audit_official_physics_calls.py uses the separately installed Capstone Python
+package (tested with 5.0.9), https://www.capstone-engine.org/.
+Capstone's distributed license applies to that package; no Capstone source or
+binary is copied into this repository. AMD64 RUNTIME_FUNCTION ranges follow
+Microsoft's documented PE exception-directory format.
+
 MIT License
 
 Copyright (c) 2016 Perfare

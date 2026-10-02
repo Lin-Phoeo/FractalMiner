@@ -94,3 +94,5 @@ D:/EndfieldTechLib/notes/official-physics-update-mode-20261002-01/
 2. 把调用链结论与本角色 prefab 配置及实际组件身份连接起来；仍需解开外部脚本 CAB。没有函数体证据时，调用时序和频率均保持 pending。
 3. 在独立适配层验证上轮 18 个额外挂点及未加权辅助骨的动态空间；保持现有 weighted bindpose、捕获姿态和 MMD 不变。
 4. 最后接可切回的官方配置/最接近求解链，检查静止、旋转、下蹲、跳跃、seek、复位与固定步导出。当前 `runtime_call_order_verified=false`、`simulation_frequency_verified=false`，官方求解器仍未接入。
+
+后续进展见 [原生字段身份与有界函数调用点](../official-physics-native-20261002/README.md)：四个 consuming field variants 已通过 native registration 精确认证，491 个非空方法入口和 30 个有界函数体已查。上述 sealed 报告保留当时的 pending 状态；新结果不等于运行时序/频率或求解器已还原。

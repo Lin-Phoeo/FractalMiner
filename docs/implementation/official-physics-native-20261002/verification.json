@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline native enum field identities, module-qualified entries and bounded linear call sites only",
+  "parent_record_commit": "673224ea89eeb323344a26f7cde488fb2706de4a",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources_local_only": {
+    "GameAssembly.dll": {"bytes": 256677352, "sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89"},
+    "global-metadata.dat": {"bytes": 57021288, "sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"}
+  },
+  "native_gates": {
+    "unique_metadata_registration_va": "0x18a88e860",
+    "native_types_count": 225789,
+    "field_offsets_count": 58110,
+    "type_definition_sizes_count": 58110,
+    "image_count": 170,
+    "enum_consuming_fields_identity_verified": 4,
+    "identity_uses_native_definition_index_not_adjacent_indices": true,
+    "module_method_counts": {"BeyondDynamicBone.dll": 3221, "Gameplay.Beyond.dll": 102186},
+    "interface_method_declarations": 502,
+    "nonnull_executable_file_backed_entries": 491,
+    "explicit_null_entries": 11,
+    "selected_methods": 34,
+    "exact_unwind_bounded_bodies_decoded": 30,
+    "missing_exact_bounds_pending": 4,
+    "body_bytes_decoded": 18681,
+    "direct_call_or_jmp_sites": 607,
+    "indirect_call_or_jmp_sites": 9,
+    "conditional_branch_sites": 421,
+    "runtime_order_or_full_cfg_verified": false,
+    "simulation_frequency_verified": false,
+    "global_code_registration_verified": false,
+    "external_prefab_script_cab_resolved": false,
+    "official_solver_integrated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-native-20261002-01",
+    "physics-native-01.json": {"bytes": 280296, "sha256": "79a1fa635585215475b9c5c8ee902562faf3d8082844914494edf5c7a4b79725"},
+    "physics-calls-01.json": {"bytes": 221365, "sha256": "b036269ab01916bec95b7a20794eca14c648900f5ff6fce162aacae2d609f446"},
+    "game_binary_metadata_bytecode_or_manifests_published": false
+  },
+  "validation": {
+    "new_native_tests": 33,
+    "new_call_site_tests": 20,
+    "new_tool_branch_inclusive_coverage_percent": {"native": 87.88927335640139, "calls": 94.0, "combined": 89.97722095671982},
+    "python_suite_passed": 637,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "capstone_version": "5.0.9",
+    "protected_runtime_files_hash_verified_unchanged": 7,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "tools_raw_sha256": {
+    "Tools/export_official_physics_native.py": "68cde41f544835ede55b79639592cf91e247697fa9c12c1fcf5dabb7698b45de",
+    "Tools/audit_official_physics_calls.py": "d5dc907f24244b7343111ee102009a009dc4f9b46e87ede1d43d277d060949ce",
+    "Tools/tests/test_export_official_physics_native.py": "88d58b7879acc46c1b5830df28377f6eaf97db919b5c6f719f0ae3c44e1c2c83",
+    "Tools/tests/test_audit_official_physics_calls.py": "c4a2752cd0e6637456bf6f7d30d5f47ad662a4235063557fc021c2df63fee61b",
+    "Tools/THIRD_PARTY_IL2CPP_NOTICE.txt": "42023bf7fde4839254a620817ace818cd8e63e16ac28bcda6c5d62e8236414c8"
+  }
+}
