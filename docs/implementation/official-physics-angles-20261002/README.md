@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[距离内核与角度参数阶段](../official-physics-constraints-20261002/README.md)。本阶段只依据已有原始文件与本地有界审查推进，没有改舞台、材质、渲染或实时物理组件。新增 `Tools/official_physics_angles.py`，不是完整求解器，也不是现有效果的新后端。
 
+后续：[非root父子边缓存阶段](../official-physics-angle-cache-20261002/README.md)已补缓存初始化/限幅旋转的离线算术；本页保留历史阶段状态，全baseline、root、Job和实时后端仍待接入。
+
 ## 完成到哪里
 
 - 认证 managed angle kernel、参数转换、Angle / ClampAngle / FromToRotation / AxisAngle 入口，按 method index 选方法，避免重载按名字误选。

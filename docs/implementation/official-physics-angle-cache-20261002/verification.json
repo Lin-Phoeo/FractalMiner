@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline non-root eligible angle edge cache initialization and post-limit child rotation; no Unity/baseline solver",
+  "parent_record_commit": "2bb881fdd6971981e623ffc0dd36329b2c6d5cf3",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "gates": {
+    "new_math_inventory_entries": 282,
+    "selected_managed_methods": 4,
+    "reviewed_unwind_families": 7,
+    "new_manually_reviewed_straight_line_leaves": 9,
+    "sign_float4_constants": 2,
+    "single_inverse_dot_reciprocal_then_scale_then_sign": true,
+    "single_quaternion_swizzle_grouping_preserved": true,
+    "single_rotation_not_double_then_cast": true,
+    "four_enable_flag_combinations_tested": true,
+    "cache_length_uses_next_not_basic_positions": true,
+    "restoration_vector_stays_world_difference": true,
+    "limit_rotation_uses_current_parent_cache": true,
+    "limit_rotation_uses_updated_pair_positions": true,
+    "restoration_rewrites_rotation_cache": false,
+    "two_edge_current_state_propagation_tested": true,
+    "three_iteration_cached_length_reuse_tested": true,
+    "managed_inverse_mul_are_same_address_as_kernel_helpers": false,
+    "automatic_general_cfg_or_binary_equivalence_proof": false,
+    "runtime_burst_target_equivalence_verified": false,
+    "all_node_rotation_initialization_and_baseline_dispatch_implemented": false,
+    "root_and_attribute_eligibility_in_reference": false,
+    "collision_integration_and_final_bone_writeback_implemented": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-angle-cache-20261002-01/complete-02",
+    "cache-helper-review-01.json": {"bytes": 213376, "sha256": "ce831d5fd2d6260ce4325713c979c8616cac9e7b62c00b9094640e53662cff9f"},
+    "private-cache-instructions-01.json": {"bytes": 216411, "sha256": "893f1ab8b4ef45202b674581107932c68659de72907046e70d25966a7ea1c0ab"},
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-angle-cache-20261002-01/cache-coverage-01.json",
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-angle-cache-20261002-01/reproduce.py",
+    "native_reports_and_original_files_published": false,
+    "incomplete_first_attempt_preserved_not_authoritative": true
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_angle_cache.py": "131c4eb03498f31d79d5b897df4ac6c66b176e9e7e422188a6726b99227bd32c",
+    "Tools/tests/test_official_physics_angle_cache.py": "f17a91f24cd44971c6160509286c2338476f268882a6f3eabf11aa8c0e74117d"
+  },
+  "validation": {
+    "new_cache_tests": 24,
+    "python_suite_passed": 865,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "three_reference_modules_branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
