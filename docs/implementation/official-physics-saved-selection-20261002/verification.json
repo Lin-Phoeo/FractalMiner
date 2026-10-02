@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-02",
+  "scope": "Finite ordinary bone worker selection branch and fresh serial proxy attribute/transform-flag composition; not complete worker or live physics",
+  "parent_record_commit": "36dfb4a29c73a2512851785e181548a3eefd3b49",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d"
+  },
+  "gates": {
+    "restricted_isvalid_isuseredit_leaf_cfg_to_ret_verified": true,
+    "ordinary_bone_worker_validity_branch_not_useredit": true,
+    "invalid_selection_proxy_constructor_identity_and_max_vertex_distance": true,
+    "dictionary_overrides_after_both_paths_full_byte": true,
+    "proxy_radius_max_average_maxconnection_epsilon": true,
+    "proxy_grid_size_radius_times_1_5_rip_verified": true,
+    "proxy_matching_preserves_old_attributes_with_or": true,
+    "fresh_serial_grid_and_bone_flags_composition": true,
+    "three_exact_code_table_classifications": true,
+    "eleven_serialized_valid_selection_single_clone_fixtures": true,
+    "upstream_all_build_mode_state_choices_complete": false,
+    "actual_runtime_branch_observed": false,
+    "selection_all_spaces_and_reduction_paths_closed": false,
+    "original_world_getter_outputs_captured": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "normal_axis_all_downstream_uses_complete": false,
+    "full_convert_proxy_mesh_ported": false,
+    "collision_team_step_solver_inertia_reset_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_game_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "actual_serialized_input_check": {
+    "groups": 11,
+    "selection_points": 164,
+    "all_shape_valid": true,
+    "edited_groups": 7,
+    "unedited_groups": 4,
+    "single_bits_preserved_in_clone": true,
+    "unknown_dictionary_overrides_applied": false,
+    "actual_proxy_matching_or_live_world_pose_claimed": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-saved-selection-20261002-01",
+    "review.py_sha256": "5e8540f2c07af4ddf8e5faf64862a9edaad2d23233bfec594c202b2d2304be5c",
+    "review-06/saved.json_sha256": "3350ad2a0c0a96750b0c9b6e0ff3c867a23e852bdaba90524ce5e8fd31b51adf",
+    "review-06/saved-instructions.json_sha256": "d63112703f018b2226465f5f2cd88f0f47253fb28dc00c5a4edf837181cb711a",
+    "check_inputs.py_sha256": "aa66336bc95be2f05ef736019e56b79140d573dd529eae039b3f4ddee02b28b6",
+    "input-check-02.json_sha256": "f3f33efa6a56c8663f8763130c91db320d50e2b1f17e65c6983fc1fcf84ec3f4",
+    "coverage-full-02.json_sha256": "d4783767af029a9f6cb96a7f30dfd910d20c6e01bfafe1598874c79b30593234",
+    "game_runtime_executed": false,
+    "original_assets_full_native_reports_or_commercial_source_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_saved_selection.py": "6c5a6d029ee03c1f0a995c5845bf400ca803d17e07fe254c8fef6fa5de9be097",
+    "Tools/tests/test_official_physics_saved_selection.py": "66247339f307248b572bfeaffdd4438a13d909ab8839eea7ff51466a92e318b2"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "new_tests": 55,
+    "all_attribute_byte_pairs_checked": 65536,
+    "python_suite_passed": 1626,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "fifteen_reference_modules_statements": 1139,
+    "fifteen_reference_modules_branches": 292,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

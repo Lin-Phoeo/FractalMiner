@@ -77,7 +77,7 @@
 - `review-08/review.json` 与 `instructions.json`：认证签名、字段、函数边界、引用身份、常数、辅助叶函数和拒绝项。哈希见 verification.json；完整指令仍只留本地。
 - `coverage-full-02.json`：完整测试覆盖报告。
 
-`VirtualMesh.ApplySelectionAttribute` 本次因指令解码不完整而拒绝；不使用部分body证明完整应用链。CalcAABBJob 包装体虽已完整读取，其计算辅助体/实际Job执行仍未闭合。未做 Unity 动态验收、独立 native/Burst oracle，未发布游戏原始资源或商业组件源代码。
+`VirtualMesh.ApplySelectionAttribute` 本阶段因指令解码不完整而拒绝；后续[保存选择与代理属性应用](../official-physics-saved-selection-20261002/README.md)已认证代码/尾部跳表分区并实现有限bone属性路径，不是整函数/运行时恢复。CalcAABBJob 包装体虽已完整读取，其计算辅助体/实际Job执行仍未闭合。未做 Unity 动态验收、独立 native/Burst oracle，未发布游戏原始资源或商业组件源代码。
 
 ## 下一步与完成边界
 

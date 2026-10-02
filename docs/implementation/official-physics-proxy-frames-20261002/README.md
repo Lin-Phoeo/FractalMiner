@@ -1,5 +1,7 @@
 # 官方物理：代理绑定方向与写入标志
 
+后续增量：[保存选择与代理属性应用](../official-physics-saved-selection-20261002/README.md)。新增普通bone有效性分支、代理专用半径/1.5网格和旧属性OR参考；本页新选择快捷路径的适用前提不变。
+
 日期：2026-10-02。接续[骨骼权重和绑定矩阵](../official-physics-bindpose-20261002/README.md)，新增 `Tools/official_physics_proxy_frames.py`：三项原始Job的有限输入参考、None模式的默认方向修正契约、已有快照→骨骼导入的数据接线。**没有更换Unity舞台物理，不是完整ConvertProxyMesh或原版实时物理。**
 
 ## 可复用的实现
