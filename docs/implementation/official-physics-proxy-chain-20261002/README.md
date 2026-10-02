@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[Transform baseline生成](../official-physics-baseline-build-20261002/README.md)。本轮将相邻三段合并：Int32 transform ID映射、**有前提的**原生子表顺序、baseline局部姿态求值；新增 `Tools/official_physics_proxy_baseline.py`，与已有生成器完成离线接线。不是Unity实时物理更新，舞台/渲染/湿身/阴影/当前预览物理不变。
 
+后续：[根节点、长度深度与角色对齐分支](../official-physics-root-depth-20261002/README.md)已恢复全proxy顶点域的长度深度参考，并证实当前角色11组alignmentMode=0；其余输入/前处理/实时后端仍需继续。
+
 ## 本轮完成与明确界限
 
 - `map_transform_ids`保持idArray原顶点顺序，parentId不存在则父索引-1；rootId逐项映射并保留重复/原顺序。负Int32 transform ID也能正常匹配，不因负号误当“无父”。输入是运行时Int32 ID，**不是解包PPtr的Int64 path ID**；没有擅自把556个原始Transform或骨名排序成proxy数组。

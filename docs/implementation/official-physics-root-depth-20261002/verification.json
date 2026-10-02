@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline all-vertex root/length/depth Job reference and Typhoeus mode-zero normal-alignment branch audit, not a live physics backend",
+  "parent_record_commit": "d054a404ddd1d4ce2faa09a61004797c53ded5f7",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "character_config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d",
+    "character_bindings_sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8"
+  },
+  "native_boundaries": {
+    "root_length_method_index": 371609,
+    "root_length_rva": "0x313fed0",
+    "root_length_unwind_family_bytes": 746,
+    "root_length_fragments": [
+      {"rva": "0x313fed0", "bytes": 47, "sha256": "9af9939745431f9b4dfad0d0d3d4fe706fb2bc9a7c2ceaf5689ff2ea541cd142"},
+      {"rva": "0x313feff", "bytes": 500, "sha256": "c7168c6a07cd9a707fc2664fa3174e0443f98becbd8cd6d3dacc2036c66b37d5"},
+      {"rva": "0x31400f3", "bytes": 101, "sha256": "2ca4fb31f9daf949b6f8b404daa6b15d0ec2c95fe61f780c71be612750676261"},
+      {"rva": "0x3140158", "bytes": 98, "sha256": "ea438d8951b0ca3e4510d073a1260c7b5b8d584e31be0c1ad1d56ba6e21410f8"}
+    ],
+    "manually_bounded_clamp_leaf_rva": "0x2cd23e0",
+    "clamp_bytes": 40,
+    "clamp_sha256": "f09ff51a07835bbc8f9ef96759abe71b6e4f77dfd4a46bae09b8e3e82c06025b",
+    "clamp_has_unwind_proof": false
+  },
+  "gates": {
+    "root_length_job_identity_fields_and_family_reviewed": true,
+    "all_vertices_not_baseline_slots": true,
+    "move_bit_two_and_parent_sign_gates": true,
+    "last_visited_parent_root_not_self": true,
+    "child_up_single_distance_accumulation": true,
+    "global_maximum_not_per_root_normalization": true,
+    "strict_float32_1e_minus_8_threshold": true,
+    "small_maximum_preserves_caller_depth_buffer": true,
+    "forty_byte_branch_clamp_manually_reviewed": true,
+    "all_eleven_character_normal_alignment_modes_zero": true,
+    "zero_mode_skips_radiation_adjustment_branch": true,
+    "normal_alignment_default_rotation_fill_restored": false,
+    "normal_axis_import_and_other_proxy_direction_tasks_restored": false,
+    "actual_eleven_proxy_groups_generated": false,
+    "all_hash_map_allocation_initialization_proved": false,
+    "original_generic_job_runtime_invocation_proved": false,
+    "team_allocation_step_and_publication_restored": false,
+    "independent_native_or_burst_runtime_oracle": false,
+    "full_integration_collision_reset_bone_writeback_complete": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-root-depth-20261002-01/review-09",
+    "review.json_sha256": "aac6bb01c192c4ed6cdaca15deb6664fcae2051110c7fc7b31ff8f126f0140f4",
+    "instructions.json_sha256": "39d8a686c05f5acc2b933692ef15470c8399ca6f013829f7126d3d2bc1b1c702",
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-root-depth-20261002-01/review.py",
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-root-depth-20261002-01/coverage-full-01.json",
+    "original_game_files_or_complete_native_instruction_reports_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_root_depth.py": "ff5a2b06c775a3e1b997adb707b1388162c983a512907a94f0c19abdf9fafdcb",
+    "Tools/tests/test_official_physics_root_depth.py": "5f5777cde70378f5db279084caf1029d69cb33e4792c83ee993d71618d23ea0d"
+  },
+  "validation": {
+    "new_tests": 49,
+    "python_suite_passed": 1340,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "seven_reference_modules_statements": 654,
+    "seven_reference_modules_branches": 184,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
