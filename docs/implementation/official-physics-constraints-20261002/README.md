@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续 [时钟阶段](../official-physics-clock-20261002/README.md)。本阶段以原始 metadata / GameAssembly 的身份、字段与数据流为依据，不靠逐像素调参。新增的是**离线数学参考**，没有替换 Unity 舞台物理，没有宣称完整官方后端可用。
 
+后续进展：[角度恢复与限幅离线数学阶段](../official-physics-angles-20261002/README.md)。下文保留本阶段历史状态；新阶段已补单边角度公式，完整旋转缓存与实时求解器仍未闭合。
+
 ## 本阶段实际完成与边界
 
 - 原生布局工具支持值类型，区分 registration/boxed offset 和 unboxed struct offset；保留旧 `offset` 含义，新增 `unboxed_offset`，不破坏 class 查询。

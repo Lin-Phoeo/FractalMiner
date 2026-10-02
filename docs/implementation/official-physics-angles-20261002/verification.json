@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline eligible edge angle restoration/limit arithmetic; no runtime solver/cache integration",
+  "parent_record_commit": "5ce87fa6c93699398e0bbfe2f1eadf5250a7865a",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "gates": {
+    "managed_inventories": 55,
+    "managed_method_entries": 1369,
+    "certified_selected_methods_with_parameters": 10,
+    "helper_review_entries": 26,
+    "unwind_families": 22,
+    "manually_reviewed_leaf_entries": 4,
+    "floating_constant_read_sites": 31,
+    "angle_managed_kernel": {
+      "method_index": 368686,
+      "rva": "0x59d7b74",
+      "bytes": 5762,
+      "sha256": "00e400a490c309da2aa5285cc6a5ed69766c4744ee4d730ce242a287132c99ce"
+    },
+    "kernel_iterations": 3,
+    "restoration_power_lane": "w",
+    "limit_velocity_attenuation": 0.8999999761581421,
+    "independent_parent_child_friction_weights": true,
+    "weights_normalized_by_sum": false,
+    "normalization_reciprocal_then_multiply": true,
+    "restoration_curve_is_already_converted": true,
+    "gravity_uses_single_rounded_complement_twice": true,
+    "gravity_final_clamp": false,
+    "antiparallel_axis_uses_signed_not_absolute_comparison": true,
+    "quaternion_output_renormalized": false,
+    "pair_arithmetic_reference_implemented": true,
+    "angle_full_cache_initialization_and_rotation_writeback_implemented": false,
+    "baseline_job_dispatch_and_eligibility_implemented": false,
+    "automatic_full_cfg_proof": false,
+    "runtime_burst_target_and_equivalence_verified": false,
+    "native_crt_python_libm_bitwise_equivalence_verified": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-angles-20261002-01/complete-04",
+    "native-angles-01.json": {"bytes": 863771, "sha256": "2c067225c8ba59a6b8a3d023c7eb1fd1e3902a898d296c5e5f5ab87b44e8a9dd"},
+    "angle-helper-review-01.json": {"bytes": 229395, "sha256": "444f8d704d88176c3eda2c447e887db73afb23c0d93e57ee60becf3aa2be1617"},
+    "private-instruction-trace-01.json": {"bytes": 280317, "sha256": "5f129585487099c35afe7f429ed95dac744cf9354def3c133a7e4a16a56e9ea7"},
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-angles-20261002-01/angles-coverage-02.json",
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-angles-20261002-01/reproduce.py",
+    "original_binary_metadata_or_native_reports_published": false,
+    "incomplete_first_outputs_preserved_not_authoritative": true
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_angles.py": "4ac22b5ce76ce0456cb1c30577f94a31917c845b1dfb149710ddf26c63dab292",
+    "Tools/tests/test_official_physics_angles.py": "a6c80e3306f8a0b4088483931056835ccbf3c5ebb00a7411018ca04f100f4a95"
+  },
+  "validation": {
+    "new_angle_tests": 34,
+    "python_suite_passed": 841,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "angle_and_distance_reference_branch_inclusive_coverage_percent": 100,
+    "synthetic_geometric_comparisons_use_absolute_tolerance_only": true,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "historical_protected_runtime_hashes_matched": 6,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
