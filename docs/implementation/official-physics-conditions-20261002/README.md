@@ -88,3 +88,5 @@ uv run --no-project --python 3.12 --with capstone==5.0.9 python Tools/audit_offi
 下一步只沿已证链推进：先查 callback 注册与最终 mode/flag/频率写入者，补 ClothUpdate 内跨帧读写与 Job 依赖，然后将这些规则作为可切回适配层的约束。沿用原 11 组 BoneCloth/AnimatorLinkage/Line 参数及挂点计划；不重新改捕获姿态、加权 bindpose、材质、湿身或 MMD，不做逐像素拟合。
 
 在约束数学和原始脚本 PPtr 尚未闭合前，新的近似物理也必须标为近似，不能标“官方 solver 已完成”。
+
+接续进展：[PlayerLoop 挂接、订阅与跨帧完成入口](../official-physics-scheduler-20261002/README.md)。七个挂接请求、布料/时钟订阅及静态初始开关已补证，发现游戏引擎专用跨帧 Job 完成入口；实际角色最终配置与求解数学仍待查，未替换预览。

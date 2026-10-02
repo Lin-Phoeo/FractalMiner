@@ -312,6 +312,91 @@ class NativeAudit:
             "literals": expected["literals"],
         }
 
+    def metadata_usage_cell(self, va: int) -> dict[str, Any]:
+        """Resolve observed v29 TypeInfo/Il2CppType/MethodDef/StringLiteral usages.
+
+        The file initializer is not a live class/MethodInfo/native function pointer.
+        Generic method references and fields are not guessed here.
+        """
+        if va % 8:
+            raise ValueError("Unaligned metadata usage cell")
+        offset = self.pe.offset(va, 8)
+        encoded = struct.unpack_from("<Q", self.pe.data, offset)[0]
+        kind, index = (encoded & 0xE0000000) >> 29, (encoded & 0x1FFFFFFE) >> 1
+        if encoded > 0xFFFFFFFF or not encoded & 1 or kind not in (1, 2, 3, 5):
+            raise ValueError("Unsupported/uninitialized tagged metadata usage")
+        result: dict[str, Any] = {
+            "va_hex": f"0x{va:x}",
+            "file_offset": offset,
+            "encoded_hex": f"0x{encoded:x}",
+            "usage_kind": kind,
+            "decoded_index": index,
+            "runtime_pointer_inspected": False,
+        }
+        if kind in (1, 2):
+            native = self.native_type(index)
+            definition = native["definition_index"]
+            if definition is None or not 0 <= definition < len(self.metadata.types):
+                raise ValueError("Usage type lacks a supported definition identity")
+            row = self.metadata.types[definition]
+            canonical = self.native_type(row["byval_type_index"])
+            if (
+                canonical["kind"] != native["kind"]
+                or canonical["definition_index"] != definition
+                or native["byref"]
+                or native["num_mods"]
+                or native["pinned"]
+            ):
+                raise ValueError("Usage type canonical identity mismatch")
+            result.update(
+                owner=row["qualified_name"],
+                definition_index=definition,
+                canonical_type_index=row["byval_type_index"],
+            )
+        elif kind == 3:
+            if not 0 <= index < len(self.metadata.methods):
+                raise ValueError("Usage method definition index out of range")
+            owners = [
+                t
+                for t in self.metadata.types
+                if t["method_start"] <= index < t["method_start"] + t["method_count"]
+            ]
+            if len(owners) != 1:
+                raise ValueError("Missing/ambiguous usage method owner")
+            owner = owners[0]["qualified_name"]
+            method = next(
+                m
+                for m in self.inventory(owner)["methods"]
+                if m["method_index"] == index
+            )
+            result.update(owner=owner, method=method)
+        else:
+            h = struct.unpack_from("<66I", self.metadata.data)
+            table, size, payload, payload_size = h[2:6]
+            if (
+                table < 264
+                or size % 8
+                or index >= size // 8
+                or table + size > len(self.metadata.data)
+                or payload < 264
+                or payload + payload_size > len(self.metadata.data)
+            ):
+                raise ValueError("Invalid metadata literal table/data bounds")
+            length, start = struct.unpack_from(
+                "<Ii", self.metadata.data, table + index * 8
+            )
+            if start < 0 or start + length > payload_size:
+                raise ValueError("Metadata literal outside payload")
+            literal_offset = payload + start
+            result.update(
+                literal=self.metadata.data[
+                    literal_offset : literal_offset + length
+                ].decode("utf-8", errors="strict"),
+                literal_file_offset=literal_offset,
+                literal_bytes=length,
+            )
+        return result
+
     def image_for_type(self, index: int) -> dict[str, Any]:
         matches = [
             x
@@ -404,7 +489,7 @@ class NativeAudit:
         fields = [self.field_enum(**f) for f in spec["fields"]]
         inventories = [self.inventory(name) for name in spec["inventories"]]
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "registration": self.registration,
             "sections": self.pe.sections,
             "image_count": len(self.images),
@@ -414,6 +499,10 @@ class NativeAudit:
             ],
             "type_info_cells": [
                 self.type_info_cell(**cell) for cell in spec.get("type_info_cells", [])
+            ],
+            "metadata_usage_cells": [
+                self.metadata_usage_cell(va)
+                for va in spec.get("metadata_usage_cells", [])
             ],
             "inventories": inventories,
             "modules": [
@@ -453,7 +542,17 @@ DEFAULT_SPEC = {
             "enum": "BeyondDynamicBone.BeyondBoneCapsuleCollider+Direction",
         }
     ],
-    "inventories": METADATA_SPEC["inventories"],
+    "inventories": METADATA_SPEC["inventories"]
+    + [
+        "BeyondDynamicBone.MagicaManager+<>c",
+        "BeyondDynamicBone.MagicaManager+UpdateMethod",
+        "BeyondDynamicBone.PlayerLoopUtils",
+        "UnityEngine.LowLevel.PlayerLoop",
+        "UnityEngine.LowLevel.PlayerLoopSystem+UpdateFunction",
+        "Unity.Jobs.JobHandle",
+        "System.Delegate",
+        "UnityEngine.Application",
+    ],
     "layout_owners": [
         "BeyondDynamicBone." + name
         for name in ("MagicaManager", "TimeManager", "ClothManager")
@@ -491,6 +590,14 @@ def main() -> None:
         metavar="OWNER=VA",
         help="Optional observed tagged type-info cell, preferred VA in decimal or hex",
     )
+    parser.add_argument(
+        "--usage-cell",
+        action="append",
+        type=lambda x: int(x, 0),
+        default=[],
+        metavar="VA",
+        help="Observed v29 tagged type/method-definition usage, preferred VA",
+    )
     args = parser.parse_args()
     cells = []
     for value in args.type_info_cell:
@@ -503,7 +610,11 @@ def main() -> None:
         args.binary,
         args.metadata,
         args.output,
-        {**DEFAULT_SPEC, "type_info_cells": cells},
+        {
+            **DEFAULT_SPEC,
+            "type_info_cells": cells,
+            "metadata_usage_cells": args.usage_cell,
+        },
     )
     print(f"Offline physics native identity/entry-point audit: {args.output}")
 

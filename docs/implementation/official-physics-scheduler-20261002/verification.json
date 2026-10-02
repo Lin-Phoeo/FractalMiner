@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline PlayerLoop registration requests, callback subscriptions, static initialization and native cross-frame completion identities",
+  "parent_record_commit": "984d9ace7652c3993b3af728993b9858f62a5270",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "gates": {
+    "registration_requests_manually_traced_against_native_instructions": 7,
+    "cloth_update_subscriptions": 4,
+    "cloth_quit_subscription": 1,
+    "time_fixed_and_render_subscriptions": 2,
+    "static_initializer_writes": {"EnableTick": true, "UseCrossFrameJob": true, "UseAnimatorTransform": false},
+    "initializer_r10_across_helper_call_proved_on_supported_normal_paths": true,
+    "restricted_helper_cfg": {"rva": "0x26b40", "reachable_instructions": 17, "reachable_bytes": 66, "return_site": "0x26b81", "termination_or_faults_verified": false},
+    "decoded_metadata_usage_cells": 27,
+    "usage_kinds": {"TypeInfo": 2, "Il2CppType": 1, "MethodDef": 14, "StringLiteral": 10},
+    "managed_inventories": 22,
+    "managed_method_entries": 715,
+    "selected_methods": 51,
+    "unwind_families": 47,
+    "unwind_family_ranges": 111,
+    "decoded_selected_method_bytes_including_restricted_ctor": 43489,
+    "restricted_constructor_entries": 1,
+    "selected_leaf_methods_pending": 3,
+    "rip_references": 940,
+    "job_complete_icall": "Unity.Jobs.JobHandle::ScheduleBatchedJobsAndComplete(Unity.Jobs.JobHandle&)",
+    "cross_frame_complete_icall": "Unity.Jobs.JobHandle::ScheduleBatchedCrossFrameJobsAndComplete(Unity.Jobs.JobHandle&)",
+    "runtime_loop_installation_verified": false,
+    "actual_character_runtime_flags_or_frequency_verified": false,
+    "runtime_order_or_entire_cfg_verified": false,
+    "job_dependency_graph_or_native_hook_implementation_verified": false,
+    "solver_math_or_external_monoscript_pptr_verified": false,
+    "official_solver_integrated": false,
+    "runtime_modified_by_this_stage": false,
+    "unity_rerun": false
+  },
+  "observed_usage_cell_preferred_vas": [
+    "0x18d06c5d0", "0x18d06c5e8", "0x18d0c6398", "0x18d06c5d8", "0x18d06c5c0", "0x18d06c5c8", "0x18d06c588", "0x18d06c590", "0x18d06c578", "0x18d06c580",
+    "0x18d06c568", "0x18d06c570", "0x18d06c558", "0x18d055ea8", "0x18d06c560", "0x18d06c5b0", "0x18d06c5b8", "0x18d06c5a0", "0x18d0c6380", "0x18d06c5a8",
+    "0x18d0767a0", "0x18d0767c0", "0x18d068780", "0x18d068758", "0x18d068768", "0x18d068738", "0x18d068748"
+  ],
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-scheduler-20261002-01",
+    "native-scheduler-04.json": {"bytes": 429947, "sha256": "66322de775453679ebf7a2e073b528fe8809164258a9a044ed7bd316470619f3"},
+    "calls-scheduler-05.json": {"bytes": 1968054, "sha256": "d285ab47c855befd29fa6e0009130aac66396b1e42ab286a045dc88f2f2feddd"},
+    "coverage": "scheduler-coverage-formatted.json",
+    "game_binary_metadata_bytecode_or_full_native_manifests_published": false
+  },
+  "validation": {
+    "new_tests": 36,
+    "native_tests": 59,
+    "calls_tests": 54,
+    "python_suite_passed": 697,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "branch_inclusive_coverage_minimum_80_percent": "PASS",
+    "branch_inclusive_coverage_percent": 90.87136929460581,
+    "ruff": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "capstone": "5.0.9",
+    "historical_protected_runtime_hashes_matched": 6,
+    "existing_changed_stage_preserved": {
+      "path": "Assets/Scenes/Typhoeus_MMD_Stage.unity",
+      "raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+      "mtime_local": "2026-10-02 09:14:26",
+      "not_reverted_or_included_in_record_commit": true
+    }
+  },
+  "tools_raw_sha256": {
+    "Tools/export_official_physics_native.py": "0bc97429687e54c6aa0e708839552cb14763371a2be739ca2590461baeb44e5b",
+    "Tools/audit_official_physics_calls.py": "81e520cb894525b0a822e6b49aa64d6d5360484cddf59990a0d3d8d12831bb79",
+    "Tools/tests/test_export_official_physics_native.py": "a9348bc08ce78eba0ca2379a3d9da6a68a3832d1a3a511dc5e77961c80f2a384",
+    "Tools/tests/test_audit_official_physics_calls.py": "a4a6745a97dc701321e1bea8d8e645366103175087b97b465578040f797a2fb2"
+  }
+}

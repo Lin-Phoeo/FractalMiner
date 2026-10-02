@@ -15,6 +15,7 @@ from audit_official_physics_calls import (
     inspect_body,
     inspect_family,
     inspect_leaf_writes,
+    inspect_r10_preservation,
 )
 from export_official_physics_native import PE64
 from test_export_official_physics_native import BASE, samples
@@ -296,3 +297,108 @@ def test_leaf_initializer_rejects_any_unproved_entry_path(change):
         data[0x48E] = 0x90
     with pytest.raises(ValueError):
         inspect_leaf_writes(PE64(bytes(data)), 0x1080, layout)
+
+
+def test_rip_references_distinguish_address_from_reads_writes_and_indirect_slot():
+    data = native_sample()
+    raw = bytes.fromhex("488d0519000000488b05120000004889050b000000ff1505000000c3")
+    data[0x400 : 0x400 + len(raw)] = raw
+    struct.pack_into("<I", data, 0x1C04, 0x1000 + len(raw))
+    pe = PE64(bytes(data))
+    result = inspect_body(pe, FunctionBounds(pe), 0x1000, {0x1020: [{"method": "M"}]})
+    refs = result["rip_references"]
+    assert [r["reference_kind"] for r in refs] == [
+        "address",
+        "memory",
+        "memory",
+        "memory",
+    ]
+    assert [r["access"] for r in refs] == [0, 1, 2, 1]
+    assert all(r["target_rva_hex"] == "0x1020" for r in refs)
+    assert refs[0]["address_aliases"] == [{"method": "M"}]
+    assert refs[1]["address_aliases"] == []
+    assert refs[3]["indirect_call_target_resolved"] is False
+
+
+@pytest.mark.parametrize(
+    "raw,target", [("488d05f9ffffffc3", "0x1000"), ("488b05f96f0000c3", "0x8000")]
+)
+def test_rip_signed_displacement_and_unmapped_reference(raw, target):
+    data = native_sample()
+    code = bytes.fromhex(raw)
+    data[0x400 : 0x400 + len(code)] = code
+    struct.pack_into("<I", data, 0x1C04, 0x1000 + len(code))
+    pe = PE64(bytes(data))
+    ref = inspect_body(pe, FunctionBounds(pe), 0x1000, {})["rip_references"][0]
+    assert ref["target_rva_hex"] == target
+    assert ref["target_file_backed"] == (target == "0x1000")
+
+
+def test_register_and_segment_based_addresses_are_not_rip_file_references():
+    data = native_sample()
+    code = bytes.fromhex("488b0164488b0500000000c3")
+    data[0x400 : 0x400 + len(code)] = code
+    struct.pack_into("<I", data, 0x1C04, 0x1000 + len(code))
+    pe = PE64(bytes(data))
+    assert inspect_body(pe, FunctionBounds(pe), 0x1000, {})["rip_references"] == []
+
+
+def test_family_retains_rip_references_in_cold_range():
+    data = chained_sample()
+    code = bytes.fromhex("488d05a9ffffffc3")
+    data[0x450 : 0x450 + len(code)] = code
+    struct.pack_into("<I", data, 0x1C1C, 0x1058)
+    struct.pack_into("<I", data, 0x1D88, 0x1058)
+    pe = PE64(bytes(data))
+    result = inspect_family(pe, FunctionBounds(pe), 0x1000, {})
+    assert result["rip_references"][0]["site_rva_hex"] == "0x1050"
+    assert result["rip_references"][0]["target_rva_hex"] == "0x1000"
+
+
+def test_narrow_helper_proves_r10_preservation_through_all_local_branch_paths():
+    data = native_sample()
+    data[0x480:0x488] = bytes.fromhex("74054831c0ebf9c3")
+    result = inspect_r10_preservation(PE64(bytes(data)), 0x1080)
+    assert result["preserves_r10_on_supported_normal_paths"] is True
+    assert result["return_sites"] == ["0x1087"]
+    assert result["reachable_bytes"] == 8
+    assert result["termination_verified"] is False
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "41ba01000000c3",
+        "41b201c3",
+        "4d31d2c3",
+        "e800000000c3",
+        "ffe0",
+        "e97f000000",
+        "0f05c3",
+        "ebfe",
+        "74014831c0c3",
+    ],
+)
+def test_helper_rejects_alias_writes_calls_unknown_control_and_instruction_overlap(raw):
+    data = native_sample()
+    code = bytes.fromhex(raw)
+    data[0x480 : 0x480 + len(code)] = code
+    with pytest.raises(ValueError):
+        inspect_r10_preservation(PE64(bytes(data)), 0x1080)
+
+
+@pytest.mark.parametrize("raw", ["4889c4c3", "664531d2c3", "c20400"])
+def test_helper_rejects_stack_pointer_r10_word_and_nonstandard_return(raw):
+    data = native_sample()
+    code = bytes.fromhex(raw)
+    data[0x480 : 0x480 + len(code)] = code
+    with pytest.raises(ValueError):
+        inspect_r10_preservation(PE64(bytes(data)), 0x1080)
+
+
+def test_helper_follows_reachable_branches_not_linear_padding_or_dead_instructions():
+    data = native_sample()
+    data[0x480:0x486] = bytes.fromhex("eb034531d2c3")
+    result = inspect_r10_preservation(PE64(bytes(data)), 0x1080)
+    assert result["reachable_bytes"] == 3
+    assert len(result["instructions"]) == 2

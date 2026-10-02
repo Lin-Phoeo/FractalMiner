@@ -296,3 +296,142 @@ def test_invalid_typeinfo_usage_tag_or_target_rejected(value):
         NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).type_info_cell(
             BASE + 0x3A00, "BeyondDynamicBone.ClothSerializeData"
         )
+
+
+def test_usage_cell_resolves_type_variant_and_method_definition_independently():
+    meta, data = layout_sample()
+    audit = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta)))
+    result = audit.metadata_usage_cell(BASE + 0x3A00)
+    assert result["usage_kind"] == 1
+    assert result["owner"] == "BeyondDynamicBone.ClothSerializeData"
+    struct.pack_into("<Q", data, 0x2000, 0x20000000 | (37 << 1) | 1)
+    result = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+        BASE + 0x3A00
+    )
+    assert result["owner"] == "BeyondDynamicBone.ClothUpdateMode"
+    assert result["canonical_type_index"] == 22
+    struct.pack_into("<Q", data, 0x2000, 0x60000001)
+    result = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+        BASE + 0x3A00
+    )
+    assert result["usage_kind"] == 3
+    assert result["method"]["method_index"] == 0
+    assert result["method"]["rva_hex"] == "0x1000"
+    assert result["runtime_pointer_inspected"] is False
+
+
+@pytest.mark.parametrize(
+    "value", [0, 0x20000042, 0xC0000001, 0x60000003, 0x200000FF, 1 << 40]
+)
+def test_usage_cell_rejects_unsupported_tag_kind_and_index(value):
+    meta, data = layout_sample()
+    struct.pack_into("<Q", data, 0x2000, value)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A00
+        )
+
+
+def test_usage_cell_rejects_unaligned_address_and_mismatched_canonical_type():
+    meta, data = layout_sample()
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A01
+        )
+    struct.pack_into("<Q", data, 0x2000, 0x20000000 | (37 << 1) | 1)
+    struct.pack_into("<QI", data, 0x1200 + 22 * 16, 0, 0x80110000)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A00
+        )
+
+
+def test_usage_cells_export_is_opt_in_and_never_a_runtime_pointer(tmp_path):
+    meta, data = layout_sample()
+    binary, metadata, out = (
+        tmp_path / "b.dll",
+        tmp_path / "m.dat",
+        tmp_path / "out.json",
+    )
+    binary.write_bytes(data)
+    metadata.write_bytes(meta)
+    export_files(
+        binary, metadata, out, {**SPEC, "metadata_usage_cells": [BASE + 0x3A00]}
+    )
+    result = json.loads(out.read_text())
+    assert (
+        result["metadata_usage_cells"][0]["owner"]
+        == "BeyondDynamicBone.ClothSerializeData"
+    )
+    assert result["runtime_modified"] is False
+
+
+def test_il2cpp_type_handle_usage_is_not_a_typeinfo_or_live_class_pointer():
+    meta, data = layout_sample()
+    struct.pack_into("<Q", data, 0x2000, 0x40000000 | (33 << 1) | 1)
+    result = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+        BASE + 0x3A00
+    )
+    assert result["usage_kind"] == 2
+    assert result["owner"] == "BeyondDynamicBone.ClothSerializeData"
+    assert result["runtime_pointer_inspected"] is False
+
+
+def test_usage_cell_rejects_primitive_type_and_method_declaring_owner_mismatch():
+    meta, data = layout_sample()
+    struct.pack_into("<QI", data, 0x1200 + 33 * 16, 2, 0x80000)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A00
+        )
+    struct.pack_into("<Q", data, 0x2000, 0x60000001)
+    header = struct.unpack_from("<66I", meta)
+    struct.pack_into("<i", meta, header[12] + 4, 1)
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A00
+        )
+
+
+def literal_sample():
+    meta, data = layout_sample()
+    header = list(struct.unpack_from("<66I", meta))
+    meta[264:264] = struct.pack("<Ii", 11, 0)
+    for slot in range(4, 66, 2):
+        if header[slot] >= 264:
+            header[slot] += 8
+    header[3] = 8
+    header[4:6] = [len(meta), 11]
+    meta.extend(b"LateUpdate!")
+    struct.pack_into("<66I", meta, 0, *header)
+    struct.pack_into("<Q", data, 0x2000, 0xA0000001)
+    return meta, data
+
+
+def test_usage_string_literal_uses_length_and_data_index_not_cstring_scan():
+    meta, data = literal_sample()
+    result = NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+        BASE + 0x3A00
+    )
+    assert result["usage_kind"] == 5
+    assert result["literal"] == "LateUpdate!"
+    assert result["runtime_pointer_inspected"] is False
+
+
+@pytest.mark.parametrize("change", ["index", "stride", "data_index", "length", "utf8"])
+def test_usage_literal_rejects_unproved_table_or_payload(change):
+    meta, data = literal_sample()
+    if change == "index":
+        struct.pack_into("<Q", data, 0x2000, 0xA0000003)
+    elif change == "stride":
+        struct.pack_into("<I", meta, 3 * 4, 7)
+    elif change == "data_index":
+        struct.pack_into("<i", meta, 268, -1)
+    elif change == "length":
+        struct.pack_into("<I", meta, 264, 12)
+    else:
+        meta[-1] = 0xFF
+    with pytest.raises(ValueError):
+        NativeAudit(PE64(bytes(data)), Metadata(bytes(meta))).metadata_usage_cell(
+            BASE + 0x3A00
+        )

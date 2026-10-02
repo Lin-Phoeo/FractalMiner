@@ -10,11 +10,12 @@ import hashlib
 import importlib.metadata
 import json
 import struct
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
 from capstone import CS_ARCH_X86, CS_MODE_64, Cs
-from capstone.x86_const import X86_OP_IMM, X86_OP_MEM, X86_REG_RCX
+from capstone.x86_const import X86_OP_IMM, X86_OP_MEM, X86_REG_RCX, X86_REG_RIP
 from export_official_physics_native import PE64
 
 
@@ -104,8 +105,39 @@ def inspect_body(
     instructions = list(disassembler.disasm(code, rva))
     if sum(i.size for i in instructions) != len(code):
         raise ValueError("Incomplete instruction decode; refuse partial body")
-    transfers, indirect, branches, returns = [], [], [], []
+    transfers, indirect, branches, returns, references = [], [], [], [], []
     for ins in instructions:
+        for index, operand in enumerate(ins.operands):
+            if (
+                operand.type != X86_OP_MEM
+                or operand.mem.base != X86_REG_RIP
+                or operand.mem.index
+                or operand.mem.segment
+            ):
+                continue
+            target = ins.address + ins.size + operand.mem.disp
+            is_address = ins.mnemonic == "lea"
+            try:
+                file_offset = pe.offset(
+                    pe.base + target, 1 if is_address else operand.size
+                )
+            except ValueError:
+                file_offset = None
+            references.append(
+                {
+                    "site_rva_hex": f"0x{ins.address:x}",
+                    "instruction": ins.mnemonic,
+                    "operand_index": index,
+                    "reference_kind": "address" if is_address else "memory",
+                    "access": 0 if is_address else operand.access,
+                    "target_rva_hex": f"0x{target:x}",
+                    "target_va_hex": f"0x{pe.base + target:x}",
+                    "target_file_offset": file_offset,
+                    "target_file_backed": file_offset is not None,
+                    "address_aliases": aliases.get(target, []) if is_address else [],
+                    "indirect_call_target_resolved": False,
+                }
+            )
         if ins.mnemonic.startswith("ret"):
             returns.append(f"0x{ins.address:x}")
         if ins.mnemonic in ("call", "jmp"):
@@ -158,6 +190,7 @@ def inspect_body(
         "indirect_transfers": indirect,
         "conditional_branches": branches,
         "return_sites": returns,
+        "rip_references": references,
         "control_flow_verified": False,
         "runtime_order_verified": False,
         "non_claim": "Linear instruction call sites only; reachability, branch predicates, virtual dispatch and dynamic order are not resolved.",
@@ -186,9 +219,85 @@ def inspect_family(
             e for f in fragments for e in f["conditional_branches"]
         ],
         "return_sites": [e for f in fragments for e in f["return_sites"]],
+        "rip_references": [e for f in fragments for e in f["rip_references"]],
         "full_cfg_verified": False,
         "runtime_order_verified": False,
         "non_claim": "Unwind-related ranges, not a contiguous whole-function slice. Branch reachability, stack operations, out-of-family tail targets and leaf functions remain unproved.",
+    }
+
+
+def inspect_r10_preservation(pe: PE64, rva: int) -> dict[str, Any]:
+    """Prove R10 aliases are untouched on a restricted local helper CFG.
+
+    Follow every direct JE/JNE/JMP path inside 96 file-backed bytes. Refuse
+    calls, indirect/system control, writes to R10 or RSP, overlapping decode
+    and missing normal returns. No unwind/whole-method length or termination
+    claim; valid ordinary non-self-modifying memory inputs are assumed.
+    """
+    p = pe.offset(pe.base + rva, 96, executable=True)
+    code = pe.data[p : p + 96]
+    md = Cs(CS_ARCH_X86, CS_MODE_64)
+    md.detail = True
+    pending, nodes, returns = [rva], {}, set()
+    allowed = {
+        "mov",
+        "lea",
+        "shr",
+        "and",
+        "or",
+        "xor",
+        "cmp",
+        "test",
+        "bts",
+        "lock cmpxchg",
+        "prefetchw",
+        "nop",
+    }
+    forbidden_writes = {"r10", "r10d", "r10w", "r10b", "rsp", "esp", "sp", "spl"}
+    while pending:
+        address = pending.pop()
+        if address in nodes:
+            continue
+        if not rva <= address < rva + 96:
+            raise ValueError("Helper control escapes audited bound")
+        ins = next(md.disasm(code[address - rva :], address, count=1), None)
+        if ins is None or ins.address + ins.size > rva + 96:
+            raise ValueError("Incomplete helper decode")
+        _, writes = ins.regs_access()
+        names = [ins.reg_name(reg) for reg in writes]
+        if ins.mnemonic != "ret" and forbidden_writes.intersection(names):
+            raise ValueError("Helper modifies R10 alias or return stack pointer")
+        nodes[address] = {
+            "site_rva_hex": f"0x{address:x}",
+            "instruction": ins.mnemonic,
+            "size": ins.size,
+            "register_writes": names,
+        }
+        if ins.mnemonic == "ret" and not ins.operands:
+            returns.add(address)
+        elif ins.mnemonic in ("je", "jne", "jmp"):
+            if len(ins.operands) != 1 or ins.operands[0].type != X86_OP_IMM:
+                raise ValueError("Indirect helper branch")
+            pending.append(ins.operands[0].imm)
+            if ins.mnemonic != "jmp":
+                pending.append(address + ins.size)
+        elif ins.mnemonic in allowed:
+            pending.append(address + ins.size)
+        else:
+            raise ValueError("Unsupported helper instruction/control")
+    ordered = sorted(nodes)
+    if not returns or any(a + nodes[a]["size"] > b for a, b in pairwise(ordered)):
+        raise ValueError("Missing normal return or overlapping helper instructions")
+    raw = b"".join(code[a - rva : a - rva + nodes[a]["size"]] for a in ordered)
+    return {
+        "rva_hex": f"0x{rva:x}",
+        "reachable_bytes": len(raw),
+        "reachable_instruction_bytes_sha256": hashlib.sha256(raw).hexdigest(),
+        "instructions": [nodes[a] for a in ordered],
+        "return_sites": [f"0x{a:x}" for a in sorted(returns)],
+        "preserves_r10_on_supported_normal_paths": True,
+        "termination_verified": False,
+        "non_claim": "Restricted static register preservation only; valid non-self-modifying memory inputs assumed. Faults, exceptions, concurrent changes and complete method bounds are not certified.",
     }
 
 
@@ -266,8 +375,11 @@ DEFAULT_METHODS = (
                 "SetUpdateLocation",
                 "SetUseCrossFrameJob",
                 "DoAOVAfterAnimatorUpdate",
+                "Initialize",
+                ".cctor",
             ],
             "ClothManager": [
+                "Initialize",
                 "ClothUpdate",
                 "CompleteMasterJob",
                 "ForceCompleteAllJob",
@@ -281,6 +393,7 @@ DEFAULT_METHODS = (
                 "AfterFixedUpdate",
                 "AfterRenderring",
                 ".ctor",
+                "Initialize",
             ],
             "DynamicBoneTransformManager": [
                 "ReadAnimatorBufferData",
@@ -307,6 +420,23 @@ DEFAULT_METHODS = (
     + [
         "Beyond.NPC.Animation.ClothCalculator." + name
         for name in ["CalcCloth", "UpdateDynamicBone", "UpdateBeyondClothEnabled"]
+    ]
+    + [
+        "BeyondDynamicBone.MagicaManager+<>c.<SetCustomGameLoop>b__50_" + str(i)
+        for i in range(7)
+    ]
+    + [
+        "UnityEngine.LowLevel.PlayerLoop." + name
+        for name in ("GetCurrentPlayerLoop", "SetPlayerLoop")
+    ]
+    + ["BeyondDynamicBone.PlayerLoopUtils.AddPlayerLoop"]
+    + [
+        "Unity.Jobs.JobHandle." + name
+        for name in (
+            "Complete",
+            "CrossFrameComplete",
+            "ScheduleBatchedCrossFrameJobsAndComplete",
+        )
     ]
 )
 
@@ -378,13 +508,22 @@ def export_files(
         else:
             bodies.append({"method": key, **inspect_family(pe, bounds, rva, aliases)})
     result = {
-        "schema_version": 2,
+        "schema_version": 3,
         "binary": str(binary.resolve()),
         "binary_sha256": hashlib.sha256(data).hexdigest(),
         "native_manifest": str(native_manifest.resolve()),
         "native_manifest_sha256": hashlib.sha256(manifest_bytes).hexdigest(),
         "capstone_version": importlib.metadata.version("capstone"),
         "bodies": bodies,
+        "helper_register_proofs": [inspect_r10_preservation(pe, 0x26B40)]
+        if any(
+            b["method"] == "BeyondDynamicBone.MagicaManager..cctor"
+            and any(
+                t["target_rva_hex"] == "0x26b40" for t in b.get("direct_transfers", [])
+            )
+            for b in bodies
+        )
+        else [],
         "runtime_modified": False,
         "runtime_call_order_verified": False,
         "simulation_frequency_verified": False,
