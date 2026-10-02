@@ -1,5 +1,7 @@
 # 官方物理：动画缓冲读取主体与回退分支
 
+后续已推进[粒子受力与步末状态更新](../official-physics-particle-step-20261003/README.md)：补充 EndSimulationStep 有限值参考与 Start 惯性后的受力片段，未接入 Unity。
+
 日期：2026-10-03，接续[注册/复制/启停](../official-physics-registration-20261003/README.md)。新增 `Tools/official_physics_animator_buffer.py`，实现 ReadAnimatorBufferDataJob._Do 的**有限、成功单槽最终值与逻辑操作顺序**。不是实际Animator、NativeArray写入、完整物理或可见效果验收。剩余交付项见[进度与缺口](PROGRESS.md)。
 
 ## 从入口推进到实际主体

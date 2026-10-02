@@ -4,7 +4,7 @@
 
 ## 已有基础
 
-原版本与参数证据、若干proxy/角度/骨骼输出数学、current/last发布、限定host调度、普通Read/Restore/Set字段规则已有离线参考。新增Animator读取主体的map分流与有限值参考。所有这些仍各有输入/分支前提；合成测试和代码覆盖率不能证明真实全链完成。
+原版本与参数证据、若干proxy/角度/骨骼输出数学、current/last发布、限定host调度、普通Read/Restore/Set字段规则已有离线参考。Animator读取主体的map分流与有限值参考已有；本轮进一步实现[EndSimulationStep步末有限值参考与Start受力片段](../official-physics-particle-step-20261003/README.md)。所有这些仍各有输入/分支前提；合成测试和代码覆盖率不能证明真实全链完成。
 
 ## 剩下三类工作、八个交付门禁
 
@@ -13,7 +13,7 @@
 | 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；完整proxy与Team发布未闭合 |
 | 真实输入与生命周期 | 2. bulk init生成、分配/复用/释放、相对矩阵构造 | 单槽Set/Copy/Enable有参考；底层allocator和native TRS/逆矩阵构造未完成 |
 | 真实输入与生命周期 | 3. 动画map/record、回写Job与唯一writer调度 | 动画读取有限值已实现；map生成、输出Job与cross+Animator委托链待补 |
-| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 若干算子有参考，完整跨帧状态更新未实现 |
+| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | End步末的静/动摩擦、速度回写、限速、离心项已有有限参考；Start惯性后受力片段已有。中心/惯性生成、风/Spring、跨步依赖仍未闭合 |
 | 动态求解 | 5. 碰撞链、normalAxis下游及约束完整消费 | 尚未完成整个角色的原输入、迭代顺序与输出闭环 |
 | 动态求解 | 6. reset、暂停恢复、跳帧及状态发布 | current/last复制与host顺序有参考；动态reset及定制完成机制待补 |
 | Unity交付 | 7. 可回退C#候选后端与角色实例接入 | 未开始替换当前舞台后端；不能将Python参考称为Unity已实现 |
