@@ -56,6 +56,6 @@ GameAssembly、metadata哈希沿用既有封存，方法及报告哈希见[verif
 
 ## 后续接入顺序
 
-1. 补齐bulk初始数据来源、底层分配/释放与注册时机；追ReadAnimatorBufferDataJob真正主体。31字节Execute入口仅转发到0x5a1dc98，不能用普通Read替代。
+1. 补齐bulk初始数据来源、底层分配/释放与注册时机；[Animator读取主体与分流](../official-physics-animator-buffer-20261003/README.md)已接续实现有限值参考。map/record生成、回写Job和委托调度仍未闭合，不能用普通Read替代整个Animator链。剩余交付门禁见[当前进度](../official-physics-animator-buffer-20261003/PROGRESS.md)。
 2. 闭合相对TRS/逆矩阵与Quaternion(matrix)、真实11组proxy/Team发布、normalAxis下游、跨帧step/碰撞/惯性/reset；保证动画采样、restore/read和最终物理写入的依赖关系。
 3. 候选完整后端具备真实输入后再做Unity可回退接入，验收MMD/解包动作、暂停恢复和跳帧，保留当前可见效果。**本轮没有新的可见物理效果可供预览，不宣称官方物理已完成。**
