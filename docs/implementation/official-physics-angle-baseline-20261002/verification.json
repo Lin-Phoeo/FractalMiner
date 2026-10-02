@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline single-baseline indexing, cache prepass and three angle iterations; no full physics or Unity backend",
+  "parent_record_commit": "cd43bf79a45f7e4c3326e39601350e2e3125860c",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "gates": {
+    "layout_owners_verified": 4,
+    "kernel_parameters_and_pointer_targets_inspected": 21,
+    "unwind_families_decoded": 6,
+    "signed_step_zero_extension_tested": true,
+    "baseline_low16_is_global_index": true,
+    "three_index_spaces_nonzero_windows_tested": true,
+    "all_256_byte_attributes_mask2_tested": true,
+    "native_extra_first_slot_solver_gate_present": false,
+    "adapter_rejects_movable_first_slot": true,
+    "fixed_nonroot_cache_initialization_tested": true,
+    "first_slot_rotation_copy_cache_preservation_tested": true,
+    "disabled_cache_lanes_preserved": true,
+    "baseline_order_preserved_not_sorted_or_deduplicated": true,
+    "three_iterations_use_current_shared_working_arrays": true,
+    "length_and_rotation_prepass_once_not_each_iteration": true,
+    "limit_then_restoration_per_edge_not_separate_sweeps": true,
+    "unlisted_parent_rotation_not_reset_to_basic": true,
+    "original_live_baseline_allocation_or_generation_proved": false,
+    "cross_baseline_job_or_burst_equivalence_proved": false,
+    "array_aliasing_or_parallel_race_emulated": false,
+    "independent_native_runtime_oracle": false,
+    "integration_collision_reset_final_writeback_implemented": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-angle-baseline-20261002-01/complete-01",
+    "baseline-review-01.json": {"bytes": 255904, "sha256": "33f69eedc2690a8c037a1554d45c42145539cbe03e7d9f9c581c880ba7f9e5ec"},
+    "private-baseline-instructions-01.json": {"bytes": 308708, "sha256": "a0007ff31bc09be25bf2e0163125f5d22983ec784b6aa6654158334a933e79b2"},
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-angle-baseline-20261002-01/baseline-coverage-01.json",
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-angle-baseline-20261002-01/reproduce.py",
+    "native_reports_and_original_files_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_angle_baseline.py": "9ac61cdf708e9350d312990a8922c4ecf95071908499e6203b223576305583a9",
+    "Tools/tests/test_official_physics_angle_baseline.py": "517ae0382479a90d1ba96178a522fb37a1a91811bde88ba54b82f6b95abc227d"
+  },
+  "validation": {
+    "new_baseline_tests": 45,
+    "python_suite_passed": 910,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "four_reference_modules_statements": 436,
+    "four_reference_modules_branches": 96,
+    "four_reference_modules_branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

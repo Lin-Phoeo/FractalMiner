@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[角度恢复/限幅阶段](../official-physics-angles-20261002/README.md)。实现位于 `Tools/official_physics_angle_cache.py`，是离线纯函数参考，**不是Unity物理后端或完整baseline求解器**。现有Unity舞台、材质、湿身、阴影和预览物理均未修改。
 
+后续：[单baseline角度调用层](../official-physics-angle-baseline-20261002/README.md)已补索引/属性、缓存预处理和三轮内部就地写回；本页保留历史状态，跨baseline Job、真实构建、完整物理和Unity接入仍未闭环。
+
 ## 本轮完成
 
 - 恢复Quaternion inverse、Quaternion×Quaternion、Quaternion×float3的Single运算边界及分组，没有转成通用Double Hamilton式再一次cast。
