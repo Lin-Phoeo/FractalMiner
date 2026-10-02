@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline transform ID mapping, conditional fresh no-resize child enumeration and baseline local-pose reference; not a complete proxy or live physics backend",
+  "parent_record_commit": "cc312a71fa4d7f0d50b1480cda1db27af77e3cf4",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "local_mathematics_1_2_6_quaternion_cs_sha256": "c72cf358f9b32b76d50bb2d4a7cd8ece301e2825870a7945c381f55f39c65620"
+  },
+  "native_boundaries": {
+    "convert_proxy_mesh_method_index": 371526,
+    "convert_proxy_mesh_rva": "0x3ddaf90",
+    "convert_proxy_mesh_unwind_bytes": 5420,
+    "convert_proxy_mesh_code_bytes": 5364,
+    "convert_proxy_mesh_table_bytes": 56,
+    "convert_proxy_mesh_body_sha256": "005554d4f6a1f9a448d46c91b12e05d7e93176f218c1626dcbb449bf8c6921ad",
+    "two_switch_tables_14_targets_decoded_instruction_boundaries": true,
+    "local_pose_method_index": 371608,
+    "local_pose_rva": "0x39d3f90",
+    "local_pose_unwind_family_bytes": 613,
+    "local_pose_fragments": [
+      {"rva": "0x39d3f90", "bytes": 66, "sha256": "c940c1fde71e824e2b5afa8c7401ddefb2bf0bec215c653066311ee6044a1a5c"},
+      {"rva": "0x39d3fd2", "bytes": 470, "sha256": "104a5d959f4501752f18c7ac99d73dc2133138d5cb933eb542514157f6137fae"},
+      {"rva": "0x39d41a8", "bytes": 77, "sha256": "147e4d74d6c499eb7f644b8676eeefbc22f63701a67a26a1d631dce7493bed21"}
+    ],
+    "automatic_full_cfg_or_runtime_proof": false
+  },
+  "gates": {
+    "is_bone_cloth_dispatch_field_identity_and_branch_reviewed": true,
+    "id_parent_root_mapping_offline_reference_implemented": true,
+    "int32_runtime_ids_not_int64_pptr_ids": true,
+    "negative_runtime_id_matching_tested": true,
+    "head_insert_enumeration_under_no_resize_precondition_implemented": true,
+    "rehash_changes_order_not_ignored": true,
+    "all_live_child_map_orders_or_initial_allocation_proved": false,
+    "local_pose_parent_sign_not_first_slot": true,
+    "frame_uses_normal_up_tangent_forward": true,
+    "no_extra_forward_normalization_safe_fallback_or_quaternion_sign_fix": true,
+    "matrix_signbit_swizzle_single_grouping_preserved": true,
+    "original_input_frames_not_local_output_frames": true,
+    "unlisted_caller_output_buffers_preserved": true,
+    "offline_id_child_baseline_pose_join_tested": true,
+    "normal_adjustment_and_other_proxy_tasks_implemented": false,
+    "actual_eleven_character_groups_generated": false,
+    "root_depth_team_allocation_and_step_publication_implemented": false,
+    "independent_native_runtime_or_burst_oracle": false,
+    "integration_collision_reset_final_writeback_complete": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-proxy-chain-20261002-01/complete-07",
+    "proxy-review-01.json": {"bytes": 304595, "sha256": "0fb4d7644f8e3995beaa8a3a37dfad3061c5a8b329b53926d996b8a471929e30"},
+    "private-proxy-instructions-01.json": {"bytes": 287480, "sha256": "6cd5439a149bf30d2c2e8093436b422f604e5e341fa359c6fd80fc89f491d31e"},
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-proxy-chain-20261002-01/review.py",
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-proxy-chain-20261002-01/proxy-coverage-02.json",
+    "original_game_files_or_full_instruction_dumps_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_proxy_baseline.py": "d52b192d1fcb479a7ea9e02bae0971a0502cf366e1a7a7d4f399b757e6ba0254",
+    "Tools/tests/test_official_physics_proxy_baseline.py": "bbb74658abb1e56a82e00139b3b7781b4cd5abd262236ac6a6a3c083f4357f2e"
+  },
+  "validation": {
+    "new_tests": 74,
+    "python_suite_passed": 1291,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "six_reference_modules_statements": 607,
+    "six_reference_modules_branches": 168,
+    "six_reference_modules_branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

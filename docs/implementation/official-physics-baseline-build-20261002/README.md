@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[单baseline角度调用层](../official-physics-angle-baseline-20261002/README.md)。新增 `Tools/official_physics_baseline_build.py`：输入**已经正确映射的原始有序根列表、原始子表枚举结果**，离线生成四个baseline数组。不是完整proxy生成器、Mesh baseline生成器、实时Job调度器或Unity物理后端。当前舞台、渲染、湿身、自阴影及预览物理保持不变。
 
+后续：[proxy分组输入与局部姿态链](../official-physics-proxy-chain-20261002/README.md)已复核转换入口的骨/网格分支、实现ID映射、限定fresh/no-resize子表顺序及局部pose；没有据此宣称全部真实proxy输入或实时后端成立。
+
 ## 已确认的生成规则
 
 这次从原始 `VirtualMesh.CreateTransformBaseLine` 控制流确认，而不是根据骨名或骨架外观猜测：
