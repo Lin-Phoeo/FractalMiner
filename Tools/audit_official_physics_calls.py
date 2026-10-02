@@ -363,6 +363,69 @@ def inspect_leaf_writes(pe: PE64, rva: int, layout: dict[str, Any]) -> dict[str,
     raise ValueError("No proved terminal leaf initializer path within audit bound")
 
 
+def inspect_leaf_counter(
+    pe: PE64, rva: int, layout: dict[str, Any], reset: bool
+) -> dict[str, Any]:
+    """Accept only a known instance Int32 INC/RET or MOV-zero/RET pair.
+
+    This certifies that two-instruction entry path, not a whole-function
+    length inferred from neighbouring entries/padding. Faults, invocation
+    count and external concurrent writes are outside this offline proof.
+    """
+    fields = [
+        f for f in layout["fields"] if f["name"] == "<FixedUpdateCount>k__BackingField"
+    ]
+    if (
+        len(fields) != 1
+        or fields[0]["is_static"]
+        or fields[0]["native_type"]["kind"] != 8
+    ):
+        raise ValueError("Counter requires unique native instance Int32 identity")
+    field = fields[0]
+    offset = pe.offset(pe.base + rva, 16, executable=True)
+    md = Cs(CS_ARCH_X86, CS_MODE_64)
+    md.detail = True
+    pair = list(md.disasm(pe.data[offset : offset + 16], rva, count=2))
+    if len(pair) != 2 or pair[1].mnemonic != "ret" or pair[1].operands:
+        raise ValueError("Counter requires exactly one write followed by plain RET")
+    ins = pair[0]
+    if ins.mnemonic != ("mov" if reset else "inc") or len(ins.operands) != (
+        2 if reset else 1
+    ):
+        raise ValueError("Unproved counter write operation")
+    dest = ins.operands[0]
+    if (
+        dest.type != X86_OP_MEM
+        or dest.size != 4
+        or dest.mem.base != X86_REG_RCX
+        or dest.mem.index
+        or dest.mem.segment
+        or dest.mem.disp != field["offset"]
+    ):
+        raise ValueError("Unproved counter receiver/field/width")
+    if reset and (ins.operands[1].type != X86_OP_IMM or ins.operands[1].imm != 0):
+        raise ValueError("Counter reset must write immediate zero")
+    length = sum(i.size for i in pair)
+    return {
+        "rva_hex": f"0x{rva:x}",
+        "file_offset": offset,
+        "body_bytes": length,
+        "decoded_bytes": length,
+        "body_sha256": hashlib.sha256(pe.data[offset : offset + length]).hexdigest(),
+        "native_body_inspected": True,
+        "proof_kind": "restricted two-instruction instance Int32 counter entry path",
+        "counter_write": {
+            "field": field["name"],
+            "offset": field["offset"],
+            "site_rva_hex": f"0x{rva:x}",
+            "operation": "reset_zero" if reset else "increment_modulo_2_32",
+        },
+        "return_sites": [f"0x{pair[1].address:x}"],
+        "runtime_order_verified": False,
+        "non_claim": "Valid ordinary receiver assumed. No invocation rate, concurrent write, fault or full scheduler proof.",
+    }
+
+
 DEFAULT_METHODS = (
     [
         "BeyondDynamicBone." + owner + "." + method
@@ -493,6 +556,26 @@ def export_files(
                         "method": key,
                         **inspect_leaf_writes(
                             pe, rva, layouts["BeyondDynamicBone.TimeManager"]
+                        ),
+                    }
+                )
+                continue
+            if (
+                key
+                in (
+                    "BeyondDynamicBone.TimeManager.AfterFixedUpdate",
+                    "BeyondDynamicBone.TimeManager.AfterRenderring",
+                )
+                and "BeyondDynamicBone.TimeManager" in layouts
+            ):
+                bodies.append(
+                    {
+                        "method": key,
+                        **inspect_leaf_counter(
+                            pe,
+                            rva,
+                            layouts["BeyondDynamicBone.TimeManager"],
+                            key.endswith("AfterRenderring"),
                         ),
                     }
                 )

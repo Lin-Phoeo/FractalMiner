@@ -14,11 +14,126 @@ from audit_official_physics_calls import (
     export_files,
     inspect_body,
     inspect_family,
+    inspect_leaf_counter,
     inspect_leaf_writes,
     inspect_r10_preservation,
 )
 from export_official_physics_native import PE64
 from test_export_official_physics_native import BASE, samples
+
+
+def counter_layout():
+    return {
+        "fields": [
+            {
+                "name": "<FixedUpdateCount>k__BackingField",
+                "offset": 32,
+                "is_static": False,
+                "native_type": {"kind": 8},
+            }
+        ]
+    }
+
+
+@pytest.mark.parametrize(
+    "reset,code,length", [(False, "ff4120c3", 4), (True, "c7412000000000c3", 8)]
+)
+def test_counter_leaf_proves_only_one_known_instance_write(reset, code, length):
+    data = native_sample()
+    data[0x400 : 0x400 + 16] = bytes.fromhex(code).ljust(16, b"\xcc")
+    row = inspect_leaf_counter(PE64(bytes(data)), 0x1000, counter_layout(), reset)
+    assert row["body_bytes"] == length
+    assert row["counter_write"]["field"] == "<FixedUpdateCount>k__BackingField"
+    assert row["counter_write"]["operation"] == (
+        "reset_zero" if reset else "increment_modulo_2_32"
+    )
+    assert row["runtime_order_verified"] is False
+
+
+@pytest.mark.parametrize(
+    "reset,code",
+    [
+        (False, "ff4120c20000"),
+        (False, "ff4120eb00c3"),
+        (False, "ff4220c3"),
+        (False, "66ff4120c3"),
+        (False, "ff4124c3"),
+        (False, "ff442120c3"),
+        (False, "48ff4120c3"),
+        (False, "ff4120ff4120c3"),
+        (False, "c7412000000000c3"),
+        (True, "c7412001000000c3"),
+        (True, "c74120000000000f"),
+        (True, "ff4120c3"),
+        (True, "c7422000000000c3"),
+        (True, "64c7412000000000c3"),
+    ],
+)
+def test_counter_leaf_rejects_other_receiver_width_path_or_write(reset, code):
+    data = native_sample()
+    data[0x400 : 0x400 + 16] = bytes.fromhex(code).ljust(16, b"\xcc")
+    with pytest.raises(ValueError):
+        inspect_leaf_counter(PE64(bytes(data)), 0x1000, counter_layout(), reset)
+
+
+@pytest.mark.parametrize("change", ["static", "kind", "offset", "duplicate", "name"])
+def test_counter_leaf_requires_unique_native_instance_int32_identity(change):
+    layout = counter_layout()
+    field = layout["fields"][0]
+    if change == "static":
+        field["is_static"] = True
+    elif change == "kind":
+        field["native_type"]["kind"] = 9
+    elif change == "offset":
+        field["offset"] = 36
+    elif change == "duplicate":
+        layout["fields"].append(dict(field))
+    else:
+        field["name"] = "UnrelatedCounter"
+    data = native_sample()
+    data[0x400:0x404] = bytes.fromhex("ff4120c3")
+    with pytest.raises(ValueError):
+        inspect_leaf_counter(PE64(bytes(data)), 0x1000, layout, False)
+
+
+@pytest.mark.parametrize(
+    "method,code",
+    [("AfterFixedUpdate", "ff4120c3"), ("AfterRenderring", "c7412000000000c3")],
+)
+def test_export_counter_leaf_uses_authenticated_layout_or_stays_pending(
+    tmp_path, method, code
+):
+    data = native_sample()
+    data[0x425:0x435] = bytes.fromhex(code).ljust(16, b"\xcc")
+    binary, native = tmp_path / "bin", tmp_path / "native.json"
+    binary.write_bytes(data)
+    owner = "BeyondDynamicBone.TimeManager"
+    source = {
+        "sources": {"binary_sha256": hashlib.sha256(data).hexdigest()},
+        "inventories": [
+            {
+                "qualified_name": owner,
+                "methods": [
+                    {
+                        "name": method,
+                        "rva_hex": "0x1025",
+                        "va_hex": hex(BASE + 0x1025),
+                        "file_offset": 0x425,
+                    }
+                ],
+            }
+        ],
+        "field_layouts": [{"owner": owner, **counter_layout()}],
+    }
+    native.write_text(json.dumps(source), encoding="utf-8")
+    out = tmp_path / "with-layout.json"
+    export_files(binary, native, out, [owner + "." + method])
+    assert json.loads(out.read_text())["bodies"][0]["native_body_inspected"] is True
+    del source["field_layouts"]
+    native.write_text(json.dumps(source), encoding="utf-8")
+    out = tmp_path / "without-layout.json"
+    export_files(binary, native, out, [owner + "." + method])
+    assert json.loads(out.read_text())["bodies"][0]["native_body_inspected"] is False
 
 
 def native_sample():

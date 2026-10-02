@@ -75,3 +75,5 @@ CompleteMasterJob 的已核实正常完成分支：
 本轮新增 36 项测试，native=59、calls=54；全套 697 passed、3 历史 skip、114 subtests、2 历史 Pillow 告警。Ruff、Pyright 和临时环境 pip-audit 通过，工具含分支覆盖门槛 80% 通过。没有 C#/shader 修改，未重跑 Unity。
 
 检查中发现 `Assets/Scenes/Typhoeus_MMD_Stage.unity` 是已有工作区修改：当前 raw hash=5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a、mtime=2026-10-02 09:14:26，与历史基线不同。这不是本轮工具造成的改写；原样保留、不恢复、不纳入提交。其余六项历史保护文件匹配。主 HEAD、用户原始暂存索引继续保留；阶段提交只含两工具、两测试和文档。
+
+接续：[官方时钟公式、计数器与约束入口](../official-physics-clock-20261002/README.md)。两个时钟 leaf 的增量/清零路径已补证；FrameUpdate 公式已恢复为离线参考，约束入口已定位。参考实现不是已接入的官方物理，也不认证原生 pow 逐位一致。
