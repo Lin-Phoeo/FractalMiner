@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[proxy输入/局部姿态链](../official-physics-proxy-chain-20261002/README.md)。新增 `Tools/official_physics_root_depth.py`，实现已认证原始 Job 的有限输入域离线参考；同时核查提弗洛斯11组法线对齐实际配置。**不是完整实时物理后端**，未改 Unity 代码、模型、舞台、材质、湿身、阴影或当前预览物理。
 
+后续：[骨骼导入的位置与方向](../official-physics-bone-import-20261002/README.md)已实现位置/normal/tangent参考与旧链路接线，确认调整旋转identity初始化定义；完整导入顺序、默认填充Job及后端仍未闭合。
+
 ## 本轮实际完成
 
 `evaluate_vertex_root_depth(parents, attributes, positions, initial_depths)` 返回原始规则对应的根索引、累计长度、深度及全局最大长度：

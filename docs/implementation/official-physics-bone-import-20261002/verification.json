@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-02",
+  "scope": "Offline bone import position/normal/tangent outputs and alignment identity initializer audit; not full importer or live physics",
+  "parent_record_commit": "a64830172f75499ccd7d117d590e60e2c9a3b584",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "native_boundaries": {
+    "bone_vertex_job_method_index": 371578,
+    "bone_vertex_job_rva": "0x34e00c0",
+    "bone_vertex_job_bytes": 837,
+    "bone_vertex_job_sha256": "3742e3d30b36271a0905ae65353c5452d8c6f523cc52e4eaa17e3f563543f2db",
+    "direction_family": [
+      {"rva": "0x34e0410", "bytes": 304, "sha256": "d8bbf1cd360e2c75ae9991c1ac58295a89537ae74991fd9a363116214eae2b8a"},
+      {"rva": "0x4db75e8", "bytes": 12, "sha256": "97e4464bd8b9f537de78eee66e7caa7a9f93dee21e3f15852336db5eaa44e6e1"}
+    ],
+    "identity_initializer_method_index": 441298,
+    "identity_initializer_rva": "0x4a2bc60",
+    "identity_initializer_bytes": 62,
+    "identity_initializer_sha256": "6b41891c492bf75fad2343fe2f1a69c137b0057b4ef4fe4e37029f24df7968c1",
+    "quaternion_type_usage_cell_va": "0x18d0de238"
+  },
+  "gates": {
+    "bone_job_identity_fields_and_native_body_reviewed": true,
+    "position_normal_tangent_outputs_offline_reference": true,
+    "column_major_single_point_no_perspective_divide": true,
+    "up_forward_rotated_from_original_world_quaternion": true,
+    "direction_compensates_matrix_scaling_preserving_input_length": true,
+    "zero_input_direction_retains_signed_zero": true,
+    "no_extra_quaternion_normalization_or_child_aiming": true,
+    "single_matrix_operation_grouping_preserved": true,
+    "id_to_frame_to_local_pose_to_depth_join_tested": true,
+    "identity_static_field_initializer_and_expected_fill_argument_proved": true,
+    "full_import_bone_vertex_job_weights_and_bindposes_restored": false,
+    "actual_world_snapshot_hierarchy_order_restored": false,
+    "normal_axis_downstream_direction_tasks_restored": false,
+    "normal_alignment_fill_job_final_writes_proved": false,
+    "runtime_type_initialization_order_or_buffer_values_proved": false,
+    "actual_eleven_proxy_groups_generated": false,
+    "original_generic_job_runtime_invocation_proved": false,
+    "team_allocation_step_and_publication_restored": false,
+    "independent_native_or_burst_runtime_oracle": false,
+    "full_solver_collision_reset_bone_writeback_complete": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-bone-import-20261002-01/review-09",
+    "review.json_sha256": "4bb2ecdb9fc6a9a931482ae8d6ef244166943ecfecb34a68f437a2c37db51e55",
+    "instructions.json_sha256": "1e901ccaec2ad953d28c2089c5e27684dc71eb05511a54fe90f58d1ea39e8181",
+    "reproduction_script": "D:/EndfieldTechLib/notes/official-physics-bone-import-20261002-01/review.py",
+    "coverage": "D:/EndfieldTechLib/notes/official-physics-bone-import-20261002-01/coverage-full-01.json",
+    "original_files_complete_native_reports_or_commercial_source_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_bone_import.py": "ac92f7f0d624d8e90b93bb2c34d1d75ff33a5a6ecbd70109903dba1a3380d221",
+    "Tools/tests/test_official_physics_bone_import.py": "5408331da0b4174b901666bd084bc66c53d92cb74948eb065154c77a0986023a"
+  },
+  "validation": {
+    "new_tests": 33,
+    "python_suite_passed": 1373,
+    "historical_skipped": 3,
+    "subtests_passed": 114,
+    "historical_pillow_warnings": 2,
+    "eight_reference_modules_statements": 700,
+    "eight_reference_modules_branches": 192,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
