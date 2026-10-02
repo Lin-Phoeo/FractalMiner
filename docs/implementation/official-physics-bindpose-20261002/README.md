@@ -1,5 +1,7 @@
 # 官方物理：补齐骨骼顶点的权重与绑定矩阵
 
+后续：[代理绑定方向与写入标志](../official-physics-proxy-frames-20261002/README.md)补骨骼vertexToTransform、分离负位置/逆frame、attribute→transformFlags以及None模式默认identity契约，并接本模块BoundBoneInputs。完整保存selection/normalAxis/实际proxy及实时物理后端仍未闭合。
+
 日期：2026-10-02。接续[世界/局部快照及 scale](../official-physics-snapshot-20261002/README.md)。新增 `Tools/official_physics_bindpose.py`，复用已封存的 position/normal/tangent 和快照/scale 参考，补齐 **Import_BoneVertexJob 的五项有限数输出**：局部位置、normal、tangent、boneWeight、skinBoneBindPose。不是完整 ImportBoneType、实际11组 proxy 或 Unity 官方物理后端。
 
 ## 原始写入与运算顺序

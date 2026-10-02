@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-02",
+  "scope": "Finite bone-proxy frame Jobs, None alignment caller contract, preserved transform flags and snapshot composition; not complete ConvertProxyMesh or live Unity physics",
+  "parent_record_commit": "4a25a4b4bacf580a83175f9d5403af8479b5e80a",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d"
+  },
+  "gates": {
+    "vertex_bindpose_separate_negative_position_inverse_frame": true,
+    "vertex_to_transform_original_product_order": true,
+    "bone_flags_move_priority_preserve_existing_bits": true,
+    "none_alignment_identity_caller_contract": true,
+    "eleven_saved_config_up_axis_and_none_alignment_verified": true,
+    "convert_code_padding_two_bounded_tables_classified": true,
+    "restricted_straight_line_helpers_to_ret_verified": true,
+    "snapshot_bound_bone_to_frame_reference_composition": true,
+    "independent_managed_math_1201_cases_bitwise": true,
+    "nonzero_radiation_alignment_modes_ported": false,
+    "normal_axis_all_downstream_uses_complete": false,
+    "native_generic_fill_job_actual_writes_proved": false,
+    "original_world_getter_outputs_captured": false,
+    "actual_saved_selection_branch_full_space_conversion": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "full_convert_proxy_mesh_ported": false,
+    "collision_team_step_solver_inertia_reset_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_game_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-normal-20261002-01",
+    "review.py_sha256": "806d7c98c8ac13c6c1d12dea9ee7a3ad7d45fbc15045860890cf16e8a67321d3",
+    "review-06/normal.json_sha256": "5b5ae53cb0aa9dae2109e4b4b82be9467b744b4daf8244337e9f0c7df532e8d2",
+    "review-06/normal-instructions.json_sha256": "bd69f4eb3e57e86f03d958abf8d0dbc1ec88f8b1d772c87e3fc71aa6d87a5f05",
+    "review-06/extra.json_sha256": "21f83adb1f1f3f928be5303f7cae84ab4a8f4bfcc7ec3acd474ed33931929247",
+    "review-06/convert-classified.json_sha256": "9864facbe220875ba9fbffa98b0541ce205e2d0d385a1420faececfb4c58258e",
+    "oracle/oracle-02.json_sha256": "e08a3187c12e6a058684febb35b14245c5e6ee11feeb72069bfd522b37ee8ca3",
+    "oracle/Program.cs_sha256": "6299636f53907e15eb67d2e34e4228b6ed1a83b2c38535197f80e4f224cc5755",
+    "oracle/Oracle.csproj_sha256": "f5cb2c4ccf3e6c4ddeb4e0ffbc2a46b65655669a2a7385cb58e77f1def1eecdc",
+    "oracle/check_oracle.py_sha256": "5350041a7973550334be984e846fb42351971d22564df1b8e088eec53e79163f",
+    "coverage": "coverage-full-02.json",
+    "game_runtime_executed": false,
+    "original_files_full_native_reports_commercial_source_or_library_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_proxy_frames.py": "f2930a40810b14f9d2213841d574dc34eed6b91627b64ded1462f98086a93209",
+    "Tools/tests/test_official_physics_proxy_frames.py": "1a9d56e0f82c9f452122912dddd67caabf21b64a34203097118cd48e9a3b4292"
+  },
+  "independent_managed_oracle": {
+    "library_sha256": "5d575d3944c32c88d4b6b7516bedb1fc281a978738c5d1df0b246996cdebd9b7",
+    "library_modified": false,
+    "case_count": 1201,
+    "float_components_checked": 14412,
+    "bitwise_mismatch_records": 0,
+    "seed": 20261002,
+    "COMPlus_EnableHWIntrinsic": "0",
+    "COMPlus_EnableFMA": "0",
+    "oracle_references_python_implementation": false,
+    "original_game_native_execution_proof": false
+  },
+  "validation": {
+    "new_tests": 38,
+    "python_suite_passed": 1571,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "fourteen_reference_modules_statements": 1069,
+    "fourteen_reference_modules_branches": 276,
+    "branch_inclusive_coverage_percent": 100,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
