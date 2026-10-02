@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-02",
+  "scope": "Source-bound live-reference-domain root/ignore collector and original static eleven-group order replay, not snapshot generation or live backend",
+  "parent_record_commit": "742998ac10739b8ec630fa5c0fd2c1dd39a58eea",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "bindings_sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "serialized_config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d"
+  },
+  "native_boundaries": {
+    "collector_method_index": 370195,
+    "collector_rva": "0x38d4a50",
+    "collector_bytes": 3370,
+    "collector_sha256": "08f07497dca88b6db2380bf50e3b57722f5e4faff9391513ff1cafa84c337fed",
+    "caller_method_index": 368543,
+    "caller_rva": "0x3439960",
+    "caller_family_bytes": 281,
+    "selection_method_index_inspected_not_ported": 368604,
+    "selection_rva": "0x59dff84",
+    "selection_bytes": 1275,
+    "selection_sha256": "ad3cb449dc0683bba980ac5cec5a627e9ef60102759e16b00b465aa33f428e25"
+  },
+  "gates": {
+    "import_bone_type_render_setup_parameter_identity_proven": true,
+    "collector_order_and_ignore_subtree_rules_offline_reference": true,
+    "root_reference_order_duplicates_preserved": true,
+    "collision_index_lookup_before_render_append": true,
+    "render_unconditional_append_and_count_partition": true,
+    "eleven_original_static_root_ignore_orders_replayed": true,
+    "serialized_identity_not_runtime_instance_id": true,
+    "native_generic_methodspec_call_identity_resolved": true,
+    "runtime_generic_pointer_or_job_execution_proven": false,
+    "live_destroyed_or_null_root_reference_semantics_restored": false,
+    "original_center_transform_record_source_verified": false,
+    "actual_world_transform_snapshots_restored": false,
+    "actual_collision_bone_arguments_connected": false,
+    "selection_attributes_or_spatial_matching_restored": false,
+    "normal_axis_and_default_fill_tasks_restored": false,
+    "weights_scales_and_bindposes_full_import_restored": false,
+    "actual_eleven_full_proxy_inputs_generated": false,
+    "team_step_and_full_solver_collision_reset_writeback_complete": false,
+    "official_solver_integrated": false,
+    "independent_native_or_burst_runtime_oracle": false,
+    "runtime_modified": false,
+    "unity_rerun": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-collection-20261002-01",
+    "review-04/review.json_sha256": "f561cbf208deb2ff2c60ca4ad0655728225cea5ae568881269641df00df30889",
+    "review-04/instructions.json_sha256": "8c0a348bac1ba569c929c7134bcb98e5fafea54304ae300ac58c7e16ea9ce937",
+    "original-order-01.json_sha256": "aee8389ca937b801fc88fb6c10b84c5fb7b87f4346891ed33c33d65acac35280",
+    "reproduction_scripts": ["review.py", "collect_original.py"],
+    "coverage": "coverage-full-01.json",
+    "original_files_full_native_reports_or_commercial_source_published": false,
+    "original_runtime_executed": false,
+    "prebuild_data_construction_decode_incomplete_and_refused": true
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_collection.py": "b28d9cefbb15ae1c1a9fb7ab11066e278b02453facd3b5ceef03bc0c54d2553f",
+    "Tools/tests/test_official_physics_collection.py": "b8ad5e977bd72f83f03d5ac7bd8c395b8ecb5b897aed61b7616eda8100159ef3"
+  },
+  "validation": {
+    "new_tests": 30,
+    "python_suite_passed": 1403,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "nine_reference_modules_statements": 743,
+    "nine_reference_modules_branches": 208,
+    "branch_inclusive_coverage_percent": 100,
+    "original_group_collected_counts": [15, 10, 14, 24, 12, 37, 6, 6, 4, 4, 8],
+    "collected_counts_sum_not_unique": 140,
+    "serialized_selection_count_not_proxy_count": 164,
+    "ruff_and_format": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

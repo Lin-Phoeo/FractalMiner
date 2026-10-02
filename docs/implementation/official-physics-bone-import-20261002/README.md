@@ -2,6 +2,8 @@
 
 日期：2026-10-02。接续[根节点与长度深度](../official-physics-root-depth-20261002/README.md)。新增 `Tools/official_physics_bone_import.py`，实现骨骼导入Job的**位置、normal、tangent三个输出**，与已完成的ID映射、局部pose、深度参考完成合成数据接线。不是完整ImportBoneType、完整Import_BoneVertexJob或真实角色实时物理；没有修改Unity代码、舞台、渲染、湿身、阴影或当前预览物理。
 
+后续：[原始收集顺序与忽略分支](../official-physics-collection-20261002/README.md)已确认ImportBoneType参数为RenderSetupData，并实现上游collector、回放真实11组root/ignore骨序；长马尾收集14骨，不能直接套用保存的38个选择点。世界快照、selection属性、完整proxy及后端仍未闭合。
+
 ## 已实现的原始规则
 
 输入由调用者提供：原始顺序的世界位置/世界四元数快照、列主序float4x4 WtoL。不能直接把prefab local TRS、PPtr PathID顺序或当前恢复FBX的localRotation当成这些输入。
