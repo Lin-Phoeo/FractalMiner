@@ -46,7 +46,7 @@ TeamData原boxed→unboxed偏移：proxyTransformChunk 300→284、proxyCommonCh
 
 本轮方向轴只闭合了**参数传递**：ClothNormalAxis枚举Right/Up/Forward及inverse为0..5，11组序列化配置为Up=1、alignment=None=0；GetClothParameters从serialize @0x90读取normalAxis，原样复制至参数unboxed @0x9c，SyncParameters再复制参数整体。**没有闭合normalAxis全部消费，也没有证明其全局未使用。**不据此增加猜测的预旋转。
 
-实际Unity setter还会读取last position/rotation/local buffers，并涉及TransformAccess有效性、flag0x10、culling/spring分支、blend、world/local分支及relative/sync转换。它不是`Transform.position = 本模块输出`。双缓冲发布、全部helper与列表构造尚未接齐；不能把此次缓冲公式恢复说成唯一Unity写入链完成。
+实际Unity setter的四个输入字段名含last，但不代表总读取last：后续核查确认普通WriteTransform传当前数组，WriteDoubleBufferTransform才传last，见[当前/last缓冲与入口选择](../official-physics-publication-20261002/README.md)。setter仍涉及TransformAccess有效性、flag0x10、culling/spring分支、blend、world/local分支及relative/sync转换。它不是`Transform.position = 本模块输出`。完整双缓冲时序、全部helper与列表构造尚未接齐；不能把此次缓冲公式恢复说成唯一Unity写入链完成。
 
 ## 验证与保存状态
 
@@ -66,3 +66,5 @@ TDD：先新增测试、观察缺模块RED，再实现；新增46项通过。覆
 4. 满足上述条件后才引入可切换的Unity官方来源后端，保留现有预览模式并做运行回归。
 
 本轮减少了回写算术的不确定性；完整官方物理仍未完成。接续时应优先闭合真实输入与运行链，不通过任意修改舞台参数制造“官方已还原”的结论。
+
+接续记录：[当前/last缓冲复制与写入入口选择](../official-physics-publication-20261002/README.md)。本页历史算术验证不因此扩展为完整游戏循环或Unity setter验收。
