@@ -61,3 +61,5 @@ process Count、enabled Count、active Count不是一个数。`plan_cloth_update
 3. 完整成功调用链与原输入闭合后，才在Unity接入候选物理后端，验证MMD/解包动画、暂停/恢复/跳帧及回写唯一性。当前预览后端继续保留可回退。
 
 **本轮闭合的是已限定路径的调用顺序，不是完整官方物理效果。**
+
+后续记录：[Transform写入值与顺序](../official-physics-setter-20261003/README.md)已恢复有限输入下的权重、剔除、世界/局部分支及操作顺序。相对开关核实为useRelativeTransform，并使用正向TRS、不是逆矩阵；原生矩阵构造和实际setter/层级执行仍未移植。上面的“relative-sync”只是一项旧路线泛称，不是源字段开关结论。
