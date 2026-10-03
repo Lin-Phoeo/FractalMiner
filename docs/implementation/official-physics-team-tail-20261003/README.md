@@ -4,6 +4,8 @@
 
 **仍是离线参考，没有替换Unity后端，没有新可见效果。** 风状态更新不等于粒子风力求值：上游风区选择、帧级中心/anchor/world惯性、粒子WindForceBlend噪声/湍流、Spring、碰撞/reset与实际发布仍未闭合。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
 
+同日后续：[粒子Wind/WindForceBlend、噪声与湍流](../official-physics-particle-wind-20261003/README.md)现已有独立离线参考并接入两子步合成测试。本页上述范围与verification保留本阶段历史状态；Team tail本身仍不逐粒子求力、不执行数组发布，不能仅因新模块存在就清除其pending依赖。
+
 ## 证据与范围
 
 仅静态读取本地GameAssembly/metadata，不执行、加载、注入DLL。二者SHA分别为 `c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89`、`0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e`。
