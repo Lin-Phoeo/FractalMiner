@@ -2,6 +2,8 @@
 
 2026-10-03，接续[粒子步末与受力片段](../official-physics-particle-step-20261003/README.md)。新增 `Tools/official_physics_start_step.py`：将普通粒子的动画姿态插值、已解析中心的惯性消费、阻尼曲线求值与受力积分连起来，并测试与 EndStep 的连续两步反馈。
 
+后续已补[子步中心生成、局部惯性比例与angular state](../official-physics-center-step-20261003/README.md)，能向本模块提供解析后的step/inertia数据。帧级中心准备及完整Wind/reset仍未闭合，下文保留本阶段历史范围。
+
 **这是离线有限值参考，不是 Unity 已接入的完整官方后端。** 当前舞台、渲染、湿身、自阴影、MMD及预览物理未改动，没有新可见效果。中心生成、Wind/Spring、碰撞、reset和完整状态发布仍未闭合；总体状态见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
 
 ## 源证据及实施边界
