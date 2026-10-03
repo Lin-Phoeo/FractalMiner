@@ -13,7 +13,7 @@
 | 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；完整proxy与Team发布未闭合 |
 | 真实输入与生命周期 | 2. bulk init生成、分配/复用/释放、相对矩阵构造 | 单槽Set/Copy/Enable有参考；底层allocator和native TRS/逆矩阵构造未完成 |
 | 真实输入与生命周期 | 3. 动画map/record、回写Job与唯一writer调度 | 动画读取有限值已实现；map生成、输出Job与cross+Animator委托链待补 |
-| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End有限输入参考已形成；又补[子步时钟/中心/局部惯性生成](../official-physics-center-step-20261003/README.md)，连续两子步中心→Start→End合成反馈通过。帧级中心/anchor/world惯性准备、Team tail、风/Spring与真实跨步依赖仍未闭合；不能用默认中心/零风代替 |
+| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End有限输入参考、[子步中心/局部惯性](../official-physics-center-step-20261003/README.md)、[Team缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)已连成两子步合成反馈。帧级中心/anchor/world惯性、风区选择、粒子湍流/风力、Spring与真实跨步依赖仍未闭合；风状态不等于粒子风力，不能用默认中心/零风代替 |
 | 动态求解 | 5. 碰撞链、normalAxis下游及约束完整消费 | 尚未完成整个角色的原输入、迭代顺序与输出闭环 |
 | 动态求解 | 6. reset、暂停恢复、跳帧及状态发布 | current/last复制与host顺序有参考；动态reset及定制完成机制待补 |
 | Unity交付 | 7. 可回退C#候选后端与角色实例接入 | 未开始替换当前舞台后端；不能将Python参考称为Unity已实现 |

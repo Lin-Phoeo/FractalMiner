@@ -2,6 +2,8 @@
 
 2026-10-03，接续[Start惯性消费](../official-physics-start-step-20261003/README.md)。新增 `Tools/official_physics_center_step.py`，不再只能由测试手填stepVector/inertiaVector：现在从**已解析的帧中心与上一子步状态**，按官方子步时间计算中心位置/旋转、平移/旋转增量、局部惯性比例、角速度和轴，供Start/End消费。连续两子步的中心→Start→End合成反馈已通过。
 
+后续已补[Team子步缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)。新增模块消费本阶段返回值，不改本阶段历史范围；风状态不是粒子风力，帧级上游/完整求解/Unity接入仍未完成。
+
 **完整官方后端仍未接入Unity，没有新可见效果。** 帧级中心/anchor/world惯性/teleport/reset准备不是本模块；子步Job剩余的scale/gravity/weight/fade、UpdateWind和真实发布也未移植。模块明确返回 `pending_tail`，不能把这些默认填零后称为原版闭环。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
 
 ## 两层中心算法不能混为一谈
