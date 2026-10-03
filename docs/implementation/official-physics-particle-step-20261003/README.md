@@ -2,6 +2,8 @@
 
 2026-10-03，接续[动画读取](../official-physics-animator-buffer-20261003/README.md)。本轮新增可执行代码 `Tools/official_physics_particle_step.py`，不是只增加入口清单。完成 **EndSimulationStep 的有限单粒子值参考**，另补 StartSimulationStep 中已经完成惯性变换之后的阻尼/重力/外力积分片段。
 
+后续阶段已补[普通粒子的Start姿态/惯性消费与受力组合](../official-physics-start-step-20261003/README.md)。下文保留本阶段历史范围与测试结果；中心生成、Wind/Spring和Unity接入仍未完成。
+
 **完整官方后端仍未接入 Unity，没有新可见物理效果或实际动作验收。** 当前舞台、渲染、湿身、自阴影、MMD和替代物理均未改动。整体剩余项见[三类、八门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
 
 ## 源绑定与执行路径边界
