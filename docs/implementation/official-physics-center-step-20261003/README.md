@@ -4,7 +4,7 @@
 
 后续已补[Team子步缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)与[固定粒子Spring](../official-physics-spring-20261003/README.md)。新增模块消费本阶段返回值，不改本阶段历史范围；帧级上游/完整求解/Unity接入仍未完成。
 
-**完整官方后端仍未接入Unity，没有新可见效果。** 帧级中心/anchor/world惯性/teleport/reset准备不是本模块；子步Job剩余的scale/gravity/weight/fade、UpdateWind和真实发布也未移植。模块明确返回 `pending_tail`，不能把这些默认填零后称为原版闭环。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
+**完整官方后端仍未接入Unity，没有新可见效果。** 帧级中心/anchor/world惯性/teleport/reset准备不是本模块；在本阶段提交时，子步Job剩余的scale/gravity/weight、UpdateWind和真实发布尚未移植，所以历史返回值明确保留 `pending_tail`。其后 [Team tail](../official-physics-team-tail-20261003/README.md) 已补上前述数值 tail 与风状态，[帧移动归约](../official-physics-frame-motion-20261008/README.md)也已提供移动风所需 speed/direction；NativeArray 发布与其余上游仍未完成。不得把历史 pending 字段误读成当前总项目状态，也不能把缺口默认填零后称为原版闭环。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
 
 ## 两层中心算法不能混为一谈
 
@@ -40,7 +40,7 @@ Team unboxed关键偏移：time@20、nowUpdateTime@28、frameOldTime@40、update
 
 返回 `next_state` 与Team时钟fragment供下一子步继续；`for_start()`、`for_end()`只是明确类型的数据交接。`writes`记录改变的**值片段**，不是实际NativeArray写序、完整Team结构写入或骨骼发布。
 
-`pending_tail = (scale_gravity_weight_fades, UpdateWind, native_publication)` 必须补齐后才能做实际发布。风/力本身仍由Start显式要求已解析输入；合成连续两步测试用零风只是该夹具的前提，不是官方风算法。
+`pending_tail = (scale_gravity_weight_fades, UpdateWind, native_publication)` 是本阶段对象的不可变**历史快照**。后续 Team tail 已消费并补上 scale/gravity/weight 与 UpdateWind 数值片段，但 native publication 仍未闭合；旧返回值不追溯改写。风/力本身仍由Start显式要求已解析输入；合成连续两步测试用零风只是该夹具的前提，不是官方风算法。
 
 finite、正dt、非负Int32 index/count、localInertia[0,1]拒绝属于适配保护；源没有增加本参考的clamp。Python trig/sqrt不是native CRT/Burst逐位oracle，动态Burst指针未认证。没有运行官方DLL、没有真实11组动态验收，也没有完整teleport/reset链通过声明。
 

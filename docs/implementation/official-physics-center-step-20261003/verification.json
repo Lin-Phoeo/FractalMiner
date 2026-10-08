@@ -1,5 +1,20 @@
 {
   "date": "2026-10-03",
+  "record_semantics": {
+    "historical_snapshot": true,
+    "status_reference_date": "2026-10-08",
+    "gates_below_describe_this_stage_only": true,
+    "current_overrides": {
+      "team_scale_gravity_weight_tail_ported": true,
+      "update_wind_state_ported": true,
+      "particle_wind_force_ported": true,
+      "fixed_spring_ported": true,
+      "frame_motion_reduction_ported": true,
+      "frame_anchor_component_world_pose_ported": false,
+      "native_publication_ported": false,
+      "official_solver_integrated": false
+    }
+  },
   "scope": "Finite substep clock/center/local-inertia/angular fragment, NOT full frame center, remaining Team tail, wind/reset or Unity solver",
   "parent_record_commit": "01f2fd50e617f906745bf38cec5c06b461a481d6",
   "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",

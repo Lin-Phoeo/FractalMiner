@@ -1,5 +1,17 @@
 {
   "date": "2026-10-03",
+  "record_semantics": {
+    "historical_snapshot": true,
+    "status_reference_date": "2026-10-08",
+    "gates_below_describe_this_stage_only": true,
+    "current_overrides": {
+      "particle_wind_force_ported": true,
+      "fixed_spring_ported": true,
+      "frame_motion_reduction_connected_to_moving_wind": true,
+      "upstream_wind_zone_selection_ported": false,
+      "official_solver_integrated": false
+    }
+  },
   "scope": "Finite resolved single-particle EndStep scalar reference and Start post-inertia force fragment, NOT full Start, original Burst dispatch, solver or Unity integration",
   "parent_record_commit": "026500bbd533241d25c14ae2cf4a5837ffa28f84",
   "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",

@@ -1,5 +1,18 @@
 {
   "date": "2026-10-03",
+  "record_semantics": {
+    "historical_snapshot": true,
+    "status_reference_date": "2026-10-08",
+    "gates_below_describe_this_stage_only": true,
+    "current_overrides": {
+      "fixed_spring_branch_explicitly_refused": false,
+      "fixed_spring_integrated_into_start_source_position": true,
+      "particle_wind_force_ported": true,
+      "upstream_wind_zone_selection_ported": false,
+      "frame_motion_reduction_ported": true,
+      "official_solver_integrated": false
+    }
+  },
   "scope": "Finite resolved Start particle pose/inertia/force reference, NOT center/Wind/fixed Spring generation, complete solver or Unity integration",
   "parent_record_commit": "c10cb1544d4e4c62b7e6e993f431bc77b09883b7",
   "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",

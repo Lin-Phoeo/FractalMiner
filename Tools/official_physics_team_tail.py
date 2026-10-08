@@ -18,6 +18,7 @@ from official_physics_angle_cache import rotate_single
 from official_physics_angles import _float3
 from official_physics_center_step import CenterStepResult
 from official_physics_constraints import Vector3, _positive, _single
+from official_physics_frame_motion import FrameMotionResult
 from official_physics_particle_step import _single_dot
 
 _EPSILON = _single(1e-6)
@@ -71,6 +72,13 @@ class WindStepSettings:
 class FrameWindState:
     frame_moving_speed: float  # CenterData @232; NOT stepVector.length / dt.
     frame_moving_direction: Vector3  # @236; do not replace with current step axis.
+
+    @classmethod
+    def from_motion(cls, motion: FrameMotionResult) -> "FrameWindState":
+        """Connect the bounded frame-kernel output to UpdateWind consumption."""
+        if not isinstance(motion, FrameMotionResult):
+            raise TypeError("Adapter requires FrameMotionResult")
+        return cls(motion.speed, motion.direction)
 
 
 @dataclass(frozen=True)

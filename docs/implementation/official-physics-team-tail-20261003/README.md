@@ -55,4 +55,4 @@ finite、正dt、非零initScale/移动风scale的拒绝是适配保护，不是
 
 全套 **2290 passed /114 subtests /3历史skip /2历史Pillow warnings**。26个参考模块2272statements/556branches，含分支覆盖100%；新模块112statements/16branches 100%。Ruff/format、Pyright与Python compile通过。这些是合成数值测试，不是官方DLL运行、真实11组动态验收或Unity完成率。
 
-后续集中补帧级中心与风区选择、粒子风力/Spring，再补完整碰撞/reset/发布，形成可回退C#候选后才在MMD/解包动作下验收。总缺口仍见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
+后续[粒子风力](../official-physics-particle-wind-20261003/README.md)、[固定Spring](../official-physics-spring-20261003/README.md)与[帧移动速度/方向归约](../official-physics-frame-motion-20261008/README.md)均已形成独立离线参考；当前仍需补帧级anchor/component/world pose、归约前位移生成、风区选择，以及完整碰撞/reset/发布。形成可回退C#候选后才进入MMD/解包动作动态验收。总缺口见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。

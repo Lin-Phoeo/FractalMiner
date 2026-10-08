@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-08",
+  "scope": "Finite frameMovingSpeed/frameMovingDirection reduction from an already resolved upstream double3 and explicit handoff to moving-wind state; NOT upstream anchor/component/world transform resolution, wind-zone selection, complete solver or Unity integration",
+  "parent_record_commit": "dea9db9b208aed7ce64d0c3ab9bc707f6d67e057",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "frame_kernel": {
+      "method": 369644,
+      "rva": "0x5a34900",
+      "bytes": 9444,
+      "sha256": "d5a34e2d385077c37a51c478d1eab92bb4ffd2e940655469ff362a515c1a4774",
+      "whole_kernel_ported": false
+    },
+    "frame_motion_restricted_region": {
+      "rva": "0x5a36ab1",
+      "end_rva_exclusive": "0x5a36bd4",
+      "bytes": 291,
+      "instructions": 62,
+      "sha256": "b01c99e6ff406f1fe1d47df0407f7bc3edae1efbbb5f6e1e91d7dae09e958dfc",
+      "independent_function_boundary": false
+    },
+    "single_epsilon": 9.999999974752427e-7,
+    "single_epsilon_raw_le": "bd378635",
+    "team_fields_unboxed": {
+      "frameDeltaTime": 16,
+      "nowTimeScale": 48
+    },
+    "center_fields_unboxed": {
+      "frameComponentShiftVector": 204,
+      "frameMovingSpeed": 232,
+      "frameMovingDirection": 236
+    }
+  },
+  "gates": {
+    "double3_to_float3_before_dot_and_length_ported": true,
+    "frame_delta_time_positive_gate_ported": true,
+    "now_time_scale_epsilon_gate_ported": true,
+    "reciprocal_then_multiply_single_order_ported": true,
+    "speed_write_independent_from_direction_epsilon_gate": true,
+    "direction_equality_takes_zero_branch": true,
+    "frame_motion_connected_to_existing_moving_wind_state": true,
+    "now_time_scale_kept_distinct_from_later_scale_ratio": true,
+    "upstream_delta_producer_semantics_verified": false,
+    "frame_component_shift_vector_generation_ported": false,
+    "frame_anchor_component_world_pose_ported": false,
+    "wind_zone_selection_geometry_and_fixed_list_semantics_ported": false,
+    "teleport_reset_and_native_publication_ported": false,
+    "original_burst_pointer_runtime_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "wind_selection_audit_boundary": {
+    "interface_and_result_rebuild_mapped": true,
+    "candidate_flag_control_flow_mapped": true,
+    "old_moving_wind_preservation_mapped": true,
+    "sphere_box_radial_leaf_formulas_verified": false,
+    "fixed_list_capacity_and_overflow_verified": false,
+    "flag_authoring_names_verified": false,
+    "implementation_deferred_until_leaf_evidence_is_complete": true
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-frame-upstream-20261008-01",
+    "prove_frame_motion.py_sha256": "c813ab13da786ed03359c341c1582161a63894885df4a2e138c6c92b51ac754d",
+    "frame-motion-proof-01.json_sha256": "25bec91f7344ef0ba4768224f0c342b500b0310ea03a0b57867282e8e5e32fd2",
+    "review-01/inertia.json_sha256": "e0569fdd144bcd1e34298ca8792adc3b8f30f7ab23aba99e9a8fbe4a488d7ae4",
+    "review-01/inertia-instructions.json_sha256": "5404c4824569d5f38e42e40fdec7f8c460db056368c2095bdbdda890998c6da9",
+    "coverage-full-04.json_sha256": "c22bfa45f7557bdc8b968df921484c37fe967662018d7c78271a11c53741ac3e",
+    "guard-01.json_sha256": "f3f33efa6a56c8663f8763130c91db320d50e2b1f17e65c6983fc1fcf84ec3f4",
+    "original_assets_full_native_reports_or_third_party_source_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_frame_motion.py": "22e2ae5240722553e9e06538385700f78aca21f3523192be680165d339dc132b",
+    "Tools/tests/test_official_physics_frame_motion.py": "bd0b2092b0beac684e1c7e9f9b412089eee7d8308fb11df507da388ac9c95003",
+    "Tools/official_physics_team_tail.py": "9fe7002f69a9243027c92c14e487c7acdc1964b347a64070355e6eabf54f2e6f"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "tdd_missing_handoff_red_observed": true,
+    "new_tests": 19,
+    "frame_motion_and_team_tail_tests_passed": 77,
+    "python_suite_passed": 2404,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "reference_modules": 30,
+    "reference_statements": 2538,
+    "reference_branches": 602,
+    "branch_inclusive_coverage_percent": 100,
+    "frame_motion_module_statements": 23,
+    "frame_motion_module_branches": 0,
+    "team_tail_module_statements": 118,
+    "team_tail_module_branches": 18,
+    "ruff_and_format": "PASS",
+    "python_compile": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "secret_scan_scoped_new_code": "no matches",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "user_staged_change_paths_preserved": 9555,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
