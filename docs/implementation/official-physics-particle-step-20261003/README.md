@@ -2,7 +2,7 @@
 
 2026-10-03，接续[动画读取](../official-physics-animator-buffer-20261003/README.md)。本轮新增可执行代码 `Tools/official_physics_particle_step.py`，不是只增加入口清单。完成 **EndSimulationStep 的有限单粒子值参考**，另补 StartSimulationStep 中已经完成惯性变换之后的阻尼/重力/外力积分片段。
 
-后续阶段已补[普通粒子的Start姿态/惯性消费与受力组合](../official-physics-start-step-20261003/README.md)。下文保留本阶段历史范围与测试结果；中心生成、Wind/Spring和Unity接入仍未完成。
+后续阶段已补[普通粒子的Start姿态/惯性消费与受力组合](../official-physics-start-step-20261003/README.md)、[子步中心](../official-physics-center-step-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)与[固定粒子Spring](../official-physics-spring-20261003/README.md)。下文保留本阶段历史范围与测试结果；帧级中心/风区选择、完整约束/reset/发布和Unity接入仍未完成。
 
 **完整官方后端仍未接入 Unity，没有新可见物理效果或实际动作验收。** 当前舞台、渲染、湿身、自阴影、MMD和替代物理均未改动。整体剩余项见[三类、八门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
 
@@ -56,7 +56,7 @@ Team stride=464，参数 stride=808，Center stride=696。Team 参数身份：sc
 
 依次执行：velocity×Team.velocityWeight；damping clamp01，再 `clamp01(1−damping×simulationPower.z)`；gravityDirection×Single(gravity×Team.gravityRatio)；加入 impact、wind；force×scaleRatio×dt；加入旧 velocity；最终×dt 得 displacement。模式1/2把 impact除以 `1 + 5×(1−depth)²`，2/11清掉旧 velocity，10/11不除质量，其余 Int32 mode 的 impact为零。
 
-**没有把已审读的整个 Start 标成实现完成。** pose/旋转插值、中心更新和惯性变换、Wind/Spring 生成、Team 时间累积、粒子名单、实际迭代顺序、reset、最终显示/发布仍需接通。曲线/风不能默认填零充当完整官方算法。
+**没有把已审读的整个 Start 标成实现完成。** 本页撰写时待补的pose/旋转插值、子步中心/惯性、粒子Wind与固定Spring后来已有各自离线参考；但帧级中心/风区选择、粒子名单、实际迭代顺序、完整约束、reset和最终显示/发布仍需接通。曲线/风不能默认填零充当完整官方算法。
 
 ## 测试与下一步
 
@@ -64,7 +64,7 @@ Team stride=464，参数 stride=808，Center stride=696。Team 参数身份：sc
 
 TDD缺失模块 RED 已观察；57项 GREEN；全套 **2122 passed /114 subtests /3历史skip /2历史Pillow warnings**。23个离线参考模块1943statements/514branches，含分支覆盖100%；新模块150statements/32branches 100%。Ruff、格式、Pyright通过，临时工具环境pip-audit无已知漏洞。覆盖率不代表 Unity 或全 solver 覆盖。finite、正 dt、边界和退化轴拒绝是适配保护，不等同官方异常契约。
 
-下一步优先闭合中心/惯性与 Start 前段、Wind/Spring 和跨子步状态，然后碰撞/reset，并与现有约束参考组合。完整候选链具备后，才做可回退 C# 后端、舞台切换与 MMD/解包动作动态验收。没有重新分叉到无关工具或逐像素调参。
+本页2122项结果是历史快照，当前全套结果见最新Spring页面。下一步优先闭合帧级中心/风区选择和真实跨子步状态，然后碰撞/reset，并与现有约束参考组合。完整候选链具备后，才做可回退 C# 后端、舞台切换与 MMD/解包动作动态验收。没有重新分叉到无关工具或逐像素调参。
 
 私有审查文件和复核脚本留在 `D:/EndfieldTechLib/notes/official-physics-integration-20261003-01/`；摘要 SHA 见 verification.json。review-01是发现阶段快照；当前 review.py 的扩展 owners 用于复现 review-02/03/04。所有输出须用新目录/文件，不能覆盖原证据。未发布原始资产、DLL/metadata、完整反汇编、native manifests或第三方源。
 

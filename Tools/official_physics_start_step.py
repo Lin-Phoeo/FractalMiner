@@ -1,9 +1,9 @@
 """Finite resolved StartSimulationStep reference, not a complete physics solver.
 
 Source 370473/0x5a64a78: animation pose interpolation, depth-blended center
-consumption, inertia rotation/translation, and composition with force integration.
+consumption, inertia rotation/translation, fixed Spring and composition with force integration.
 Centers and wind are REQUIRED resolved inputs for the moving path, never guessed
-or silently zeroed. Center generation, Wind, fixed Spring, list/index allocation,
+or silently zeroed. Center generation, Wind, list/index allocation,
 constraints, reset, native dispatch and Unity publication remain outside scope.
 Single narrowing/order is retained; Python trig/sqrt is not a native/Burst oracle.
 Finite input, positive dt, [0,1] interpolation domains and degenerate quaternion
@@ -29,6 +29,11 @@ from official_physics_constraints import (
 )
 from official_physics_particle_step import integrate_force_fragment
 from official_physics_setter import _dot, _lerp, interpolate_rotation
+from official_physics_spring import (
+    ClothNormalAxis,
+    SpringConstraintSettings,
+    apply_spring,
+)
 
 
 @dataclass(frozen=True)
@@ -69,6 +74,15 @@ class ResolvedStartCenter:
 
 
 @dataclass(frozen=True)
+class ResolvedStartSpring:
+    """Source inputs carried by the fixed-particle Spring callsite only."""
+
+    parameters: SpringConstraintSettings
+    normal_axis: ClothNormalAxis
+    noise_time: float
+
+
+@dataclass(frozen=True)
 class ParticleStartResult:
     base_position: Vector3
     base_rotation: Quaternion
@@ -98,19 +112,19 @@ def start_particle_step(
     attribute: int,
     center: ResolvedStartCenter | None = None,
     wind: Vector3 | None = None,
+    spring: ResolvedStartSpring | None = None,
 ) -> ParticleStartResult:
     """One resolved particle: base/step pose writes precede movable gating.
 
     IsMove bit2 OR Team spring bit0x2000 enters inertia/force. A spring Team
-    with IsFixed bit1 additionally invokes the UNPORTED Spring helper: refuse
-    that path, including attribute3 (both bits), rather than pretend success.
+    with IsFixed bit1 invokes Spring after force integration. The resolved
+    Spring inputs are required specifically for that branch, including
+    attribute3 (both bits); ordinary fixed particles do not read them.
     Ordinary fixed particles only follow animation; unused force inputs are not
     evaluated. Source preserves oldPos/velocity buffers throughout StartStep.
     """
     attribute = _integer(attribute, 255)
     flag = _integer(settings.team_flag, 2**64 - 1)
-    if flag & 0x2000 and attribute & 1:
-        raise ValueError("Adapter cannot evaluate unported fixed Spring branch")
     t = _single(settings.frame_interpolation)
     if not 0 <= t <= 1:
         raise ValueError("Adapter frame interpolation weight must be in [0,1]")
@@ -171,6 +185,18 @@ def start_particle_step(
             delta_time=settings.delta_time,
         )
         nxt = _add(moved, displacement)  # Widen Single displacement, then Double add.
+    if flag & 0x2000 and attribute & 1:
+        if spring is None:
+            raise ValueError("Adapter requires resolved Spring inputs for fixed Spring")
+        nxt = apply_spring(
+            spring_params=spring.parameters,
+            normal_axis=spring.normal_axis,
+            next_position=nxt,
+            base_position=base,
+            base_rotation=rotation,
+            noise_time=spring.noise_time,
+            scale_ratio=settings.scale_ratio,
+        )
     return ParticleStartResult(
         base,
         rotation,

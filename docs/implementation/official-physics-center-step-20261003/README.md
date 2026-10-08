@@ -2,7 +2,7 @@
 
 2026-10-03，接续[Start惯性消费](../official-physics-start-step-20261003/README.md)。新增 `Tools/official_physics_center_step.py`，不再只能由测试手填stepVector/inertiaVector：现在从**已解析的帧中心与上一子步状态**，按官方子步时间计算中心位置/旋转、平移/旋转增量、局部惯性比例、角速度和轴，供Start/End消费。连续两子步的中心→Start→End合成反馈已通过。
 
-后续已补[Team子步缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)。新增模块消费本阶段返回值，不改本阶段历史范围；风状态不是粒子风力，帧级上游/完整求解/Unity接入仍未完成。
+后续已补[Team子步缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)与[固定粒子Spring](../official-physics-spring-20261003/README.md)。新增模块消费本阶段返回值，不改本阶段历史范围；帧级上游/完整求解/Unity接入仍未完成。
 
 **完整官方后端仍未接入Unity，没有新可见效果。** 帧级中心/anchor/world惯性/teleport/reset准备不是本模块；子步Job剩余的scale/gravity/weight/fade、UpdateWind和真实发布也未移植。模块明确返回 `pending_tail`，不能把这些默认填零后称为原版闭环。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
 
@@ -50,6 +50,6 @@ finite、正dt、非负Int32 index/count、localInertia[0,1]拒绝属于适配�
 
 全套 **2232 passed /114 subtests /3历史skip /2历史Pillow warnings**。25个离线参考模块2160statements/540branches，含分支覆盖100%；新模块125statements/12branches 100%。Ruff/format、Python compile、Pyright通过，临时工具环境pip-audit无已知漏洞。不是Unity或原版solver完成率。
 
-下一步集中补帧级中心准备、子步剩余tail及Wind/Spring，再碰撞/reset与实际发布。完整候选链形成后才进入可回退C#接入、MMD/解包动作测试，不将本片段直接挂到现有舞台声称已等价。
+本页上方的pending tail和2232项结果是该阶段历史快照；后续Team tail、粒子Wind与固定Spring页面覆盖其中相应待办。当前下一步集中补帧级中心准备、风区选择、碰撞/reset与实际发布。完整候选链形成后才进入可回退C#接入、MMD/解包动作测试，不将本片段直接挂到现有舞台声称已等价。
 
 私有源码证据/脚本/回归报告位于 `D:/EndfieldTechLib/notes/official-physics-center-step-20261003-01/`，SHA见verification.json。原游戏文件/资产、完整native报告和第三方源未发布。11组164 saved点、7个运行文件、主HEAD、9557项原索引和9555项原暂存改动保留；仍用独立索引提交记录分支。

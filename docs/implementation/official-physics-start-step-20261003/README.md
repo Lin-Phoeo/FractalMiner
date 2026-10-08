@@ -2,9 +2,9 @@
 
 2026-10-03，接续[粒子步末与受力片段](../official-physics-particle-step-20261003/README.md)。新增 `Tools/official_physics_start_step.py`：将普通粒子的动画姿态插值、已解析中心的惯性消费、阻尼曲线求值与受力积分连起来，并测试与 EndStep 的连续两步反馈。
 
-后续已补[子步中心生成、局部惯性比例与angular state](../official-physics-center-step-20261003/README.md)，能向本模块提供解析后的step/inertia数据。帧级中心准备及完整Wind/reset仍未闭合，下文保留本阶段历史范围。
+后续已补[子步中心生成、局部惯性比例与angular state](../official-physics-center-step-20261003/README.md)，能向本模块提供解析后的step/inertia数据；又补了[粒子风力](../official-physics-particle-wind-20261003/README.md)和[固定粒子Spring](../official-physics-spring-20261003/README.md)。本页保留最初阶段的证据，同时以文末“同日增量”覆盖已经失效的待办描述。
 
-**这是离线有限值参考，不是 Unity 已接入的完整官方后端。** 当前舞台、渲染、湿身、自阴影、MMD及预览物理未改动，没有新可见效果。中心生成、Wind/Spring、碰撞、reset和完整状态发布仍未闭合；总体状态见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
+**这是离线有限值参考，不是 Unity 已接入的完整官方后端。** 当前舞台、渲染、湿身、自阴影、MMD及预览物理未改动，没有新可见效果。帧级中心/anchor/world惯性、风区选择、碰撞、reset和完整状态发布仍未闭合；总体状态见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。
 
 ## 源证据及实施边界
 
@@ -43,7 +43,7 @@ Start Job 的 unboxed 字段：simulationPower@0、dt@16、stepIndices@24、attr
 6. velocityPosition 按 **oldPosition + (movedPosition − oldPosition)** 重建，不能直接代换成 movedPosition。大坐标的消去误差探针可区分两者，本轮专门保留了这个测试。
 7. 同一混合rotation旋转旧velocity，按depth求damping曲线，再进入已有 force fragment；Single displacement宽化后加到Double movedPosition。中心平移**不额外乘scaleRatio**，scaleRatio只在后续受力处使用。
 8. 最后逻辑写 velocityPosition、nextPosition。Start 不回写 velocityArray 或 oldPosArray；返回的 integratedVelocity 仅是局部诊断值。End才回写速度与旧位置。
-9. flag0x2000 且 IsFixed bit1 还会调用尚未移植的 Spring helper，**明确拒绝此分支**，包括同时有bit1/bit2的attribute3。spring标记但没有fixed位时可走普通受力路径；不能一概静默跳过整个spring Team。
+9. flag0x2000 且 IsFixed bit1 在受力积分后调用 Spring；现在必须显式提供 `ResolvedStartSpring(parameters, normal_axis, noise_time)`，再把本步next、动画base/baseRotation和Team scaleRatio交给已核查的Spring参考。缺输入仍明确拒绝，包括同时有bit1/bit2的attribute3。spring标记但没有fixed位时仍走普通受力路径且不读取Spring输入。
 
 返回写序不执行 NativeArray 写入、Transform setter 或发生异常时的部分写入；完整原生异常/并发契约没有移植。
 
@@ -53,6 +53,8 @@ Start Job 的 unboxed 字段：simulationPower@0、dt@16、stepIndices@24、attr
 
 全套 **2179 passed /114 subtests /3历史skip /2历史Pillow warnings**；24个离线参考模块2035statements/528branches，含分支覆盖100%；新模块92statements/14branches 100%。Ruff/format、Python compile、Pyright通过，临时工具环境pip-audit无已知漏洞。测试数量和覆盖率不代表Unity后端完成率。
 
-下一步继续第4–6门禁的中心生成/跨子步状态、Wind/Spring、碰撞/reset；不是继续增加无关入口包装器。必须解析真实上游状态，而不是把这些必需输入用调参近似填完。随后组合约束与发布链，形成可回退C#候选，再在MMD/解包动作下实际验证。
+同日增量：固定Spring已接入本模块的正确调用位置，新增测试证明“受力先算、Spring后拉回动画base”；详细精度边界、DirectCall fallback证明与新全套结果见Spring页面。本页上方2179项结果是历史快照，不应覆盖Spring阶段的更新结果。
+
+下一步继续第4–6门禁的帧级中心/跨子步真实状态、风区选择、碰撞/reset；不是继续增加无关入口包装器。必须解析真实上游状态，而不是把这些必需输入用调参近似填完。随后组合约束与发布链，形成可回退C#候选，再在MMD/解包动作下实际验证。
 
 私有证据与复核脚本：`D:/EndfieldTechLib/notes/official-physics-inertia-20261003-01/`。SHA摘要见本目录 verification.json。原生完整报告、游戏文件、资产与第三方源未发布。11组164 saved点、7个运行态文件、主HEAD和9557项原索引均保持；阶段提交使用独立索引与记录分支。

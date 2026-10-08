@@ -16,9 +16,11 @@ from official_physics_particle_step import (
     ParticleEndState,
     finish_particle_step,
 )
+from official_physics_spring import ClothNormalAxis, SpringConstraintSettings
 from official_physics_start_step import (
     ParticleStartState,
     ResolvedStartCenter,
+    ResolvedStartSpring,
     StartStepSettings,
     start_particle_step,
 )
@@ -265,6 +267,7 @@ def test_force_fragment_is_composed_without_extra_weight_or_velocity_write(
 
 def test_two_step_center_start_end_feedback_and_real_velocity_distinction():
     s = state()
+    end = None
     for _ in range(2):
         begin = run(s, settings(gravity=4), center(step_vector=(2, 0, 0)))
         end = finish_particle_step(
@@ -282,13 +285,14 @@ def test_two_step_center_start_end_feedback_and_real_velocity_distinction():
             attribute=2,
         )
         s = replace(s, old_position=end.old_position, velocity=end.velocity)
+    assert end is not None
     assert s.old_position == (5, -3, 0)
     assert s.velocity == (0, -4, 0)
     assert end.real_velocity == (4, -4, 0)
 
 
 @pytest.mark.parametrize("attribute", [1, 3, 5])
-def test_fixed_spring_branch_is_explicitly_unsupported(attribute):
+def test_fixed_spring_branch_requires_its_resolved_inputs(attribute):
     with pytest.raises(ValueError, match="Spring"):
         start_particle_step(
             state(),
@@ -297,6 +301,25 @@ def test_fixed_spring_branch_is_explicitly_unsupported(attribute):
             center=center(),
             wind=ZERO,
         )
+
+
+def test_fixed_spring_runs_after_force_and_returns_to_base_at_full_power():
+    result = start_particle_step(
+        state(),
+        settings(team_flag=0x2000),
+        attribute=1,
+        center=center(),
+        wind=ZERO,
+        spring=ResolvedStartSpring(
+            SpringConstraintSettings(1.0, 100.0, 1.0, 0.0),
+            ClothNormalAxis.Right,
+            0.0,
+        ),
+    )
+    # Force first produces the simulation position (1,0,0); source Spring
+    # then pulls that result to the separately stored animation base (25,0,0).
+    assert result.velocity_position == (1, 0, 0)
+    assert result.next_position == (25, 0, 0)
 
 
 def test_spring_bit_without_fixed_bit_enters_normal_force_path():

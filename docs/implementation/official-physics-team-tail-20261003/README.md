@@ -2,9 +2,9 @@
 
 2026-10-03，接续[子步中心与局部惯性](../official-physics-center-step-20261003/README.md)。新增 `Tools/official_physics_team_tail.py`：子步中心生成后，计算Team缩放、重力dot/ratio、重置后速度权重、blendWeight，并推进已有风区与移动风的状态。连续两子步中，这些生成的缩放/重力/权重已实际送入Start→End有限值参考，不再由测试手填它们。
 
-**仍是离线参考，没有替换Unity后端，没有新可见效果。** 风状态更新不等于粒子风力求值：上游风区选择、帧级中心/anchor/world惯性、粒子WindForceBlend噪声/湍流、Spring、碰撞/reset与实际发布仍未闭合。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
+**仍是离线参考，没有替换Unity后端，没有新可见效果。** 风状态更新不等于粒子风力求值：上游风区选择、帧级中心/anchor/world惯性、碰撞/reset与实际发布仍未闭合。粒子WindForceBlend与固定Spring由下一段所列后续阶段补齐，但不改变本模块本身只更新Team状态的边界。当前舞台、渲染、湿身、自阴影、MMD和预览物理未改动。
 
-同日后续：[粒子Wind/WindForceBlend、噪声与湍流](../official-physics-particle-wind-20261003/README.md)现已有独立离线参考并接入两子步合成测试。本页上述范围与verification保留本阶段历史状态；Team tail本身仍不逐粒子求力、不执行数组发布，不能仅因新模块存在就清除其pending依赖。
+同日后续：[粒子Wind/WindForceBlend、噪声与湍流](../official-physics-particle-wind-20261003/README.md)现已有独立离线参考并接入两子步合成测试；[固定粒子Spring](../official-physics-spring-20261003/README.md)也已接入Start的源调用位置。本页上述范围与verification保留本阶段历史状态；Team tail本身仍不逐粒子求力或Spring、不执行数组发布，不能仅因新模块存在就清除其pending依赖。
 
 ## 证据与范围
 

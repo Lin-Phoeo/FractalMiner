@@ -2,7 +2,7 @@
 
 2026-10-03，接续[Team子步tail与风状态](../official-physics-team-tail-20261003/README.md)。新增 `Tools/official_physics_particle_wind.py`，将已经选好的风区列表与更新后的风状态求值为粒子受力，送入现有Start→End参考链。这里不使用零风占位，不用通用随机噪声、LookRotation或调参补偿替代观察到的算法。
 
-**仍是离线有限值参考，没有接入Unity候选后端，也没有新增可见效果。** 帧级中心、风区选择、Spring、完整碰撞/约束/reset/发布，以及真实11组动态验收仍待完成。当前Unity舞台、渲染、湿身、自阴影、MMD和预览物理没有改动。
+**仍是离线有限值参考，没有接入Unity候选后端，也没有新增可见效果。** 帧级中心、风区选择、完整碰撞/约束/reset/发布，以及真实11组动态验收仍待完成。当前Unity舞台、渲染、湿身、自阴影、MMD和预览物理没有改动。固定粒子Spring后来已由[独立阶段](../official-physics-spring-20261003/README.md)补齐；本目录verification里的 `fixed_spring_ported=false` 仅是本阶段提交时的历史快照。
 
 ## 来源与边界
 
@@ -59,4 +59,4 @@
 
 上一Team tail的返回值仍保留 `pending_pipeline=particle_wind_force`：它本身只产生Team状态，不替调用者逐粒子求力。现在调用者可显式调用 `particle_wind(...)` 并把 `.force` 交给 `start_particle_step(...)`；不能仅导入本模块就删除这个依赖声明或认定native发布已完成。
 
-后续集中推进帧级中心/anchor/world惯性与风区选择、Spring，再闭合完整碰撞/约束/reset/发布；形成可回退C#候选后端后，才进入Unity、MMD与解包动作动态验收。完整剩余边界见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。不以单元测试数量代表完成百分比。
+后续集中推进帧级中心/anchor/world惯性与风区选择，再闭合完整碰撞/约束/reset/发布；固定Spring不再列为未移植项。形成可回退C#候选后端后，才进入Unity、MMD与解包动作动态验收。完整剩余边界见[八个交付门禁](../official-physics-animator-buffer-20261003/PROGRESS.md)。不以单元测试数量代表完成百分比。

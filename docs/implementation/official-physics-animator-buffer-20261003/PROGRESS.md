@@ -13,7 +13,7 @@
 | 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；完整proxy与Team发布未闭合 |
 | 真实输入与生命周期 | 2. bulk init生成、分配/复用/释放、相对矩阵构造 | 单槽Set/Copy/Enable有参考；底层allocator和native TRS/逆矩阵构造未完成 |
 | 真实输入与生命周期 | 3. 动画map/record、回写Job与唯一writer调度 | 动画读取有限值已实现；map生成、输出Job与cross+Animator委托链待补 |
-| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End有限输入参考、[子步中心/局部惯性](../official-physics-center-step-20261003/README.md)、[Team缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)、[粒子风力/经典噪声/湍流](../official-physics-particle-wind-20261003/README.md)已连成两子步合成反馈，真实生成的非零区风和移动风已送入Start。帧级中心/anchor/world惯性、风区选择、Spring与真实跨步依赖仍未闭合；现有风力接口消费已解析输入，不替代其上游，不能用默认中心/零风代替 |
+| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End有限输入参考、[子步中心/局部惯性](../official-physics-center-step-20261003/README.md)、[Team缩放/重力/权重与风状态更新](../official-physics-team-tail-20261003/README.md)、[粒子风力/经典噪声/湍流](../official-physics-particle-wind-20261003/README.md)及[固定粒子Spring](../official-physics-spring-20261003/README.md)已有离线参考；Spring已接到Start受力后的源位置。帧级中心/anchor/world惯性、风区选择与真实跨步依赖仍未闭合；这些接口消费已解析输入，不替代其上游，不能用默认中心/零风代替 |
 | 动态求解 | 5. 碰撞链、normalAxis下游及约束完整消费 | 尚未完成整个角色的原输入、迭代顺序与输出闭环 |
 | 动态求解 | 6. reset、暂停恢复、跳帧及状态发布 | current/last复制与host顺序有参考；动态reset及定制完成机制待补 |
 | Unity交付 | 7. 可回退C#候选后端与角色实例接入 | 未开始替换当前舞台后端；不能将Python参考称为Unity已实现 |
