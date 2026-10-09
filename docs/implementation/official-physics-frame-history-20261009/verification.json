@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-09",
+  "scope": "Finite reset completion, frame weight initialization and PostTeam history values; not Unity or NativeArray integration",
+  "record_parent": "19b5c3588e03a39aea585672bbbfe456b82244cb",
+  "source": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "reset_rva": "5a36258..5a36313",
+    "frame_weights_rva": "5a36c13..5a36c42",
+    "post_method_index": 369588,
+    "post_rva": "5a2c1f0..5a2c9d1",
+    "post_body_sha256": "f464afdcb7f79129543b8378fedbfffb3cc02665e2952fcae992ba20ae6280ac",
+    "selected_instruction_assertions": 75,
+    "manual_leaf_spans_exclusive": ["343b650..343b66a", "5a3b5e8..5a3b5ff"],
+    "post_clear_mask": "0x406ac",
+    "post_clock_threshold": 7200,
+    "post_clock_subtraction": 3600,
+    "source_review": "Static bytes, metadata and manual source order; two independent read-only audits, not automatic full CFG proof"
+  },
+  "verification": {
+    "tdd_red": "ModuleNotFoundError before reference implementation",
+    "new_tests_passed": 62,
+    "new_module_statements": 88,
+    "new_module_branches": 12,
+    "new_module_statement_and_branch_coverage_percent": 100,
+    "full_tests_passed": 2691,
+    "full_subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_pillow_warnings": 2,
+    "official_physics_module_count": 37,
+    "official_physics_statements": 3140,
+    "official_physics_branches": 688,
+    "official_physics_statement_and_branch_coverage_percent": 100,
+    "ruff_check": "PASS",
+    "ruff_format_check": "PASS",
+    "pyright_with_actual_pythonpath": "0 errors, 0 warnings",
+    "py_compile": "PASS",
+    "pip_audit_tool_environment": "No known vulnerabilities found; project dependencies not changed",
+    "original_selection_guard": "11 groups, 164 points; 7 runtime file guards",
+    "native_runtime_executed": false,
+    "unity_runtime_executed": false,
+    "native_publication_implemented": false
+  },
+  "protected_state": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "main_index_entry_count": 9557,
+    "historical_stage_entry_identities_and_flags_match": true,
+    "main_index_written_or_restored": false,
+    "stage_scene_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+    "runtime_or_existing_staged_changes_modified": false
+  },
+  "evidence_sha256": {
+    "Tools/official_physics_frame_history.py": "8a5f64227df44a80fb0d49bcb52cdae7cf76ba35e91efeaaa632cad5548446f2",
+    "Tools/tests/test_official_physics_frame_history.py": "b824d3f0c34759fba21c32cbd5294616b75c5f0abc943e7986f233e9868670bd",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/prove_source.py": "cdb0ffe9b177478446ad663cda005c36ffc378f7209adc9dcf4a07197fa523e7",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/source-proof-01.json": "bf84a1e117fd636ea9cdd1fdfceb3f189327648d850737d13629a7a59538c6cf",
+    "D:/EndfieldTechLib/notes/official-physics-frame-target-20261009-01/check_inputs.py": "f6bc9ef37f3d72a0012e86fe04706bdb0b9aeb0e4cca500a1906bc80e40378ed",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/guard-01.json": "206713b487b5ca93f98d41f7da20fda7e895bafaa635a2330bee304795e942db",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/target-suite-01.xml": "fbb21c313a1a2ee51b74b0a234108826f921ad8a29ea0c7c152ad3d4a5c9e5c9",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/full-suite-01.xml": "9fc5b7bf5de418d4d475c1d86128474a0fa466e8eaa08846876c45622feec2e7",
+    "D:/EndfieldTechLib/notes/official-physics-frame-history-20261009-01/coverage-01.json": "00585b3795852ea8ce4efc772e0061803a96fa31e6f5b3499cdcc4031bb52059"
+  },
+  "remaining": [
+    "frameLocalPosition production and wind-zone selection",
+    "real original proxy/Team/list inputs and cross-step dependency publication",
+    "complete particle reset, collision and constraints lifecycle",
+    "C# candidate backend integration and real unpacked-motion/MMD acceptance"
+  ]
+}
