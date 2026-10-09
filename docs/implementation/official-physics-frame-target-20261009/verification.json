@@ -1,0 +1,87 @@
+{
+  "date": "2026-10-09",
+  "scope": "Finite original fixed-list/global-proxy frame target production; NOT input/list generation/native publication/full reset/kernel/Unity integration",
+  "parent_record_commit": "87b5174f10f8af2e491356a8038339e4e7e1f04c",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index": {
+    "current_audited_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "historical_raw_sha256": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+    "current_matches_existing_refresh_backup": true,
+    "entries_modes_object_ids_stage_numbers_and_flags_match_historical_backup": true,
+    "entry_count": 9557,
+    "staged_change_paths": 9555,
+    "main_index_written_or_restored_by_this_work": false
+  },
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "enclosing_exact_unwind_rva": "0x5a34900",
+    "enclosing_exact_unwind_end_rva_exclusive": "0x5a36de4",
+    "restricted_regions_not_independent_function_boundaries": [
+      {"rva": "0x5a35365", "end_rva_exclusive": "0x5a357a1", "bytes": 1084,
+       "instructions": 210, "sha256": "872dae70e15905bc6ec97574a3c824f4c9141409cf7a38ded8da60a4bc2c3dab"},
+      {"rva": "0x5a36214", "end_rva_exclusive": "0x5a36258", "bytes": 68,
+       "instructions": 9, "sha256": "d22ba39543492546a71346a4dc6eea1ded1fa678e7867f6d75385da7e1f750e2"}
+    ],
+    "critical_instructions_checked": 147,
+    "exact_unwind_helpers_checked": 10,
+    "manually_delimited_branch_free_leaf_records_not_unwind_boundaries": 12,
+    "call_sequence_instructions_checked": 23,
+    "manual_source_flow_reviewed": true,
+    "two_independent_read_only_review_paths": true,
+    "automatic_full_cfg_or_register_dataflow_proof": false,
+    "team_fields_unboxed": {"fixedDataChunk": 364, "proxyCommonChunk": 292,
+                             "negativeScaleSign": 100, "negativeScaleDirection": 104},
+    "data_chunk_fields_unboxed": {"startIndex": 0, "dataLength": 4},
+    "center_fields_unboxed": {"frameWorldPosition": 248, "frameWorldRotation": 272, "frameWorldScale": 288},
+    "quaternion_combination": "corrected point LEFT-multiplies original bind quaternion",
+    "axes": "39d4430 is +Y; 39d4490 is +Z; 39d4200 swaps first/second into normal=second,tangent=first"
+  },
+  "gates": {
+    "finite_original_fixed_list_mapping_and_ordered_double_average_ported": true,
+    "finite_single_axis_reduction_and_two_stage_negative_scale_ported": true,
+    "synthetic_scale_target_matrix_anchor_prelude_handoff_tested": true,
+    "actual_fixed_list_proxy_input_generation_publication_ported": false,
+    "native_center_team_array_publication_ported": false,
+    "complete_reset_or_component_anchor_tail_ported": false,
+    "native_math_bit_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "adapter_policy_not_native_behavior": {
+    "selected_finite_values_and_nonoverflowing_indices": true,
+    "parallel_global_proxy_arrays_required": true,
+    "zero_or_parallel_basis_rejected_not_safe_identity_fallback": true,
+    "component_and_sign_caches_from_same_frame_required": true,
+    "numpy_independent_mathematical_reference_not_native_single_bit_oracle": true
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-frame-target-20261009-01",
+    "prove_source.py_sha256": "8f01e761bfe73c8b8680c1b6915e8f87a474e42e4f5ab420b835f94b2a8de648",
+    "source-proof-02.json_sha256": "2dd29508c864030b25c6ad76dd89e07f521e4244ee21fe9f0197ef995d3e068b",
+    "check_inputs.py_sha256": "f6bc9ef37f3d72a0012e86fe04706bdb0b9aeb0e4cca500a1906bc80e40378ed",
+    "guard-01.json_sha256": "206713b487b5ca93f98d41f7da20fda7e895bafaa635a2330bee304795e942db",
+    "target-suite-02.xml_sha256": "38eaa5082de0ef21680a34de0f20bb1ef3ec943975a34042bba3ccd451959c05",
+    "full-suite-02.xml_sha256": "965611f37825b212873b90a629c4bd715cd7155f2bc0ef0eaa2a02ed8ff4be72",
+    "coverage-physics-02.json_sha256": "93546dacdf391d81ae0b24d771ef022e426b003e8394c3cfcd73b82ff1068bd9",
+    "original_native_reports_or_assets_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_frame_target.py": "69a191ec883ac9138dc534e57b4b28efcb2090be0c858737b09decfa317d9453",
+    "Tools/tests/test_official_physics_frame_target.py": "f6af81b2ef8775f7395d6444a5687b551e95449e84f4defb94a0fa60872620f2"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "new_tests_passed": 47, "python_suite_passed": 2629, "subtests_passed": 114,
+    "historical_skipped": 3, "historical_pillow_warnings": 2,
+    "reference_modules": 36, "reference_statements": 3052, "reference_branches": 676,
+    "branch_inclusive_coverage_percent": 100,
+    "frame_target_statements": 85, "frame_target_branches": 10,
+    "ruff_and_format": "PASS", "python_compile": "PASS", "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7, "saved_selection_groups": 11, "saved_selection_points": 164,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
