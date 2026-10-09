@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-09",
+  "scope": "Finite sign caches/component remap and matrices after caller-resolved frameWorld; NOT fixed-point target production/full lifecycle/native publication/Unity solver integration",
+  "parent_record_commit": "4c829893d7809aec5634750755b51a379b6fc2e0",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "kernel_exact_unwind_rva": "0x5a34900",
+    "kernel_exact_unwind_end_rva_exclusive": "0x5a36de4",
+    "restricted_kernel_regions_not_independent_function_boundaries": [
+      {
+        "rva": "0x5a34dd7", "end_rva_exclusive": "0x5a35365",
+        "bytes": 1422, "instructions": 257,
+        "sha256": "297e45d0f821090b85dd47db72c8ebf46c9ec8ba4f90f7e0fd111435678247be"
+      },
+      {
+        "rva": "0x5a357a1", "end_rva_exclusive": "0x5a35a8d",
+        "bytes": 748, "instructions": 129,
+        "sha256": "6d644b5b1b30da911d0a4b006055e25bdd233b5d71d6584ed060b12646366f55"
+      }
+    ],
+    "critical_instructions_checked": 73,
+    "exact_unwind_helpers_checked": 7,
+    "manually_delimited_leaf_records_not_unwind_boundaries": 4,
+    "equality_leaf_includes_both_ret_paths_bytes": 43,
+    "matrix_multiply_call_sequence_count": 29,
+    "vector_call_sequence_count": 7,
+    "manual_source_flow_reviewed": true,
+    "independent_read_only_review_performed": true,
+    "automatic_full_cfg_or_register_dataflow_proof": false,
+    "center_fields_unboxed": {
+      "oldAnchorPosition": 40,
+      "oldComponentWorldPosition": 152,
+      "oldComponentWorldRotation": 176,
+      "oldComponentWorldScale": 192,
+      "oldFrameWorldPosition": 312,
+      "oldFrameWorldRotation": 336,
+      "oldFrameWorldScale": 352,
+      "smoothingVelocity": 556,
+      "negativeScaleMatrix": 568
+    },
+    "team_fields_unboxed": {
+      "negativeScaleSign": 100, "negativeScaleDirection": 104,
+      "negativeScaleChange": 116, "negativeScaleTriangleSign": 128,
+      "negativeScaleQuaternionValue": 136
+    },
+    "positive_quaternion_multiplier_constant": [1, 1, 1, 1],
+    "negation_xor_mask_constant": "0x80000000"
+  },
+  "gates": {
+    "finite_sign_caches_and_selected_component_remap_ported": true,
+    "finite_unconditional_frame_inverse_and_conditional_old_frame_matrix_ported": true,
+    "synthetic_scale_to_anchor_to_prelude_handoff_tested": true,
+    "caller_fixed_point_frame_target_production_ported": false,
+    "complete_center_team_array_publication_ported": false,
+    "full_reset_lifecycle_or_component_anchor_tail_ported": false,
+    "native_math_bit_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "adapter_policy_not_native_behavior": {
+    "finite_selected_inputs_and_intermediates": true,
+    "singular_inverse_rejected_not_native_nan_inf_policy": true,
+    "caller_resolves_same_frame_samples_and_frame_target": true,
+    "caller_frame_publication_preserves_current_component_scale": true,
+    "numpy_independent_test_reference_not_native_oracle": true
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-scale-remap-20261009-01",
+    "prove_source.py_sha256": "f5f0bfcb0838f99b764446c664b97cff68a22868e1a7df958cad71afbf7c73df",
+    "source-proof-01.json_sha256": "e3f25f6e9361692921e376038f285c4fff7f64b36bdaa0498bd90277d78e8cc4",
+    "target-suite-02.xml_sha256": "1358d89b41c93a41d41f110b109a4e358a13ec0ef6c848cf475fe38a6d3e1412",
+    "coverage-physics-02.json_sha256": "7752690b6c4b8112436a209063620798a89c6ff76bb4b50790a5c0d881e4be4f",
+    "full-suite-02.xml_sha256": "229da17f27ad978cf426b5fce6dd5095f304cdd8f5dfc184ec1b747f5ede7c17",
+    "guard-01.json_sha256": "f3f33efa6a56c8663f8763130c91db320d50e2b1f17e65c6983fc1fcf84ec3f4",
+    "raw_native_reports_or_original_assets_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_scale_remap.py": "b27c153c5653a9e1684a7f95cff3bf57f06ce1d7c215b91dbac3773d44072716",
+    "Tools/tests/test_official_physics_scale_remap.py": "9dc534ef5c2b1631477708ec5048aff05a9e9a11638cdbdacb23542c249c27d6"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "new_tests_passed": 41,
+    "python_suite_passed": 2582,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "reference_modules": 35,
+    "reference_statements": 2967,
+    "reference_branches": 666,
+    "branch_inclusive_coverage_percent": 100,
+    "scale_remap_statements": 78,
+    "scale_remap_branches": 4,
+    "ruff_and_format": "PASS",
+    "python_compile": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
