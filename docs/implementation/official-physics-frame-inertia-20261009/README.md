@@ -1,5 +1,7 @@
 # 官方物理：已解析输入上的帧级惯性修正
 
+同日后续：[瞬移/平滑/已表示历史重置参考](../official-physics-frame-prelude-20261009/README.md)已补齐 smoothing offset 与 working-old 的这一段生产，可直接交接本模块。更早的 anchor/sign-remap/frameWorld 目标生产和完整生命周期仍未完成；本页下方与冻结 verification 保留原阶段边界，最新状态见增补与 PROGRESS。
+
 2026-10-09。新增 `Tools/official_physics_frame_inertia.py`，把帧级全局惯性、移动/旋转限速、步数补偿、历史姿态回拉与[帧移动归约](../official-physics-frame-motion-20261008/README.md)接通。返回的 `step_state` 直接消费于[子步中心](../official-physics-center-step-20261003/README.md)，`motion` 消费于移动风。
 
 **交付是离线有限值参考，仍不是完整帧中心或 Unity 官方物理后端。** 当前组件采样、working-old、anchor/smoothing 临时值、pivot 与历史状态必须由调用方完成前序解析，不能拿舞台 root 或全零默认值冒充原输入。当前 Unity 预览保持未改。

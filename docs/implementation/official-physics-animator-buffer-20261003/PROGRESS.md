@@ -13,7 +13,7 @@
 | 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；完整proxy与Team发布未闭合 |
 | 真实输入与生命周期 | 2. bulk init生成、分配/复用/释放、相对矩阵构造 | 单槽Set/Copy/Enable有参考；底层allocator和native TRS/逆矩阵构造未完成 |
 | 真实输入与生命周期 | 3. 动画map/record、回写Job与唯一writer调度 | 动画读取有限值已实现；map生成、输出Job与cross+Animator委托链待补 |
-| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End、[子步中心/局部惯性](../official-physics-center-step-20261003/README.md)、[Team与风状态](../official-physics-team-tail-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)、[固定粒子Spring](../official-physics-spring-20261003/README.md)、[帧移动归约](../official-physics-frame-motion-20261008/README.md)及[帧级惯性修正](../official-physics-frame-inertia-20261009/README.md)已有离线参考；帧修正的working-old残差接移动风，历史回拉接子步中心→Start→End合成两步链。帧级anchor/smoothing临时值生产、sign-remap、teleport/reset、完整帧中心、风区选择与真实跨步依赖仍未闭合；接口消费已解析输入，不替代其前序，不能用舞台root、默认中心或零风代替 |
+| 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End、[子步中心](../official-physics-center-step-20261003/README.md)、[Team与风状态](../official-physics-team-tail-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)、[Spring](../official-physics-spring-20261003/README.md)、[帧移动归约](../official-physics-frame-motion-20261008/README.md)、[帧惯性](../official-physics-frame-inertia-20261009/README.md)与[瞬移/平滑/已表示历史重置](../official-physics-frame-prelude-20261009/README.md)已有离线参考。平滑生产working-old与独立offset→帧修正→移动风/子步中心→Start/End；更早的anchor/sign-remap/frameWorld目标生产、完整reset生命周期、风区和真实跨步依赖仍未闭合，不用舞台root或默认零值代替原输入 |
 | 动态求解 | 5. 碰撞链、normalAxis下游及约束完整消费 | 尚未完成整个角色的原输入、迭代顺序与输出闭环 |
 | 动态求解 | 6. reset、暂停恢复、跳帧及状态发布 | current/last复制与host顺序有参考；动态reset及定制完成机制待补 |
 | Unity交付 | 7. 可回退C#候选后端与角色实例接入 | 未开始替换当前舞台后端；不能将Python参考称为Unity已实现 |
