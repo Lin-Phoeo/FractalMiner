@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-09",
+  "scope": "Finite anchor production and Double TRS/full inverse math after caller-resolved sampling/sign-remap/frameWorld; NOT full prelude/reset lifecycle/solver/Unity integration",
+  "parent_record_commit": "626ecbd0baf1acff5cd16e0d0398626b88b9a7a2",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "restricted_anchor_region": {
+      "rva": "0x5a35a8d", "end_rva_exclusive": "0x5a35eba",
+      "bytes": 1069, "instructions": 223,
+      "sha256": "eff1c9f06ba0c19487349e43fb7b132d87d8a7dc04965462175b794058f0e54d",
+      "independent_function_boundary": false
+    },
+    "critical_instructions_checked": 67,
+    "static_helper_records_checked": 17,
+    "inverse_call_sequence_count": 58,
+    "named_full_inverse_rva": "0xa1e77ec",
+    "automatic_full_cfg_or_register_dataflow_proof": false,
+    "manual_source_flow_reviewed": true,
+    "center_fields_unboxed": {"anchorPosition": 0, "anchorRotation": 24, "oldAnchorPosition": 40, "oldAnchorRotation": 64, "anchorComponentLocalPosition": 80},
+    "inertia_anchor_inertia_unboxed": 0,
+    "math_formulation_reference": "Local Unity.Mathematics 1.3.3 matrix.cs and double4x4.gen.cs; not game source code",
+    "math_reference_license_notice": "Unity Companion License / copyright 2023 Unity Technologies ApS, preserved in reference module"
+  },
+  "gates": {
+    "single_rotation_then_double_column_scale_and_translation_ported": true,
+    "full_inverse_minor_and_signed_denominator_math_ported": true,
+    "anchor_local_initialization_independent_of_anchor_enable_ported": true,
+    "weighted_shift_and_left_multiplied_rotation_ported": true,
+    "synthetic_anchor_smoothing_frame_inertia_handoff_tested": true,
+    "negative_scale_remap_and_frame_target_generation_ported": false,
+    "full_reset_lifecycle_or_anchor_tail_publication_ported": false,
+    "native_math_bit_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "adapter_policy_not_native_behavior": {
+    "finite_selected_inputs_and_intermediates": true,
+    "anchor_inertia_in_zero_one": true,
+    "singular_inverse_rejected_not_native_nan_inf_handling": true,
+    "caller_resolves_same_frame_sampling_sign_remap_frame_target": true,
+    "numpy_only_independent_test_reference_not_native_oracle": true
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-frame-anchor-20261009-01",
+    "prove_source.py_sha256": "4379f726961aed50be2cfbcba321e8e6eb38f8764aec171779c2af854ae30143",
+    "source-proof-02.json_sha256": "2ad4b802c76dba07a178322341264a7748ae688b91c22126c9e319dd1c48c46d",
+    "coverage-physics-01.json_sha256": "304afddb3d814eeddc3307d41480fc820835e313797696f67e03eda87882b46e",
+    "full-suite-01.xml_sha256": "423e46a09289deb423ad708057b7e48f00a30a6da678851f696733a98776784c",
+    "guard-01.json_sha256": "f3f33efa6a56c8663f8763130c91db320d50e2b1f17e65c6983fc1fcf84ec3f4",
+    "original_assets_full_native_reports_or_original_third_party_source_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_matrix.py": "130f20460156c7be34d3b427de9608ff9a8f0ed042d0f7fbe1600daa355ae067",
+    "Tools/official_physics_frame_anchor.py": "0fb8835db7e88822fcba8a8d8de1d7aacfc926bd69846bdd7137314b85102195",
+    "Tools/tests/test_official_physics_frame_anchor.py": "bb3f1113eb94fa5bfa4d81edbc758db30e165b0dc11ff58ab31082afbaf0af15"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "new_tests_passed": 39,
+    "python_suite_passed": 2541,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "reference_modules": 34,
+    "reference_statements": 2889,
+    "reference_branches": 662,
+    "branch_inclusive_coverage_percent": 100,
+    "frame_anchor_module_statements": 53,
+    "frame_anchor_module_branches": 6,
+    "matrix_module_statements": 61,
+    "matrix_module_branches": 4,
+    "ruff_and_format": "PASS",
+    "python_compile": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "user_staged_change_paths_preserved": 9555,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

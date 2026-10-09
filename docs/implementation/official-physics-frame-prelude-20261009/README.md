@@ -1,5 +1,7 @@
 # 官方物理：瞬移检测、运动平滑与已表示历史重置
 
+同日增补：[锚点与Double TRS/full inverse参考](../official-physics-frame-anchor-20261009/README.md)已生产这一段的working-old与anchor shift，接本模块。更早的signed-scale remap、frameWorld目标生成和完整reset/tail发布仍待完成；本页冻结说明与verification保留初始阶段边界，最新进展见增补与PROGRESS。
+
 2026-10-09。`Tools/official_physics_frame_prelude.py` 现可在**已完成 anchor/sign-remap 且已有本帧 frameWorld 目标**的输入上，生产 working-old、smoothing velocity、独立 smoothing shift 与状态标志，再接入[帧惯性修正](../official-physics-frame-inertia-20261009/README.md)。不是对舞台 root 套一个滤波器，也没有修改 Unity 当前后端。
 
 ## 固定来源与边界
