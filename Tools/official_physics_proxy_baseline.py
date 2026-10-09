@@ -136,7 +136,9 @@ def _matrix_quaternion(u: Vector3, v: Vector3, w: Vector3) -> Quaternion:
 
 
 def rotation_from_normal_tangent(normal: Vector3, tangent: Vector3) -> Quaternion:
-    """Native helper0x39d4250: normal=up, tangent=forward (not swapped).
+    """Value API: normal=up, tangent=forward. Native0x39d4250 ABI is reversed:
+
+    native(first=forward, second=up) maps to THIS API(up, forward), not (first,second).
 
     right=normalize(cross(normal,tangent)); up=cross(tangent,right).
     The original tangent length is retained; neither input is auto-normalized.

@@ -15,11 +15,11 @@
 | 组合姿态 | 修正后的点四元数 **左乘** vertexBindPoseRotations[slot]；不反过来、不再inverse/conjugate |
 | 朝向归约 | 分别按原顺序Single累加组合姿态的+Y、+Z轴；不是平均四元数 |
 | 归约后符号 | Y和乘-1 iff direction.x<0 OR direction.z<0；Z和乘-1 iff direction.x<0 OR direction.y<0；不是轴符号相乘/奇偶判断 |
-| 最终姿态 | 两条和分别按Single dot(y²+x²+z²)→sqrt→reciprocal→乘法归一化，first=Y、second=Z交给39d4200；包装函数交换参数，实际39d4250的normal=Z、tangent=Y |
+| 最终姿态 | 两条和分别按Single dot(y²+x²+z²)→sqrt→reciprocal→乘法归一化，first=Y、second=Z交给39d4200；包装函数交换为内部ABI的forward=Z、up=Y。Python接口是up/forward顺序，调用应为 `rotation_from_normal_tangent(Y,Z)` |
 
-轴交换虽不直观，但静态调用顺序已双路独立核查。合成identity点+identity bind的固定点分支并不产生identity中心旋转；不能按直觉“修正”。实际角色的bind姿态来自原proxy链，不等同这个合成输入。
+**2026-10-09接续纠错：初版把内部native ABI参数当成Python接口参数，结论与测试均错误。** 39d4250的第一ABI参数是forward，第二是up；现有Python函数则第一是normal/up，第二是tangent/forward。原包装函数39d4200交换的是ABI参数，不是中心的Y/Z轴。合成identity点+identity bind在正符号下必须产生identity中心旋转；初版“不能按直觉修正”的说法撤回。负缩放重建应调用 `rotation_from_normal_tangent(-Y,-Z)`，不是反过来。此次从cross输入、三列矩阵及上游调用重新双路核查，详见[粒子重置与参数纠错](../official-physics-particle-reset-20261009/README.md)。
 
-5a2bd98/39d4430/39d4490均使用已有 `rotate_single` 的逐运算Single舍入。39d4200由已有 `rotation_from_normal_tangent(second, first)`复用，保留cross/matrix-quaternion/sign-bit次序，不改冻结的既有数学模块。最终normalize复用Single归一化尺度；不能换成Double `_normalized` 或LookRotationSafe。
+5a2bd98/39d4430/39d4490均使用已有 `rotate_single` 的逐运算Single舍入。39d4200应由已有 `rotation_from_normal_tangent(first, second)`复用，保留cross/matrix-quaternion/sign-bit次序。既有数学实现没有改动，helper docstring已明确API与native ABI的顺序区别。最终normalize复用Single归一化尺度；不能换成Double `_normalized` 或LookRotationSafe。
 
 ## 接续与状态边界
 
@@ -37,6 +37,6 @@ Team字段未装箱偏移：fixedDataChunk@364（start0/count4）、proxyCommonC
 
 边界/平行数组/有限值/退化拒绝是适配器政策。原unsafe normalize没有零长度fallback；真实原输入若轴和为零或平行，原计算可传播NaN/Inf，不能悄悄用组件朝向补救。没有观测原运行时MXCSR/FTZ/DAZ，Python数学不宣称原生逐位相等。
 
-静态证明脚本、原输入/舞台保护、最终全套回归与文件SHA见 `verification.json`及其本地报告路径。两路只读审查用于检查调用链与数学，不替代真实动作测试。新增测试发现并修正过一项测试自身的cross符号预期，实际源码规则未被调参修改。
+静态证明脚本、原输入/舞台保护与历史回归见 `verification.json`及其本地报告路径；其中初版报告与旧文件SHA仅为纠错前的历史快照，不是当前源码验收。初版源字节检查正确不等于语义解释正确。当前测试已撤销错误的轴交换预期，随机矩阵参照的负缩放与最终basis也已纠正；最新全套结果与新文件SHA见粒子重置阶段的verification。两路只读审查不替代真实动作测试。
 
 下一主线继续补完整reset/帧末component与anchor历史发布、wind-zone选择及真实跨步依赖，再形成可切换的C#候选后端。全部缺口仍见 [PROGRESS](../official-physics-animator-buffer-20261003/PROGRESS.md)；不以测试数量宣称物理完成或估算百分比。

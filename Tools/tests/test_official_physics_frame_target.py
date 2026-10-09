@@ -78,11 +78,11 @@ def test_one_fixed_point_uses_proxy_position_not_component_position():
     assert r.proxy_slots == (0,)
 
 
-def test_identity_point_has_observed_y_z_swap_not_invented_identity_rotation():
+def test_identity_point_native_wrapper_swap_adapts_to_up_forward_api():
     r = run()
-    assert r.rotation == pytest.approx((0, H, H, 0), abs=1e-7)
-    assert rotate_single(r.rotation, F) == pytest.approx(Y, abs=2e-7)
-    assert rotate_single(r.rotation, Y) == pytest.approx(F, abs=2e-7)
+    assert r.rotation == Q
+    assert rotate_single(r.rotation, F) == F
+    assert rotate_single(r.rotation, Y) == Y
 
 
 def test_chunk_start_and_ushort_list_slice_preserve_order_and_duplicates():
@@ -127,21 +127,21 @@ def test_single_axis_sum_keeps_native_order_and_single_cancellation():
         proxy_bind_rotations=(Q,) * 3,
     )
     r = run(t=team(fixed_point_count=3), b=b)
-    assert rotate_single(r.rotation, F) == pytest.approx(Y, abs=2e-7)
+    assert rotate_single(r.rotation, F) == pytest.approx(F, abs=2e-7)
     reordered = run(
         t=team(fixed_point_count=3), b=replace(b, fixed_point_data=(0, 2, 1))
     )
-    assert rotate_single(reordered.rotation, F) == pytest.approx(
+    assert rotate_single(reordered.rotation, Y) == pytest.approx(
         (0, 1.5 / math.sqrt(3.25), 1 / math.sqrt(3.25)), abs=4e-7
     )
 
 
 def test_point_rotation_is_left_of_bind_rotation_noncommuting_fixture():
     r = run(b=buffers(proxy_rotations=(X90,), proxy_bind_rotations=(Y90,)))
-    # point*bind maps +Y→+Z and +Z→+X. After source argument swap:
-    # target's forward is +Z and its up is +X. bind*point fails both.
-    assert rotate_single(r.rotation, F) == pytest.approx(F, abs=6e-7)
-    assert rotate_single(r.rotation, Y) == pytest.approx((1, 0, 0), abs=6e-7)
+    # point*bind maps +Y→+Z and +Z→+X. Native ABI adaptation retains these axes.
+    # bind*point fails both; a duplicated Y/Z swap fails both too.
+    assert rotate_single(r.rotation, F) == pytest.approx((1, 0, 0), abs=6e-7)
+    assert rotate_single(r.rotation, Y) == pytest.approx(F, abs=6e-7)
 
 
 def test_basis_reduction_is_not_quaternion_average():
@@ -152,8 +152,8 @@ def test_basis_reduction_is_not_quaternion_average():
         proxy_bind_rotations=(Q, Q),
     )
     r = run(t=team(fixed_point_count=2), b=b)
-    assert rotate_single(r.rotation, F) == pytest.approx((0, H, H), abs=4e-7)
-    assert rotate_single(r.rotation, Y) == pytest.approx((0, -H, H), abs=4e-7)
+    assert rotate_single(r.rotation, F) == pytest.approx((0, -H, H), abs=4e-7)
+    assert rotate_single(r.rotation, Y) == pytest.approx((0, H, H), abs=4e-7)
 
 
 @pytest.mark.parametrize(
@@ -176,15 +176,15 @@ def test_axis_reduction_against_independent_double_rotation_matrices(seed, negat
             ]
         )
 
-    swap_negative = np.array([[-1, 0, 0], [0, 0, -1], [0, -1, 0]])
+    negative_reconstruction = np.diag([1, -1, -1])
     rotations = [
-        matrix(p) @ (swap_negative if negative else np.eye(3)) @ matrix(b)
+        matrix(p) @ (negative_reconstruction if negative else np.eye(3)) @ matrix(b)
         for p, b in zip(point, bind, strict=True)
     ]
     y_sum = sum(m[:, 1] for m in rotations) * (-1 if negative else 1)
     z_sum = sum(m[:, 2] for m in rotations) * (-1 if negative else 1)
-    tangent = y_sum / np.linalg.norm(y_sum)
-    normal = z_sum / np.linalg.norm(z_sum)
+    normal = y_sum / np.linalg.norm(y_sum)
+    tangent = z_sum / np.linalg.norm(z_sum)
     right = np.cross(normal, tangent)
     right /= np.linalg.norm(right)
     up = np.cross(tangent, right)
@@ -209,18 +209,18 @@ def test_axis_reduction_against_independent_double_rotation_matrices(seed, negat
 
 def test_nonunit_proxy_rotation_is_not_normalized_before_axis_extraction():
     r = run(b=buffers(proxy_rotations=((0.5, 0, 0, 0.5),)))
-    assert rotate_single(r.rotation, F) == pytest.approx((0, H, H), abs=4e-7)
+    assert rotate_single(r.rotation, F) == pytest.approx((0, -H, H), abs=4e-7)
 
 
 @pytest.mark.parametrize(
     "direction,expected_forward,expected_up",
     [
         ((-1, 1, 1), F, Y),
-        ((1, -1, 1), (0, 0, -1), Y),
-        ((1, 1, -1), F, (0, -1, 0)),
+        ((1, -1, 1), F, (0, -1, 0)),
+        ((1, 1, -1), (0, 0, -1), Y),
         ((-1, -1, 1), F, Y),
         ((-1, -1, -1), F, Y),
-        ((0, -1, 1), (0, 0, -1), Y),
+        ((0, -1, 1), F, (0, -1, 0)),
     ],
 )
 def test_negative_point_rebuild_then_postloop_or_signs(
@@ -234,8 +234,8 @@ def test_negative_point_rebuild_then_postloop_or_signs(
 def test_positive_sign_does_not_enter_perpoint_rebuild_even_if_direction_negative():
     # Source consumes both distinct caches, not determinant/current scale guessing.
     r = run(t=team(negative_scale_sign=1, negative_scale_direction=(-1, 1, 1)))
-    assert rotate_single(r.rotation, F) == pytest.approx((0, -1, 0), abs=3e-7)
-    assert rotate_single(r.rotation, Y) == pytest.approx((0, 0, -1), abs=3e-7)
+    assert rotate_single(r.rotation, F) == pytest.approx((0, 0, -1), abs=3e-7)
+    assert rotate_single(r.rotation, Y) == pytest.approx((0, -1, 0), abs=3e-7)
 
 
 def test_sign_branch_is_strict_less_than_zero_not_negative_flag_or_nonpositive():

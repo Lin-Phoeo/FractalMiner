@@ -2,7 +2,8 @@
 
 Consumes original global proxy arrays and Team fixedDataChunk/proxyCommonChunk.
 No list generation, allocator, skinning, Job scheduling or NativeArray publication.
-Y/Z axes and 39d4200 argument swap are retained, not conventionalized. Existing
+Y/Z axes retained; native39d4200 swaps to forward/up ABI, while the existing
+rotation value API takes up/forward. Do not swap that API's arguments again. Existing
 Single helpers preserve operation grouping. Finite/range/parallel/degenerate
 rejection is ADAPTER policy; native unsafe normalize can propagate NaN/Inf.
 Python math is not a CRT/Burst/MXCSR live bit oracle.
@@ -83,7 +84,8 @@ def produce_frame_target(
     count<=0 preserves raw component position/rotation/scale and reads no list/caches.
     Otherwise pointQuaternion (after optional negative reconstruction) LEFT-multiplies
     bindQuaternion. Accumulated rotated +Y/+Z each receive separate OR-derived signs,
-    then normalize independently; 39d4200 uses first(Y) as forward, second(Z) as up.
+    then normalize independently.39d4200(firstY,secondZ) calls39d4250(forwardZ,upY);
+    the existing rotation_from_normal_tangent API instead takes (upY,forwardZ).
     Do not average quaternions, swap these axes back or infer a safe fallback.
     """
     position = _vector(component.position)
@@ -117,8 +119,8 @@ def produce_frame_target(
             forward = rotate_single(point_rotation, _Z)  # Second output.
             neg_up = cast(Vector3, tuple(-value for value in up))
             neg_forward = cast(Vector3, tuple(-value for value in forward))
-            # 39d4200(first=-Y,second=-Z) → 39d4250(normal=-Z,tangent=-Y).
-            point_rotation = rotation_from_normal_tangent(neg_forward, neg_up)
+            # Native ABI forward/up is reversed from this adapter's up/forward API.
+            point_rotation = rotation_from_normal_tangent(neg_up, neg_forward)
         combined = multiply_quaternions(
             point_rotation, buffers.proxy_bind_rotations[slot]
         )
@@ -135,7 +137,7 @@ def produce_frame_target(
     )
     up = _normalize_single(up_sum)
     forward = _normalize_single(forward_sum)
-    rotation = rotation_from_normal_tangent(forward, up)  # 39d4200 swaps Y/Z args.
+    rotation = rotation_from_normal_tangent(up, forward)  # Adapt native ABI, not axes.
     return FrameTargetResult(position, rotation, scale, tuple(slots))
 
 

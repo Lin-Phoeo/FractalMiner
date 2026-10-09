@@ -35,7 +35,7 @@
     "data_chunk_fields_unboxed": {"startIndex": 0, "dataLength": 4},
     "center_fields_unboxed": {"frameWorldPosition": 248, "frameWorldRotation": 272, "frameWorldScale": 288},
     "quaternion_combination": "corrected point LEFT-multiplies original bind quaternion",
-    "axes": "39d4430 is +Y; 39d4490 is +Z; 39d4200 swaps first/second into normal=second,tangent=first"
+    "axes": "39d4430 is +Y;39d4490 is +Z;39d4200(Y,Z) calls native39d4250(forwardZ,upY);existing value API must receive(upY,forwardZ)"
   },
   "gates": {
     "finite_original_fixed_list_mapping_and_ordered_double_average_ported": true,
@@ -67,6 +67,14 @@
     "full-suite-02.xml_sha256": "965611f37825b212873b90a629c4bd715cd7155f2bc0ef0eaa2a02ed8ff4be72",
     "coverage-physics-02.json_sha256": "93546dacdf391d81ae0b24d771ef022e426b003e8394c3cfcd73b82ff1068bd9",
     "original_native_reports_or_assets_published": false
+  },
+  "correction_20261009": {
+    "previous_axis_swap_claim_withdrawn": true,
+    "positive_identity_point_identity_bind_preserves_identity_rotation": true,
+    "negative_point_rebuild_value_api": "rotation_from_normal_tangent(neg_up,neg_forward)",
+    "raw_artifact_sha256_and_validation_below_are_pre_correction_historical_snapshots": true,
+    "latest_source_tests_and_hashes": "docs/implementation/official-physics-particle-reset-20261009/verification.json",
+    "original_static_bytes_alone_do_not_prove_semantic_interpretation": true
   },
   "raw_artifact_sha256": {
     "Tools/official_physics_frame_target.py": "69a191ec883ac9138dc534e57b4b28efcb2090be0c858737b09decfa317d9453",
