@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-09",
+  "scope": "Finite frame inertia correction from caller-resolved prelude inputs; synthetic handoff to center/Start/End and moving wind; NOT full frame prelude, reset lifecycle, solver or Unity integration",
+  "parent_record_commit": "8ffd845644f95003ff39c577c3002bcf00f90452",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "949636613f5d4e703b49cca661115ad6e37cb9ccd4ce572cd098d59b07a60804",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "frame_kernel": {
+      "method": 369644,
+      "rva": "0x5a34900",
+      "end_rva_exclusive": "0x5a36de4",
+      "bytes": 9444,
+      "whole_kernel_ported": false
+    },
+    "restricted_correction_region": {
+      "rva": "0x5a36313",
+      "end_rva_exclusive": "0x5a36ab1",
+      "bytes": 1950,
+      "instructions": 402,
+      "sha256": "8ba48a69caebd08a48cce6bcc999c3f048c0020e9f9aad05ffc7407914a71dc2",
+      "independent_function_boundary": false,
+      "reset_clear_fragment_is_outside_this_region": true
+    },
+    "critical_instructions_checked": 85,
+    "static_helper_records_checked": 10,
+    "automatic_full_cfg_proof": false,
+    "manual_source_flow_reviewed": true,
+    "global_follow_epsilon_single": 9.99999993922529e-9,
+    "global_follow_epsilon_raw_le": "77cc2b32",
+    "degrees_single": 57.295780181884766,
+    "degrees_raw_le": "e12e6542",
+    "team_fields_unboxed": {
+      "frameDeltaTime": 16,
+      "nowTimeScale": 48,
+      "updateCount": 52,
+      "initScale": 84,
+      "velocityWeight": 252,
+      "blendWeight_not_used_here": 260
+    },
+    "center_fields_unboxed": {
+      "componentWorldPosition": 96,
+      "oldComponentWorldPosition_pivot": 152,
+      "frameComponentShiftVector": 204,
+      "frameComponentShiftRotation": 216,
+      "oldFrameWorldPosition": 312,
+      "oldFrameWorldRotation": 336,
+      "nowWorldPosition": 368,
+      "nowWorldRotation": 392,
+      "smoothingVelocity_not_smoothing_shift_temporary": 556
+    }
+  },
+  "gates": {
+    "current_sample_identity_and_final_residual_definition_verified": true,
+    "global_follow_speed_limits_count_velocity_time_compensation_ported": true,
+    "source_single_accumulation_and_double_shift_position_order_ported": true,
+    "separate_anchor_then_smoothing_single_additions_ported": true,
+    "only_old_frame_and_now_history_shifted": true,
+    "frame_result_connected_to_motion_and_moving_wind": true,
+    "frame_result_connected_to_center_start_end_synthetic_two_steps": true,
+    "resolved_reset_clear_fragment_ported": true,
+    "working_transform_prelude_complete": false,
+    "anchor_shift_and_smoothing_shift_generation_ported": false,
+    "negative_scale_remap_and_trs_inverse_order_ported": false,
+    "full_reset_teleport_and_frame_center_generation_ported": false,
+    "wind_zone_selection_ported": false,
+    "original_runtime_or_bit_oracle": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "adapter_policy_not_native_behavior": {
+    "finite_selected_inputs": true,
+    "nonnegative_count_time_scale_and_scale_length_ratio": true,
+    "inertia_and_velocity_weights_in_zero_one": true,
+    "zero_denominator_with_positive_count_rejected_instead_of_guessed": true,
+    "python_transcendentals_not_native_bit_oracle": true,
+    "pivot_and_history_require_same_resolved_prelude_snapshot": true
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-frame-inertia-20261009-01",
+    "prove_source.py_sha256": "3955dc5a885a26ba05e3cd7336e746ca603aa0c5a89a643a0d845107825e3da5",
+    "source-proof-02.json_sha256": "2d5b7fedc60c1d5bae2bc1d852063bd9dbfebc4fcad80b8a0a2f41aea56c5831",
+    "coverage-physics-02.json_sha256": "b25e761c5c171e58de779a75562a15817f89611f7bb413db05032fa914ce44dc",
+    "full-suite-02.xml_sha256": "5a89f0d63c22734172cde2390f450cd747f5fc5e51a639ca516dee13f37b53e7",
+    "guard-01.json_sha256": "f3f33efa6a56c8663f8763130c91db320d50e2b1f17e65c6983fc1fcf84ec3f4",
+    "original_assets_full_native_reports_or_third_party_source_published": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_frame_inertia.py": "63029bba4489936f88c04f5e9fb7446c7e7a267edb4b0c449b76fd68d4eb873b",
+    "Tools/tests/test_official_physics_frame_inertia.py": "b78b075ee4077d289c6b506fca93022973834f2a78d4cded4832f6aef3233b9d"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "tdd_missing_smoothing_input_red_observed": true,
+    "new_tests_passed": 53,
+    "python_suite_passed": 2457,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "reference_modules": 31,
+    "reference_statements": 2682,
+    "reference_branches": 628,
+    "branch_inclusive_coverage_percent": 100,
+    "frame_inertia_module_statements": 144,
+    "frame_inertia_module_branches": 26,
+    "ruff_and_format": "PASS",
+    "python_compile": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "pip_audit_temporary_tools": "No known vulnerabilities found",
+    "secret_scan_scoped_new_code": "no matches",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "user_staged_change_paths_preserved": 9555,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

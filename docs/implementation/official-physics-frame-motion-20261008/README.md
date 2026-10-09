@@ -1,5 +1,7 @@
 # 官方物理：帧移动速度与方向归约
 
+2026-10-09 增补：[帧级惯性修正参考](../official-physics-frame-inertia-20261009/README.md)已确认本归约输入为“当前采样组件位置 − 修正后的 working-old 位置”，并提供消费已解析前序输入的生产片段。完整 anchor/smoothing、sign-remap、teleport/reset 前序仍待移植；不能把 shiftVector 当通用残差。本页下方及 `verification.json` 保留 10-08 历史阶段边界，新的证据与门禁以增补文档为准，不重写旧快照。
+
 2026-10-08，接续[帧中心的子步消费](../official-physics-center-step-20261003/README.md)与[Team 移动风状态](../official-physics-team-tail-20261003/README.md)。新增 `Tools/official_physics_frame_motion.py`，只恢复帧级大 kernel 中一个边界可证的数值片段：把调用方已经解析好的 Double 位移转换成 `CenterData.frameMovingSpeed` 与 `frameMovingDirection`，再通过 `FrameWindState.from_motion(...)` 送入现有 `UpdateWind` 参考。
 
 **这是离线有限值参考，不是完整帧中心、Unity 物理后端或新可见效果。** 上游位移的 transform/anchor 来源仍未完全解码，因此接口故意命名为 `upstream_delta`；不得把场景 root 位移、`frameComponentShiftVector` 或粒子位移擅自代入。风区选择、teleport/reset、NativeArray 发布、Job 调度与 Transform 写回也不在本阶段。
