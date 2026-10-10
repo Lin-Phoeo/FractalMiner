@@ -1,6 +1,6 @@
 # 当前物理交付缺口：不以测试数量代替完成进度
 
-初版 2026-10-03，当前状态更新至 2026-10-09。本表限定官方物理接入主线，不重新宣称渲染/MMD的历史验收状态。现有预览物理继续可用；**完整官方候选后端没有接入Unity，也没有动态通过验收**。因此不是只剩若干参数微调，无法给可靠的完工百分比或会话数量。
+初版 2026-10-03，当前状态更新至 2026-10-10。本表限定官方物理接入主线，不重新宣称渲染/MMD的历史验收状态。现有预览物理继续可用；**完整官方候选后端没有接入Unity，也没有动态通过验收**。因此不是只剩若干参数微调，无法给可靠的完工百分比或会话数量。
 
 ## 已有基础
 
@@ -29,6 +29,8 @@
 
 2026-10-09同批推进[约束调用链](../official-physics-constraint-chain-20261009/README.md)：Distance的work-list/稀疏chunk/packed邻居与顺序range消费、显式WorkData的mode1点碰撞，以及完整18段子步符号依赖已有参考。恢复碰撞前后两次Distance、Spring/普通碰撞velocity reference差异与摩擦→逆质量→End反馈，用Start→Distance→Collision→Distance→End→下一Start限定组合测试验证。其余算子没有暗中设为已实现no-op；SelfCollision四轮目前只有顺序描述，不是碰撞数学。ColliderManager生产、真实list/proxy/Team发布、wrapper空列表与实际调度仍未闭合。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是ColliderManager的帧前/子步/帧后WorkData生产、完整约束输入与依赖闭合；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-10补上[ColliderManager生产与Point整批消费](../official-physics-collider-production-20261010/README.md)：Pre managed的Double帧/三套历史、显式Single Start、独立Double Job Start/End/Post与Point managed串行range已有有限值参考；验证Pre→Double Start→End→Post→下一帧及WorkData→Point消费者。新证据确认Start/End/Post UnsafeDo传Raw Double buffer给Single内核，普通Job则独立Double实现，因此没有捏造数值转换或宣称所有路由等价。真实runtime开关/Burst未观测，普通Point Job数学也需单独复核。原组件class、allocator/bulk输入发布、其余约束和完整Job依赖仍未闭合。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是普通Point Job独立消费、剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。
