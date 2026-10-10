@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-11",
+  "scope": "Resolved SelfCollision UpdateTeam routing and conditional successful-buffer-transition prediction",
+  "status": "offline_reference_verified_unity_candidate_not_integrated",
+  "record_ref": "refs/heads/fix/typhoeus-render-explosion-20260917",
+  "record_parent": "ff25bf09dc18539209566a5c82083f59e05af1db",
+  "sources": {
+    "GameAssembly_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "config_sha256": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d",
+    "original_files_static_read_only": true,
+    "original_runtime_executed": false,
+    "stock_source_used_only_for_candidate_concepts": true
+  },
+  "identities": {
+    "convert": {
+      "method": 369050,
+      "rva": "0x34dff30"
+    },
+    "update_team": {
+      "method": 368942,
+      "rva": "0x343d8b0"
+    },
+    "register": {
+      "method": 368940,
+      "rva": "0x39d2b10"
+    },
+    "runtime": {
+      "method": 368947,
+      "rva": "0x32b2f20"
+    },
+    "intersect": {
+      "method": 368950,
+      "rva": "0x32b2ed0"
+    }
+  },
+  "static_review": {
+    "input_anchors": 44,
+    "dispatch_exact_pe_spans": 46,
+    "dispatch_instruction_assertions": 64,
+    "restricted_leaf_entry_checks": 2,
+    "generic_helpers_reparsed": 4,
+    "field_layouts_reparsed": 4,
+    "full_cfg_automatically_certified": false,
+    "AlwaysTeamUpdate_full_cfg_certified": false
+  },
+  "selected_character_scope": {
+    "groups": 11,
+    "saved_points": 164,
+    "all_BoneCloth": true,
+    "saved_self_and_sync_modes": 0,
+    "conditional_routing_result": "bits32..49 disabled, regardless of unknown real edge/triangle counts",
+    "conditions": [
+      "live SerializeData/parameterArray preserve the saved snapshot after Convert",
+      "closed selected roster or no eligible external incoming parent with syncMode==2",
+      "valid registration/list state and UpdateTeam reaches the predicate block"
+    ],
+    "synthetic_topology_probes": 44,
+    "external_parent_counterexamples": 11,
+    "fresh_isolated_zero_counters_are_explicit_scenario_not_runtime_capture": true,
+    "runtime_parent_graph_observed": false,
+    "global_zero_counts_proved_from_saved_modes": false,
+    "official_config_modified": false
+  },
+  "tests": {
+    "initial_red": "module missing: one collection error",
+    "specialty_passed": 68,
+    "full_passed": 3806,
+    "full_subtests_passed": 114,
+    "full_skipped": 3,
+    "full_warnings": 2,
+    "old_skips_warnings_preserved": true,
+    "quality": [
+      "ruff",
+      "black --check",
+      "pyright",
+      "compileall"
+    ],
+    "coverage_statements": 117,
+    "coverage_branches": 36,
+    "coverage_percent": 100,
+    "independent_public_tests_passed": 68,
+    "independent_private_tests_passed": 250,
+    "pip_audit": {
+      "actual_temporary_tool_site_packages": 48,
+      "known_vulnerabilities": 0,
+      "whole_project_security_review": false
+    }
+  },
+  "independent_reviews": {
+    "input_gates_and_saved_scope": true,
+    "dispatch_chunks_and_counters": true,
+    "final_public_implementation": true,
+    "blocking_findings": []
+  },
+  "protection": {
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+    "protected_runtime_files": 7,
+    "isolated_index_exact_allowlist_commit_tree_cas_nonforce_push": true,
+    "post_push_guard_path": "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-21-selfcollision-post-push.json"
+  },
+  "non_claims": [
+    "native allocator or InitPrimitive execution",
+    "actual topology and Team/parent graph production",
+    "native faults or partial concurrent publication",
+    "tail-loop completion or automatic cycle handling",
+    "active SelfCollision solver mathematics",
+    "live Burst or global counters",
+    "Unity integration or MMD dynamic acceptance"
+  ],
+  "implementation_sha256": {
+    "Tools/official_physics_selfcollision_routes.py": "517041dfc351adbec3fe8d93be58e397494dd1d9482cf52c986ee7d18cd7a630",
+    "Tools/tests/test_official_physics_selfcollision_routes.py": "ec8c5b8ad39aa561286cd95c846b7b3a1ee8a526dc3308d47fd5cc56d0546f8a"
+  },
+  "evidence_sha256": {
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\run-checks.py": "c841d8410f2b64afe6739d47d9fc93470eadc3efc973581375b98717075c26f8",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\checks-01.json": "17199e274fbb1ffd3c65c89975c71c017772eda1ab5123781962fbbe387a4fc7",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\checks-02.json": "435094ba67953e07497fe094365217f9c5741b2956b9969cd4d26df1c8ed87bd",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\red-01.xml": "2b7b1ab19674ab7299d08a4a7484314b029cd262254f8841a0b7cf68c87ef4ed",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\green-03.xml": "be69f4c42628a49845339ce2b1dd47a741304365b297b236cf52e981c3e79d75",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\full-suite-02.xml": "8e40a42fed5e16f388af6d2037fd439956af96baec8a61c3255311e233ca609f",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\coverage-03.json": "4289ff4fb5c74e9762de1914e5dd7c888bf007c34b5c78ec6bc5b6c450987a05",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\pip-audit-01.json": "e9d86178ed6e7c3545b768ceb0640a575c2f8f4ae1b124959532bb2fa65e3594",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\verify-saved-routing.py": "3455764c0f2c210dc9ce578b6f66032a92d2859f572333e3c4c75725dc5a6698",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\saved-routing-01.json": "aa127e399ddd3587aa506d54a70c49bb7bd762af9938e85c3fc51a0d0f55c35a",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\replay-inputs.py": "67ec38777842d6debbeff2216e46a3b85c34156aaf622cf351c2505fb9ed0898",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-replay-01.json": "bb2d904e5c2926032215e50d73e62edea2d74f205b7e53e411b63d75ac1e82ff",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\audit_inputs.py": "7873cdd548092e9e199c10fdaf127017c9746861e225c036cacc2b996a2e21b4",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\inventory.json": "dc443c9616f9b1b46a2948f031f7ecd6d8d5b04c05f2fd5408b3d4c29e432d80",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\team-flag-constants.json": "8d826926127d98bb823e6ffe568d98214ea19d382756b8158d27131cd0175fbd",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\extract-343d8b0-34dff30-34e05e0-38e1eb0-39d2b10.json": "f0808c9fa6da41e4f6330eb6c46263e7539aa8c79acf9a4487b97f291b76a6da",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\extract-343eb40-343ee30-34df500.json": "55b1e602681a92535cb6191e6868e9cda1ecc8031362eb3cc399070f554b63c4",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\leaf-38e30f0.json": "ff699484c0f80b76f3b706c8a9dc29b03d9b26fcb01490bddfc9bd9b4b59cbe7",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\SOURCE-CERTIFICATE-01.json": "5b0bedfaa8e63c9fb32775d6d8561a908fd4ab91abc1795c65227dead6a73148",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\input-review\\REPORT-01.md": "e546d74fe6d31d33a694b14394905f924ffac0eb1c0ef561f79610f1ce1f55ee",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\audit_dispatch.py": "404c634a4ac2bedf054b58208a4955b0a58a98129f47c97e7871cb18149d6803",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\certify_dispatch.py": "9b1395102a8eb2cfb5f60167f95255cd4178d8bd4c2d1de69b1d2c2eb830fc82",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\initial-01.json": "5b5d2c2583147e1fe477dc328e7d20cb5ac268cebe849c203d94980455b8be49",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\callers-01.json": "16ebba47d55d1e8c7d927f6658f1bd4462547d9bdb0477008775ba96d046703b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\buffers-01.json": "a1abee3190ad03b070334dd84b03b9763486e16556f883d6fc99902e6cae6a7c",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\helpers-01.json": "94225ce08d7ba76b10d63e8eb402119118f6a2165d45815fa712a03ca4bf733b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\certificate-04.json": "9065ebe1848984b1f2ca656b1fdeb966088a2309af168649ca89f06ae29f40cc",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\dispatch-review\\REPORT-01.md": "f825d60752b875885d03f1785517fcf1a04645d75785d522cdee1e5c21ae5ae6",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\final-review\\report-02.md": "32ebe7e736b8f65742daa78a783df6dd7be3fbd55f335f29f64884d2e0a0b5aa",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\final-review\\result-02.json": "30ddb56c54dfd19fdd9a578ead4f9cae3ced7d64e2ad5dbce06afb993b9865a1",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\final-review\\test_independent_routes.py": "1b9dd6cc6f0ec7bcf39fada6edf4b755e2d2ab4fc1e60d81d173e94a8523db27",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\final-review\\test_conversion_order.py": "200acac91394b6c3fddb80237ad97c6c356e0efca756b3677db0f4dcd6a10d2c",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selfcollision-routing-20261011-01\\final-review\\verify_pins.py": "452a62ce6b722dc92b7fc673384e7c4095227c30cd7483ab75873f4589c0bf2b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-19-selfcollision-before.json": "a3f3f57474713613b2b351810f9b592a7ecd2f51525e9e3653687a9a8fa0a4cf",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-20-selfcollision-pre-push.json": "40354925323a46589c1ac7b8ff41cfc8dd3fc2bffafa35c58f09c0eef4b6d58a"
+  }
+}

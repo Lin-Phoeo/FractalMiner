@@ -41,6 +41,8 @@
 
 2026-10-11收尾[Motion活动范围/Backstop有限值参考](../official-physics-motion-20261010/README.md)：恢复当前global Kernel、实际non-Burst fallback、ordinary单槽交叉证据、signed Team/proxy/Move/IsMotion门禁、BoneSpring参数例外及串行range。初稿测试与实现共同错用Clamp epsilon/InvalidMotion bit，独立字节复核后先跑出4项RED，再改为Clamp拓宽1e-9f、Backstop拓宽1e-8f和bit8。保留原depth求radius、Single平方depth求Motion曲线、Single旋转与球心偏移后拓宽、Double几何/直接除法、未饱和stiffness与拓宽.95f速度反馈，并完成Start→Motion→End→下一Start组合。官方11组maxDistance均关，仅短刘海一组开Backstop；不以效果增强为由修改配置。74项专项与完整回归通过，仍未接入Unity候选后端。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是SelfCollision路由/启用条件与真实topology/work-list、list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-11随后核查并实现[SelfCollision路由与缓冲更新计划](../official-physics-selfcollision-routing-20261011/README.md)：原参数Convert、Self/Sync/PSync门禁、位32–49、signed chunk有效性、保留/分配/释放计划、全局计数Int32变迁和同步目标尾循环请求已有离线参考。两路独立原字节审计与实现审查交叉验证，68项专项与完整回归通过。11组保存模式均为0，在参数未覆盖、独立角色且无外部启用同步父组的明确前提下，可按原规则关闭该链，不必为当前角色先完成全部active SelfCollision数学。外部父组仍可激活mode0接收组；旧chunk/其他角色的全局计数不能默认为0。真实父组图/运行状态未观测，native allocator、active数学和Unity仍未接入。
+
+后续集中补真实topology/work-list、list/proxy/Team与骨骼发布，第1–3项按独立11组候选链需求补齐，不继续扩张当前关闭的SelfCollision数学。接入时必须显式核查动态参数/外部同步前提；若启用未实现分支应阻止候选运行，不能静默no-op。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。
