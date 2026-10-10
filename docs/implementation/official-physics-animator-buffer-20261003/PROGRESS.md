@@ -37,6 +37,8 @@
 
 2026-10-10继续完成[Angle完整有限值消费](../official-physics-angle-pass-20261010/README.md)：补齐packed unsigned高16 Team/全局低16 baseline、独立particle/proxy窗口、缓存初始化、Move-only门禁及整条baseline三轮完成后再进入下一条的串行range。独立原字节审查发现普通Job确有两处managed不能替代的精度边界：limit后FromTo目标收窄Single；restoration的delta、旋转与三次pivot向量乘法为Single，而目标减当前值、摩擦、位置/速度反馈仍Double。保留默认managed并显式分流，不宣称两条路或实际Burst等价。164项专项与Start→Tether→Angle→End→下一Start组合通过；完整3585项回归通过，独立数学/索引审阅均通过。原native struct读取、真实列表生产、并行调度及Unity动态仍未验收。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是Bending/Motion/SelfCollision等剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-10继续完成[TriangleBending两阶段有限值参考](../official-physics-bending-20261010/README.md)：恢复high12 Team/low20全局pair、四顶点/四写槽打包、Volume与两种Dihedral选择、Double几何/Single stiffness与写缓冲边界，以及独立aggregate按原Single顺序平均后拓宽写回Double位置。静态复核实际non-Burst fallback与注册managed只剩初始化flag地址差异，并交叉检查本地MagicaCloth2 2.17.1高层公式；后者不是当前游戏源码，实际Burst/并发/列表生产不据此宣称。官方11组保存配置的bending stiffness均为1.0，但真实topology/work-list、Team/proxy/native发布及Unity动态仍未闭合。本轮没有新可见效果。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是Motion/SelfCollision与真实topology/work-list、list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。

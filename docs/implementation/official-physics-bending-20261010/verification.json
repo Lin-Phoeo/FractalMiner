@@ -1,0 +1,169 @@
+{
+  "date": "2026-10-10",
+  "scope": "Current-version TriangleBending finite work and aggregate references",
+  "status": "offline_reference_verified_unity_candidate_not_integrated",
+  "record_ref": "refs/heads/fix/typhoeus-render-explosion-20260917",
+  "record_parent": "644ffdc4371c2fa77fbc6566180db58ef86adf12",
+  "sources": {
+    "GameAssembly_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "static_only": true,
+    "original_runtime_executed": false,
+    "cross_reference": {
+      "identity": "local MagicaCloth2 2.17.1 TriangleBendingConstraint.cs",
+      "path": "_EndfieldRefs/ZMD/Assets/Plugin/MagicaCloth2/Scripts/Core/Cloth/Constraints/TriangleBendingConstraint.cs",
+      "sha256": "87ba7a6898403581e6bf974fc021dd7710532c218325229da1d4cb41f9a3c701",
+      "cross_reference_only": true,
+      "not_assumed_binary_identical": true
+    }
+  },
+  "entry_identities": {
+    "work_wrapper": {"method": 369210, "rva": "0x5a13864"},
+    "work_range_wrapper": {"method": 369211, "rva": "0x5a1396c"},
+    "volume_managed": {"method": 369212, "rva": "0x5a13a78"},
+    "dihedral_managed": {"method": 369213, "rva": "0x5a127d0"},
+    "work_registered_managed": {"method": 369214, "rva": "0x5a13208"},
+    "work_range_registered_managed": {"method": 369215, "rva": "0x5a068f8"},
+    "work_actual_non_burst_fallback": {"rva": "0x5a0629c", "instructions": 374},
+    "work_ordinary_serial": {"method": 369267, "rva": "0x5a246ec"},
+    "work_ordinary_index": {"method": 369268, "rva": "0x5a24098"},
+    "volume_ordinary": {"method": 369269, "rva": "0x5a24920"},
+    "dihedral_ordinary": {"method": 369270, "rva": "0x5a23660"},
+    "aggregate_wrapper": {"method": 369236, "rva": "0x5a0c28c"},
+    "aggregate_range_wrapper": {"method": 369237, "rva": "0x5a0c3d8"},
+    "aggregate_registered_managed": {"method": 369238, "rva": "0x5a0bf0c"},
+    "aggregate_range_registered_managed": {"method": 369239, "rva": "0x5a0c334"},
+    "aggregate_actual_non_burst_fallback": {"rva": "0x5a047a4", "instructions": 216},
+    "aggregate_ordinary_serial": {"method": 369273, "rva": "0x5a205b8"},
+    "aggregate_ordinary_index": {"method": 369274, "rva": "0x5a20614"},
+    "parameters_convert": {"method": 369263, "rva": "0x34e1b30"}
+  },
+  "source_replay": {
+    "certified_methods": 17,
+    "certified_constants": 9,
+    "official_saved_groups": 11,
+    "official_saved_points": 164,
+    "all_official_serialized_stiffness_one": true,
+    "managed_actual_clone_comparison": {
+      "work_instruction_counts": [374, 374],
+      "work_normalized_differences": 2,
+      "aggregate_instruction_counts": [216, 216],
+      "aggregate_normalized_differences": 2,
+      "difference_identity": "distinct static initialization flag addresses"
+    },
+    "ordinary_managed_helper_call_and_branch_signatures_match": true,
+    "ordinary_managed_selection_branch_signatures_match": true,
+    "actual_burst_pointer_observed": false,
+    "automatic_whole_algorithm_equivalence_proved": false
+  },
+  "tests": {
+    "initial_red": "new modules missing, then negative signed Team accepted before the checked-adapter fix",
+    "specialty_passed": 63,
+    "adjacent_constraints_passed": 330,
+    "full_passed": 3664,
+    "full_subtests_passed": 114,
+    "full_skipped": 3,
+    "full_warnings": 2,
+    "skip_warning_status": "three historical skips and two historical Pillow deprecation warnings",
+    "canonical_full_entry": "Tools/tests plus docs/render-baseline/v2/tools/tests with pytest-subtests, Pillow, NumPy and Capstone",
+    "bare_repo_root_pytest_is_not_canonical": "it imports Tools/test_vb_access.py, which intentionally exits unless hosted by qrenderdoc",
+    "quality_checks": [
+      "ruff check",
+      "black --check",
+      "pyright",
+      "compileall"
+    ],
+    "coverage": {
+      "reference_modules": 2,
+      "statements": 367,
+      "missed_statements": 16,
+      "branches": 92,
+      "partial_branches": 14,
+      "percent_covered": 93
+    },
+    "pip_audit": {
+      "packages": 37,
+      "known_vulnerabilities": 0,
+      "scope": "temporary Python tool environment only"
+    }
+  },
+  "independent_reviews": {
+    "code_semantics": "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/independent-code-review-01.md",
+    "blocking_findings": 0,
+    "nonblocking_findings_disposed": 4,
+    "documentation_boundary_review": true,
+    "isolated_record_workflow_review": true,
+    "root_reran_source_certificate_and_full_suite": true
+  },
+  "protected_state": {
+    "guard_before": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-13-bending-before.json",
+    "guard_pre_push": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-14-bending-pre-push.json",
+    "runtime_files_unchanged": 7,
+    "saved_groups": 11,
+    "saved_points": 164,
+    "main_head_unchanged": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256_unchanged": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "main_index_entries_unchanged": 9557,
+    "main_staged_entry_ids_and_flags_unchanged": true,
+    "stage_sha256_unchanged": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  },
+  "verified_contracts": [
+    "unsigned high12 Team and global low20 pair; four high-to-low UInt16 vertices",
+    "four high-to-low UInt8 private offsets and high12 count/low20 base write index",
+    "method-zero and stiffness threshold gates before pair buffers; Single multiply then saturate",
+    "Volume marker dispatch before method switch; method1 undirected and method2 directional Dihedral",
+    "Double geometry with direct component divsd and final float3 private writes",
+    "aggregate pair-count then Move-bit gates, ordered Single sum/divide and widened double3 add",
+    "write buffer is not cleared by aggregate",
+    "negative Team, malformed indices and non-finite values are checked adapter errors, not native behavior claims"
+  ],
+  "adapter_policy": {
+    "finite_and_bounds_checked": true,
+    "negative_signed_team_rejected": true,
+    "undirected_zero_orientation_rejected_before_native_division": true,
+    "native_invalid_memory_or_nan_behavior_emulated": false,
+    "aggregate_single_division_bitwise_equivalent_proved": false
+  },
+  "non_claims": {
+    "actual_burst_pointer_observed": false,
+    "automatic_cfg_or_algorithm_equivalence_proved": false,
+    "crt_or_burst_bitwise_math_equivalence_proved": false,
+    "actual_concurrent_job_order_proved": false,
+    "topology_or_work_list_producer_complete": false,
+    "real_character_list_team_proxy_production_complete": false,
+    "native_array_lifecycle_complete": false,
+    "unity_backend_integrated": false,
+    "unity_dynamic_mmd_or_official_animation_validated": false,
+    "rendering_or_visual_effect_changed": false,
+    "complete_official_physics": false
+  },
+  "remaining": [
+    "Motion and SelfCollision finite references",
+    "real TriangleBending topology/work-list and list/proxy/Team/native-array publication",
+    "reversible C# candidate backend, actual eleven-group binding and reset/pause/seek testing under MMD and official animation"
+  ],
+  "evidence_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/official_physics_bending.py": "c1ca7ffc643c9efb9fc0f916e02f5cf21ed52de928c9c75203725b61aa685f4b",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/official_physics_bending_pass.py": "eba6feded8ea9c97c18e44c51a3c97d9597db363c1d3cd17e9118f48861aec80",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/tests/test_official_physics_bending.py": "ff5154bdc64a55535a0830be3a15fd78967b689360c907205adf24a24f78c9e3",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/tests/test_official_physics_bending_pass.py": "d5304b8657270f55eec1e1fa073f77f322f11dc5c26bd7a0f6437075db1d0df6",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/docs/implementation/official-physics-bending-20261010/README.md": "428d6d1b6ee40b4e1463d7fef61bd7aa7be976e883128de01dbdfb3a13a193ce",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "1b78ee5fed2abdd32711c90c0c01875ab06c09f76a9b9f4a4312e3198d8e31ea",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/root-audit.py": "07c42822051c3802bcf13ab142a8dfb47bf30b236a0a9b3c9c3f268c91b57bf5",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/decode-constants.py": "865206dec4396a779fcc0f8b8707018484a98ddcd239c8b95e7257ff0501f9d4",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/compare-clones.py": "5bf51833256b00aa4578e51700950d77814ffbec206cd0258bcb4a8891e2f64e",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/certify-source.py": "dffc2528e16455e00c2a94528d7591ee54af7fb591823b339477d1fa205a5a30",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/source-02.json": "a4c26de6d7be1230d7928a572d9b814930635dd1f3a06ec298fcd3c7b49cb10b",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/source-03.json": "b70e2785f6944d8e45a44d8a8b5b6d67a115d3494c5e43f06f90ec9931f3991d",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/source-04.json": "c1c471e144f7f0c908d3eccb11b008fd8d8fb4d5ca26f24e93c596b44d31f703",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/clone-comparison-01.json": "0fb097ae402d0d8682974470eb14d5d9e353a4e7124031ecf3a7eaa1ca244793",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/source-certificate-01.json": "edeff5f78f218815350d91e52673956146d46295822d170d53b1dbbabc019a76",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/independent-code-review-01.md": "d1694c152fc697eafe3405395a3b73f8936d93cf3bde1ec30c6fcb4d4f4f3aac",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/specialty-01.xml": "ddb8b2549811f60b04af6685d456f0c30123ea60b23950900a9f35240ed94dd0",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/full-suite-01.xml": "d559954882e15a126d0766634b737fad23a755e0a11f2408735ec74b664b9416",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/coverage-02.json": "7bc8f6c707ff31591d01496d6f4e0c4d60416a732b7296b52da8fd2adc980bc7",
+    "D:/EndfieldTechLib/notes/official-physics-bending-20261010-01/pip-audit-01.json": "c0caa2e687eeea1dbba93d86a810e695776d76e9ce74715525dc215199a4f903",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-13-bending-before.json": "63f1bcb2045e76caefdcd78928fcf049f0d489219e11fe7a1bf75608d688f7a1",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-14-bending-pre-push.json": "a716bbfed2c788e1ade3eb819a2d4534b7d646f81d9d3c19ea45bac04f51b5c5"
+  }
+}
