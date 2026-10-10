@@ -1,6 +1,6 @@
 # 当前物理交付缺口：不以测试数量代替完成进度
 
-初版 2026-10-03，当前状态更新至 2026-10-10。本表限定官方物理接入主线，不重新宣称渲染/MMD的历史验收状态。现有预览物理继续可用；**完整官方候选后端没有接入Unity，也没有动态通过验收**。因此不是只剩若干参数微调，无法给可靠的完工百分比或会话数量。
+初版 2026-10-03，当前状态更新至 2026-10-11。本表限定官方物理接入主线，不重新宣称渲染/MMD的历史验收状态。现有预览物理继续可用；**完整官方候选后端没有接入Unity，也没有动态通过验收**。因此不是只剩若干参数微调，无法给可靠的完工百分比或会话数量。
 
 ## 已有基础
 
@@ -39,6 +39,8 @@
 
 2026-10-10继续完成[TriangleBending两阶段有限值参考](../official-physics-bending-20261010/README.md)：恢复high12 Team/low20全局pair、四顶点/四写槽打包、Volume与两种Dihedral选择、Double几何/Single stiffness与写缓冲边界，以及独立aggregate按原Single顺序平均后拓宽写回Double位置。静态复核实际non-Burst fallback与注册managed只剩初始化flag地址差异，并交叉检查本地MagicaCloth2 2.17.1高层公式；后者不是当前游戏源码，实际Burst/并发/列表生产不据此宣称。官方11组保存配置的bending stiffness均为1.0，但真实topology/work-list、Team/proxy/native发布及Unity动态仍未闭合。本轮没有新可见效果。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是Motion/SelfCollision与真实topology/work-list、list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-11收尾[Motion活动范围/Backstop有限值参考](../official-physics-motion-20261010/README.md)：恢复当前global Kernel、实际non-Burst fallback、ordinary单槽交叉证据、signed Team/proxy/Move/IsMotion门禁、BoneSpring参数例外及串行range。初稿测试与实现共同错用Clamp epsilon/InvalidMotion bit，独立字节复核后先跑出4项RED，再改为Clamp拓宽1e-9f、Backstop拓宽1e-8f和bit8。保留原depth求radius、Single平方depth求Motion曲线、Single旋转与球心偏移后拓宽、Double几何/直接除法、未饱和stiffness与拓宽.95f速度反馈，并完成Start→Motion→End→下一Start组合。官方11组maxDistance均关，仅短刘海一组开Backstop；不以效果增强为由修改配置。74项专项与完整回归通过，仍未接入Unity候选后端。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是SelfCollision路由/启用条件与真实topology/work-list、list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。

@@ -1,0 +1,250 @@
+{
+  "date": "2026-10-11",
+  "unit_started": "2026-10-10",
+  "scope": "Current-version Motion max-distance and Backstop finite value/slot/serial-range reference",
+  "status": "offline_reference_verified_unity_candidate_not_integrated",
+  "record_ref": "refs/heads/fix/typhoeus-render-explosion-20260917",
+  "record_parent": "d50a0634b6cbfce29118a8e226e0ff97b7a8cda8",
+  "sources": {
+    "GameAssembly_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "static_only": true,
+    "original_runtime_executed": false,
+    "reference_MagicaCloth2_2_17_1_MotionConstraint_sha256": "be2c07d73c80384db1b729fd4e5ae4583c72b0766baec1e27f1d28eedf3aa835",
+    "reference_source_is_not_assumed_binary_identical": true
+  },
+  "entry_identities": {
+    "registered_managed": {
+      "method": 368895,
+      "rva": "0x59f2464"
+    },
+    "actual_non_burst_fallback": {
+      "rva": "0x59e8c0c",
+      "bytes": 2329,
+      "instructions": 523
+    },
+    "managed_range": {
+      "method": 368896,
+      "rva": "0x59e9528"
+    },
+    "ordinary_index": {
+      "method": 368926,
+      "rva": "0x59f2f54"
+    },
+    "ordinary_serial": {
+      "method": 368925,
+      "rva": "0x59f385c"
+    },
+    "unsafe_do": {
+      "method": 368927,
+      "rva": "0x59f38bc"
+    },
+    "parameters_convert": {
+      "method": 368923,
+      "rva": "0x34e0970",
+      "cold_true": "0x4db75fc",
+      "cold_rejoin": "0x34e09ad"
+    },
+    "move_helper": {
+      "rva": "0x37e95c0",
+      "mask": 2
+    },
+    "motion_helper": {
+      "rva": "0x59ea5bc",
+      "invalid_mask": 8
+    },
+    "double_clamp": {
+      "rva": "0x59e7e70",
+      "epsilon": 9.999999717180685e-10
+    },
+    "double_lerp": {
+      "rva": "0x59eac0c"
+    }
+  },
+  "source_replay": {
+    "certified_methods": 11,
+    "checked_exact_pe_spans": 25,
+    "certified_constants": [
+      {
+        "site": "0x59f2887",
+        "data_rva": "0xa8c2cc8",
+        "width": 4,
+        "raw": "17b7d138",
+        "value": 0.00009999999747378752
+      },
+      {
+        "site": "0x59f289c",
+        "data_rva": "0xa8c2ce8",
+        "width": 4,
+        "raw": "0000803f",
+        "value": 1
+      },
+      {
+        "site": "0x59f2b58",
+        "data_rva": "0xc9d3d10",
+        "width": 8,
+        "raw": "000000e08e79453e",
+        "value": 9.99999993922529e-9
+      },
+      {
+        "site": "0x59f2c9f",
+        "data_rva": "0xc9d3fb8",
+        "width": 8,
+        "raw": "000000606666ee3f",
+        "value": 0.949999988079071
+      },
+      {
+        "site": "0x59e7eb5",
+        "data_rva": "0xc9d3cf0",
+        "width": 8,
+        "raw": "000000e00b2e113e",
+        "value": 9.999999717180685e-10
+      }
+    ],
+    "normalized_clone_difference_count": 2,
+    "clone_differences": "static initialization flag cells only",
+    "ordinary_managed_call_and_branch_signatures_match": true,
+    "actual_burst_pointer_observed": false,
+    "automatic_whole_algorithm_equivalence_proved": false,
+    "linear_leaf_helper_bounds": "separately labelled first-ret straight-line spans, not exact PE unwind spans"
+  },
+  "tests": {
+    "initial_red": "new module missing",
+    "semantic_red": {
+      "failed": 4,
+      "passed": 68,
+      "cause": "merged epsilon and invalid-motion bit16"
+    },
+    "specialty_passed": 74,
+    "full_passed": 3738,
+    "full_subtests_passed": 114,
+    "full_skipped": 3,
+    "full_warnings": 2,
+    "historical_skip_warning_status": "three existing skips and two Pillow deprecation warnings",
+    "canonical_full_entry": "Tools/tests and docs/render-baseline/v2/tools/tests with pytest-subtests/Pillow/NumPy/Capstone",
+    "quality_checks": [
+      "ruff",
+      "black --check",
+      "pyright",
+      "compileall"
+    ],
+    "coverage": {
+      "reference_modules": 1,
+      "statements": 151,
+      "missed_statements": 1,
+      "branches": 38,
+      "partial_branches": 1,
+      "percent_covered": 98.94179894179894,
+      "rounded_percent": 99
+    },
+    "pip_audit": {
+      "packages": 48,
+      "known_vulnerabilities": 0,
+      "scope": "actual temporary Python tool site only",
+      "accepted_report": "pip-audit-03.json",
+      "zero_package_attempts_01_02_not_accepted_as_evidence": true
+    },
+    "combined_chain": "Start -> Motion -> End -> following Start over finite resolved inputs"
+  },
+  "independent_reviews": {
+    "selection_layout_config": "completed certificate and report",
+    "native_math": "constants/helpers/clone certificate replayed; original agent stopped before complete public-code final review",
+    "fixture_review": "completed findings and designs; later corrected private Team-copy statement",
+    "final_implementation": {
+      "completed": true,
+      "blocking_findings": 0,
+      "independent_specialty_passed": 74,
+      "scope": [
+        "separate widened Single 1e-9f and 1e-8f epsilon comparisons",
+        "raw depth radius evaluation and rounded Single depth square",
+        "Single axis/quaternion path and rounded Single center offset before widening",
+        "Double clamp ratio multiplication and Backstop three direct divisions",
+        "unsaturated widened Single stiffness and widened .95f velocity feedback",
+        "enable -> Team/proxy -> Move -> next/base/depth -> IsMotion gate order",
+        "Move bit2 and InvalidMotion bit8",
+        "serial signed-count range and repeated-selection write consumption",
+        "two buffer outputs and absence of invented friction/collisionNormal writes"
+      ],
+      "full_suite_independently_run": false,
+      "limitations": [
+        {
+          "kind": "corrected_private_document",
+          "detail": "Initial fixture-design B paragraph put TeamData copy before enable flags. Main corrected it; reviewer reread corrected B/D. Source-04 and selection-review show TeamData first dereference after the flags gate."
+        },
+        {
+          "kind": "test_independence_limit",
+          "detail": "Nonunit quaternion fixture uses production rotate_single for its expected direction. Independent exact half-turn geometry fixture exists; no implementation defect was found."
+        }
+      ]
+    }
+  },
+  "official_saved_config": {
+    "groups": 11,
+    "points": 164,
+    "all_max_distance_off": true,
+    "backstop_enabled_groups": [
+      "MBC_Typhoea_Hair_Front_Bangs_Short"
+    ],
+    "enabled_saved_move_motion_candidates": 5,
+    "candidate_count_is_not_runtime_work_list_proof": true,
+    "all_normal_axis_up": true,
+    "all_backstop_radius": 10,
+    "all_backstop_distance": 0,
+    "all_stiffness": 1,
+    "serialized_parameters_modified": false
+  },
+  "protection": {
+    "official_groups": 11,
+    "official_saved_points": 164,
+    "runtime_files_unchanged": 7,
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_entries": 9557,
+    "main_index_sha256": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+    "post_push_report": "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-18-motion-post-push.json",
+    "isolated_index_exact_allowlist_commit_tree_cas_and_non_force_push": true
+  },
+  "non_claims": [
+    "real topology/work-list/Team/proxy production",
+    "native worker/race/Burst equivalence",
+    "illegal pointer/alias/nonfinite behavior",
+    "CRT or Burst bitwise agreement",
+    "C# candidate backend integration",
+    "Unity/MMD/unpacked-animation dynamic acceptance"
+  ],
+  "implementation_sha256": {
+    "Tools/official_physics_motion.py": "bb32b5db043aa66d064597305d5b675db48cb69617686a421075c609783f6f79",
+    "Tools/tests/test_official_physics_motion.py": "521932754734ba2a8407b8dc7252d6977b0e81dbc8e6813168dc550a002feaa1"
+  },
+  "evidence_sha256": {
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\root-audit.py": "ad95b75ebe45abd4a04c241f45eaff74258fcadcc12e8cad29581526b99663be",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\certify-source.py": "d737de8d264509525e565c27fd0a732321377df1156564a227f40cde1f2aeb6c",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-02.json": "a22a465146cc4285a447148b0dbd069470791fde1e5adee79d83f365b0193108",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-03.json": "051e1f6641c34ec0791fdeb06438a2ba34207a00604e9f280f6ad7b28f69977f",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-04.json": "443c0c1cc6165c8f3b6956827acb7e09e6a276bbb55d3486d651a7e566a2a56f",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-05.json": "fe1a803e64de42ca56b286c1bda0aac8d3908b4456ca3e019a42d0fd076a88ea",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-06.json": "f72418373098cfb0ea6de10f1f5f8f0c9ca23f9339dcc720ddb557346b66d55d",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-certificate-01.json": "31fc4c1c7801e2d48bf1886cc974107368566dafa0207baac06372d89ef96695",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\source-certificate-02.json": "31fc4c1c7801e2d48bf1886cc974107368566dafa0207baac06372d89ef96695",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\red-01.xml": "68c2db0a1b1b01827d2f4fe0241caf4049e85f148060f0603570f50c11c54d0a",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\red-boundaries-01.xml": "0079aa25ad3d99427c1b87a8456c715b4c119ca4704adc5f1457892efc8f5c5b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\green-06.xml": "21e9ad5a37e9c4b639207a80f2b5026c81edf74ba145deb87e0c3c95d513dfab",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\full-suite-03.xml": "9a5a13608aec051bf457b10c83adccc9b8cb12a58997a558693c5c563d7d8af5",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\coverage-05.json": "6e45eb0c887393601c7f0606a6e7e75757609dd20246e78a49c126e324bf7535",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\checks-01.json": "3f582d6645c1b89b9a06cc48221df6a80abdc3ad6373f2164ff224cfa7b04844",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\run-checks.py": "5414dc8e8b5d8ea4232cd35be47dffbda7e3372906c0fc30a03fdd7756c71a0b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\pip-audit-03.json": "28e3a8026778b7ceaa0c61cf887c08e852ede8fa60fbb41bf8524ebb742ab4f2",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\math-review\\certify_motion.py": "f90d4315b97a49459723bae728260b4430b7198664373cc338bad2623026a868",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\math-review\\certificate-summary-01.json": "caf2a1752c98ab4c4a8a2165690549d999749b1dc6f1462fafff496cc32a8aa9",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\selection-review\\extraction-02.json": "97f7e3c8dead5b61ee79a001593448866b9d20113843c4c13e5a589adf635159",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\selection-review\\clone-comparison-01.json": "4a69c95e0ce4f29a79ca6fe1ff4c946c680b078c19865d050137fe94959679e6",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\selection-review\\certify_selection.py": "18a9352dd97d51089a28d13e6a84038c5a28f1516fb0dfdc6dff042104626d1e",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\selection-review\\selection-certificate-01.json": "a774331a22f115cd8197f524546c70753909bed9f70ed7eed9c12e699b74c911",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\selection-review\\REPORT-01.md": "08a69f76007c0296525ae22398431abe01daef9907c6fbcb76d4ada2a03853ee",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\test-review\\fixture-design.md": "9feeef587e1becb6ba40a0ee573496e4584297de75e94df3a9d16e03ad9748f4",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\final-review\\REPORT-01.md": "f8970bd56493b3ac9698322277310b3cdf16327a0e48f1aa597921d8b0782401",
+    "D:\\EndfieldTechLib\\notes\\official-physics-motion-20261010-01\\final-review\\result-01.json": "3a0d48dac7a1a02cf080298e5985b446a8ec2a7deaeaca4f7406455bade1906e",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-16-motion-before.json": "fae6996d33f3d972f0d54e7e295ea5b8e57bded008638427ed1cd966fcfc3005",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-17-motion-pre-push.json": "1f081e833257e080f2da62050358af75e5d521cfc91516c7d417afdcb8479f1b"
+  }
+}
