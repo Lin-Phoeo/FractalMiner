@@ -1,6 +1,8 @@
 """Offline angle arithmetic recovered from the managed fallback, not a solver.
 
-Trace: docs/implementation/official-physics-angles-20261002. Positions are
+Trace: docs/implementation/official-physics-angles-20261002 and angle-pass-20261010.
+Default pair functions retain managed math; restoration_job_pair deliberately
+uses the separately recovered ordinary Job float3 geometry seam. Positions are
 Double; quaternion/curve boundaries round to Single. Python libm is a mathematical
 reference, NOT bitwise equivalence to the game's CRT or dispatched Burst code.
 Pair APIs require an already eligible movable child and resolved world vectors.
@@ -197,6 +199,7 @@ def _correct_pair(
     parent_friction: float,
     parent_movable: bool,
     attenuation: float,
+    single_geometry: bool = False,
 ) -> PairResult:
     if type(parent_movable) is not bool:
         raise ValueError("Adapter parent_movable must be bool")
@@ -205,9 +208,16 @@ def _correct_pair(
         friction_weight(parent_friction),
     )
     attenuation = _single(attenuation)
-    middle = _add(parent, _scale(_sub(child, parent), pivot))
-    child_target = _add(middle, _scale(desired, complement))
-    parent_target = _sub(middle, _scale(desired, pivot))
+    if single_geometry:
+        # Job368722: float3 products round before widening and Double targets.
+        delta = _float3(_sub(child, parent))
+        middle = _add(parent, _float3(_scale(delta, pivot)))
+        child_target = _add(middle, _float3(_scale(desired, complement)))
+        parent_target = _sub(middle, _float3(_scale(desired, pivot)))
+    else:
+        middle = _add(parent, _scale(_sub(child, parent), pivot))
+        child_target = _add(middle, _scale(desired, complement))
+        parent_target = _sub(middle, _scale(desired, pivot))
     child_correction = _scale(_sub(child_target, child), child_weight)
     parent_correction: Vector3 = (
         _scale(_sub(parent_target, parent), parent_weight)
@@ -268,6 +278,61 @@ def restoration_pair(
         parent_friction=parent_friction,
         parent_movable=parent_movable,
         attenuation=velocity_attenuation,
+    )
+
+
+def restoration_job_pair(
+    child_position: Vector3,
+    parent_position: Vector3,
+    child_velocity: Vector3,
+    parent_velocity: Vector3,
+    restoration_world_vector: Vector3,
+    *,
+    converted_stiffness_curve: Sequence[float],
+    depth: float,
+    power_w: float,
+    gravity_falloff: float,
+    gravity_dot: float,
+    iteration: int,
+    child_friction: float,
+    parent_friction: float,
+    parent_movable: bool,
+    velocity_attenuation: float,
+) -> PairResult:
+    """Ordinary Job368722: narrow delta, float3 rotate/products, Double writes.
+
+    Not a replacement for managed restoration_pair. Even strength0 retains
+    Single geometry operations; no early exit or guessed Double bridge.
+    The local import avoids the cache/angles module dependency cycle.
+    """
+    from official_physics_angle_cache import rotate_single
+
+    child, parent, child_v, parent_v = map(
+        _vector, (child_position, parent_position, child_velocity, parent_velocity)
+    )
+    delta = _float3(_sub(child, parent))
+    fraction = restoration_strength(
+        converted_stiffness_curve,
+        depth,
+        power_w=power_w,
+        gravity_falloff=gravity_falloff,
+        gravity_dot=gravity_dot,
+    )
+    rotation = from_to_rotation(delta, _float3(restoration_world_vector), fraction)
+    pivot = iteration_pivot(iteration)
+    return _correct_pair(
+        child,
+        parent,
+        child_v,
+        parent_v,
+        rotate_single(rotation, delta),
+        pivot=pivot,
+        complement=_single(1 - pivot),
+        child_friction=child_friction,
+        parent_friction=parent_friction,
+        parent_movable=parent_movable,
+        attenuation=velocity_attenuation,
+        single_geometry=True,
     )
 
 

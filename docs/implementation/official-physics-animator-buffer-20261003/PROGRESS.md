@@ -35,6 +35,8 @@
 
 2026-10-10随后恢复[Tether约束](../official-physics-tether-20261010/README.md)：独立检查普通Job、注册managed与Invoke实际非Burst fallback，补齐Move-only门禁、signed Team、稀疏proxy/局部root索引、参数转换和managed串行range。参考长度取当前子步stepBasicPosition，恢复Single上下界与拓宽Single的0.3/0.7软修正/速度反馈，不改成硬限长；重复slot及先前修改root保持原串行消费。71项专项及Start→Tether→End→下一Start组合通过。本轮只有主代理人工复核和静态复放，没有独立代理语义审阅或Burst执行证明；真实输入生成、native数组发布及Unity动态仍未验收。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是Angle完整消费、Bending/Motion/SelfCollision等剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-10继续完成[Angle完整有限值消费](../official-physics-angle-pass-20261010/README.md)：补齐packed unsigned高16 Team/全局低16 baseline、独立particle/proxy窗口、缓存初始化、Move-only门禁及整条baseline三轮完成后再进入下一条的串行range。独立原字节审查发现普通Job确有两处managed不能替代的精度边界：limit后FromTo目标收窄Single；restoration的delta、旋转与三次pivot向量乘法为Single，而目标减当前值、摩擦、位置/速度反馈仍Double。保留默认managed并显式分流，不宣称两条路或实际Burst等价。164项专项与Start→Tether→Angle→End→下一Start组合通过；完整3585项回归通过，独立数学/索引审阅均通过。原native struct读取、真实列表生产、并行调度及Unity动态仍未验收。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是Bending/Motion/SelfCollision等剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。

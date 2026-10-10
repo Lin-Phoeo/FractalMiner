@@ -149,13 +149,18 @@ def limit_cached_edge(
     child_friction: float,
     parent_friction: float,
     parent_movable: bool,
+    ordinary_job: bool = False,
 ) -> CachedLimitResult:
     """Eligible child limit -> updated position difference -> child rotation.
 
+    Default is managed math. ordinary_job is an adapter numeric route selector,
+    not an official flag: Job368722 narrows the post-limit alignment target.
     Does NOT write shared arrays, initialize all-node rotation caches, perform
     restoration, or recursively update ancestors. Caller passes CURRENT parent
     rotation, not the original basic rotation. No quaternion renormalization.
     """
+    if type(ordinary_job) is not bool:
+        raise ValueError("Adapter ordinary_job selector must be bool")
     if (
         cache.local_direction is None
         or cache.local_rotation is None
@@ -178,6 +183,9 @@ def limit_cached_edge(
         parent_movable=parent_movable,
     )
     basic_product = multiply_quaternions(parent_rotation_cache, cache.local_rotation)
-    align = from_to_rotation(basis, _sub(pair.child_position, pair.parent_position), 1)
+    target = _sub(pair.child_position, pair.parent_position)
+    if ordinary_job:
+        target = _float3(target)
+    align = from_to_rotation(basis, target, 1)
     rotation = multiply_quaternions(align, basic_product)
     return CachedLimitResult(pair, rotation, basis)

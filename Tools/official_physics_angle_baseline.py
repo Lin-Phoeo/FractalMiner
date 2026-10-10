@@ -17,7 +17,12 @@ from official_physics_angle_cache import (
     initialize_edge_cache,
     limit_cached_edge,
 )
-from official_physics_angles import PairResult, Quaternion, restoration_pair
+from official_physics_angles import (
+    PairResult,
+    Quaternion,
+    restoration_job_pair,
+    restoration_pair,
+)
 from official_physics_constraints import Vector3, _single
 
 
@@ -105,7 +110,9 @@ def resolve_baseline(
     count = _integer(counts[_index(baseline_index, len(counts))], 65535)
     if start + count > team.baseline_data_count:
         raise ValueError("Baseline slice outside the declared team data chunk")
-    begin = team.baseline_data_start + start
+    # Native adds Int32 before signed pointer extension. Valid-buffer adapter
+    # rejects overflowing addresses, rather than using unbounded Python indices.
+    begin = _integer(team.baseline_data_start + start, 0x7FFFFFFF)
     if begin + count > len(data):
         raise ValueError("Baseline slice outside the supplied data array")
     vertices = []
@@ -113,7 +120,8 @@ def resolve_baseline(
         local = _integer(data[begin + slot], 65535)
         _index(local, team.particle_count)
         _index(local, team.proxy_count)
-        particle, proxy = team.particle_start + local, team.proxy_start + local
+        particle = _integer(team.particle_start + local, 0x7FFFFFFF)
+        proxy = _integer(team.proxy_start + local, 0x7FFFFFFF)
         move = is_movable(attributes[_index(proxy, len(attributes))])
         depth = _single(depths[_index(proxy, len(depths))])
         parent_particle = None
@@ -125,8 +133,8 @@ def resolve_baseline(
             parent = parents[_index(proxy, len(parents))]
             _index(parent, team.particle_count)
             _index(parent, team.proxy_count)
-            parent_particle = team.particle_start + parent
-            parent_proxy = team.proxy_start + parent
+            parent_particle = _integer(team.particle_start + parent, 0x7FFFFFFF)
+            parent_proxy = _integer(team.proxy_start + parent, 0x7FFFFFFF)
             parent_move = is_movable(attributes[_index(parent_proxy, len(attributes))])
         vertices.append(
             ResolvedVertex(
@@ -174,10 +182,16 @@ class BaselineResult:
 
 
 def solve_baseline(
-    plan: ResolvedBaseline, state: BaselineState, settings: AngleSettings
+    plan: ResolvedBaseline,
+    state: BaselineState,
+    settings: AngleSettings,
+    *,
+    ordinary_job: bool = False,
 ) -> BaselineResult:
     """Consume resolve_baseline output and execute ONE baseline on copied arrays.
 
+    Default is managed precision. ordinary_job explicitly selects the independently
+    recovered Single geometry seams; it does not assert Burst/Job route selection.
     The internal writes are immediately visible to the next edge/iteration, not
     Jacobi snapshots or separate all-limit/all-restoration sweeps. Disabled lanes
     and root edge caches are untouched. Cache initialization occurs ONCE, including
@@ -186,6 +200,8 @@ def solve_baseline(
     Result must be explicitly threaded into any subsequent caller-selected baseline;
     this API does not prove such ordering is correct for the game's Job scheduler.
     """
+    if type(ordinary_job) is not bool:
+        raise ValueError("Adapter ordinary_job selector must be bool")
     if (
         type(settings.use_limit) is not bool
         or type(settings.use_restoration) is not bool
@@ -265,12 +281,14 @@ def solve_baseline(
                     child_friction=state.frictions[j],
                     parent_friction=state.frictions[a],
                     parent_movable=vertex.parent_movable,
+                    ordinary_job=ordinary_job,
                 )
                 write(out.pair, j, a, vertex.parent_movable)
                 rotation[j] = out.child_rotation
                 visits.append(AngleVisit(iteration, vertex.local_index, "limit"))
             if settings.use_restoration:
-                pair = restoration_pair(
+                restore = restoration_job_pair if ordinary_job else restoration_pair
+                pair = restore(
                     p[j],
                     p[a],
                     velocity[j],
