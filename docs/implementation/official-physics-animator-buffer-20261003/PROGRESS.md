@@ -31,6 +31,8 @@
 
 2026-10-10补上[ColliderManager生产与Point整批消费](../official-physics-collider-production-20261010/README.md)：Pre managed的Double帧/三套历史、显式Single Start、独立Double Job Start/End/Post与Point managed串行range已有有限值参考；验证Pre→Double Start→End→Post→下一帧及WorkData→Point消费者。新证据确认Start/End/Post UnsafeDo传Raw Double buffer给Single内核，普通Job则独立Double实现，因此没有捏造数值转换或宣称所有路由等价。真实runtime开关/Burst未观测，普通Point Job数学也需单独复核。原组件class、allocator/bulk输入发布、其余约束和完整Job依赖仍未闭合。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是普通Point Job独立消费、剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-10继续恢复[独立普通Point Job](../official-physics-point-job-20261010/README.md)：确认其Sphere/Capsule的Double合并半径、Double胶囊方向旋转，以及三种形状用原Double法线投影、Single法线输出的独立边界，未直接套managed形状函数。同时查出并修复此前managed参考中Spring速度误用位置增益的问题：原两条body均让速度参考加未缩放平均修正，只有next位置乘法线长度增益；低于法线长度门禁时两者清零。用修正前RED、非共线接触和已生产Double WorkData组合验证。单槽参考不等于Job并发、实际Burst或Unity发布。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。

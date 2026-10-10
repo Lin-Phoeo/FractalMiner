@@ -4,14 +4,15 @@ Source: method368740/RVA0x59f47cc, actual Sphere/Capsule/Plane callees
 0x59f5774/0x59f4494/0x59f5670. Explicit, already-produced WorkData is required.
 This does NOT produce ColliderManager buffers, dispatch Jobs/Burst, allocate
 native arrays, resolve original component identities, or write Unity bones.
-The observed managed AABB helper's asymmetric z lane is preserved deliberately;
-it is NOT a claim that a separately dispatched Burst implementation has it.
+The observed managed and ordinary Job AABB helper's asymmetric z lane is
+preserved deliberately; compiled Burst targets remain unobserved. Job shapes
+and managed shapes have different precision, despite sharing accumulation.
 Single boundaries are explicit; Python sqrt is a mathematical CRT reference.
 Invalid/unsupported/nonfinite input rejection is adapter policy, not game logic.
 """
 
 import math
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 
 from official_physics_angle_cache import rotate_single
@@ -105,6 +106,30 @@ def _lerp(a: Vector3, b: Vector3, fraction: float) -> Vector3:
     return _add(a, _scale(_sub(b, a), fraction))
 
 
+def _segment_fraction(position: Vector3, a: Vector3, b: Vector3) -> float:
+    """59e7f24 → 2cd23e0: Double divide, Single narrow, then strict clamp.
+
+    Equality preserves input sign, including negative underflow to -0. Larger
+    quotients would become Single infinity before clamping; select the same
+    endpoint without admitting a nonfinite result into this finite adapter.
+    """
+    axis = _sub(b, a)
+    squared = _dot(axis, axis)
+    if squared == 0:
+        return 0.0
+    quotient = _dot(_sub(position, a), axis) / squared
+    if quotient > 3.4028234663852886e38:
+        return 1.0
+    if quotient < -3.4028234663852886e38:
+        return 0.0
+    fraction = _single(quotient)
+    if fraction > 1.0:
+        return 1.0
+    if fraction < 0.0:
+        return 0.0
+    return fraction
+
+
 def _overlap(min_a: Vector3, max_a: Vector3, work: ColliderWork) -> bool:
     min_b, max_b = _vector(work.aabb_min), _vector(work.aabb_max)
     # Actual helpers0x59ea6b4/0x59ea630: first z condition is maxB.z>=maxB.z.
@@ -158,13 +183,7 @@ def _contact(
         surface = _add(next_a, _scale(normal, _single(radius + radius_a)))
     else:
         old_b, next_b = _vector(work.old_points[1]), _vector(work.next_points[1])
-        axis = _sub(old_b, old_a)
-        squared = _dot(axis, axis)
-        fraction = (
-            _single(min(1.0, max(0.0, _dot(_sub(position, old_a), axis) / squared)))
-            if squared != 0
-            else 0.0
-        )
+        fraction = _segment_fraction(position, old_a, old_b)
         radial = _float3(_sub(position, _lerp(old_a, old_b, fraction)))
         local = rotate_single(work.inverse_old_rotation, radial)
         normal = _normalized(rotate_single(work.rotation, local))
@@ -193,7 +212,13 @@ def _contact(
     return distance, corrected, published_normal
 
 
-def point_collision_particle(
+ContactFunction = Callable[
+    [Vector3, Vector3, float, float, ColliderWork, int, Vector3, Vector3],
+    tuple[float, Vector3, Vector3],
+]
+
+
+def _point_collision_particle(
     state: PointCollisionState,
     team: PointCollisionTeam,
     parameters: PointCollisionParameters,
@@ -201,9 +226,11 @@ def point_collision_particle(
     attribute: int,
     depth: float,
     colliders: Sequence[ColliderWork],
+    contact: ContactFunction,
 ) -> PointCollisionResult:
-    """One already-selected global particle with resolved Team/vertex/depth.
+    """Audited shared accumulation over one resolved Team/vertex/depth.
 
+    The public route supplies its own independently inspected shape contact.
     The caller resolves stepParticleIndexArray, signed teamId, and proxy-vertex
     offset. There is no IsProcess gate inside this kernel. Mode1, shapes1/2..7/8
     only are supported. Do not manufacture WorkData from guessed prefab fields.
@@ -254,7 +281,7 @@ def point_collision_particle(
         shape = flag & 0xF
         if shape not in range(1, 9):
             raise ValueError("Adapter does not support enabled collider shape")
-        distance, corrected, normal = _contact(
+        distance, corrected, normal = contact(
             position, base, radius, limit, work, shape, aabb_min, aabb_max
         )
         if distance <= 0:
@@ -266,6 +293,7 @@ def point_collision_particle(
             near = True
             minimum = min(minimum, distance)
     correction = _ZERO
+    velocity_correction = _ZERO
     final_position = position
     if hits:
         denominator = _single(hits)
@@ -277,6 +305,9 @@ def point_collision_particle(
         normal_length = _single(math.sqrt(_single_dot(average_normal, average_normal)))
         if normal_length >= _NORMAL_EPSILON:
             averaged: Vector3 = (total[0] / hits, total[1] / hits, total[2] / hits)
+            # Native preserves this unscaled Double average in registers for
+            # Spring velocity. Only next-position uses the normal-length gain.
+            velocity_correction = averaged
             correction = _scale(averaged, min(1.0, normal_length))
             final_position = _add(position, correction)
     writes: tuple[str, ...] = ()
@@ -292,7 +323,7 @@ def point_collision_particle(
     writes += ("collision_normal", "next_position")
     velocity = state.velocity_position
     if spring and hits:
-        velocity = _add(_vector(velocity), correction)
+        velocity = _add(_vector(velocity), velocity_correction)
         writes += ("velocity_position",)
     return PointCollisionResult(
         replace(
@@ -304,4 +335,31 @@ def point_collision_particle(
         ),
         hits,
         writes,
+    )
+
+
+def point_collision_particle(
+    state: PointCollisionState,
+    team: PointCollisionTeam,
+    parameters: PointCollisionParameters,
+    *,
+    attribute: int,
+    depth: float,
+    colliders: Sequence[ColliderWork],
+) -> PointCollisionResult:
+    """Managed kernel's finite selected-particle reference, not the Job route.
+
+    Uses the managed Single-radius / Single-capsule-rotation shape helpers.
+    WorkData, Team and vertex inputs must already be resolved. The internal
+    accumulator is shared only where independently audited source paths match;
+    callers cannot substitute a different contact implementation through this API.
+    """
+    return _point_collision_particle(
+        state,
+        team,
+        parameters,
+        attribute=attribute,
+        depth=depth,
+        colliders=colliders,
+        contact=_contact,
     )

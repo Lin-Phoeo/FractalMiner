@@ -14,6 +14,7 @@ from official_physics_point_collision import (
     PointCollisionParameters,
     PointCollisionState,
     PointCollisionTeam,
+    _segment_fraction,
     point_collision_particle,
 )
 
@@ -120,6 +121,27 @@ def test_capsule_projection_fraction_narrows_before_old_center_lerp():
     result = run(position, colliders=(collider,))
     assert result.state.next_position == expected
     assert result.state.next_position[1] != 1.0
+
+
+@pytest.mark.parametrize(
+    "point,end,expected,sign",
+    [
+        ((-0.0, 1.0, 1.0), (1.0, -0.0, -0.0), -0.0, -1.0),
+        ((-(2**-150), 1.0, 1.0), (1.0, 0.0, 0.0), -0.0, -1.0),
+        (((2**-150), 1.0, 1.0), (1.0, 0.0, 0.0), 0.0, 1.0),
+        ((1e39, 1.0, 1.0), (1.0, 0.0, 0.0), 1.0, 1.0),
+        ((-1e39, 1.0, 1.0), (1.0, 0.0, 0.0), 0.0, 1.0),
+        ((-1.0, 1.0, 1.0), (1.0, 0.0, 0.0), 0.0, 1.0),
+        ((1.25, 1.0, 1.0), (1.0, 0.0, 0.0), 1.0, 1.0),
+        ((0.5, 1.0, 1.0), (1.0, 0.0, 0.0), 0.5, 1.0),
+    ],
+)
+def test_shared_segment_ratio_narrows_then_strict_clamps_preserving_zero(
+    point, end, expected, sign
+):
+    fraction = _segment_fraction(point, ZERO, end)
+    assert fraction == expected
+    assert math.copysign(1.0, fraction) == sign
 
 
 @pytest.mark.parametrize("shape", range(2, 8))
@@ -310,6 +332,24 @@ def test_opposing_contacts_cancel_normals_and_do_not_raise_friction():
     assert result.state.velocity_position == (7.0, 8.0, 9.0)
     assert result.state.collision_normal == ZERO
     assert result.state.friction == 0.3  # No friction buffer write on cancellation.
+
+
+def test_spring_velocity_keeps_average_before_position_normal_length_gain():
+    # Two perpendicular planes give an average normal (0.5,0.5,0), not unit.
+    # Native retains the Double average for velocity; only position is scaled.
+    colliders = (
+        work(8, old_a=(1.0, 0.0, 0.0)),
+        work(8, old_a=(0.0, 1.0, 0.0)),
+    )
+    result = run((-0.5, -0.5, 0.0), colliders=colliders, flag=0x2000)
+    gain = _single(math.sqrt(_single(0.5)))
+    assert result.penetrating_contacts == 2
+    assert result.state.next_position == (
+        -0.5 + 0.375 * gain,
+        -0.5 + 0.375 * gain,
+        0.0,
+    )
+    assert result.state.velocity_position == (7.375, 8.375, 9.0)
 
 
 def test_spring_sphere_limit_and_085_return_lerp_drive_velocity_correction():
