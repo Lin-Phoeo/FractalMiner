@@ -33,6 +33,8 @@
 
 2026-10-10继续恢复[独立普通Point Job](../official-physics-point-job-20261010/README.md)：确认其Sphere/Capsule的Double合并半径、Double胶囊方向旋转，以及三种形状用原Double法线投影、Single法线输出的独立边界，未直接套managed形状函数。同时查出并修复此前managed参考中Spring速度误用位置增益的问题：原两条body均让速度参考加未缩放平均修正，只有next位置乘法线长度增益；低于法线长度门禁时两者清零。用修正前RED、非共线接触和已生产Double WorkData组合验证。单槽参考不等于Job并发、实际Burst或Unity发布。
 
-后续集中推进第4–6项完整动力学主链，下一硬缺口是剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
+2026-10-10随后恢复[Tether约束](../official-physics-tether-20261010/README.md)：独立检查普通Job、注册managed与Invoke实际非Burst fallback，补齐Move-only门禁、signed Team、稀疏proxy/局部root索引、参数转换和managed串行range。参考长度取当前子步stepBasicPosition，恢复Single上下界与拓宽Single的0.3/0.7软修正/速度反馈，不改成硬限长；重复slot及先前修改root保持原串行消费。71项专项及Start→Tether→End→下一Start组合通过。本轮只有主代理人工复核和静态复放，没有独立代理语义审阅或Burst执行证明；真实输入生成、native数组发布及Unity动态仍未验收。
+
+后续集中推进第4–6项完整动力学主链，下一硬缺口是Angle完整消费、Bending/Motion/SelfCollision等剩余约束数学和真实list/proxy/Team发布；第1–3项只按该链需要补齐，不用增加无关工具或微型文档阶段。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。

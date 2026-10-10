@@ -1,0 +1,179 @@
+{
+  "date": "2026-10-10",
+  "scope": "Finite Tether selected particle, signed Team/proxy/root slot, managed serial range and parameter conversion. No native dispatch, original runtime execution or Unity integration.",
+  "source_sha256": {
+    "binary": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "source_evidence": {
+    "ordinary_job": {
+      "method": 369194,
+      "rva": "0x5a1108c",
+      "end": "0x5a1152e",
+      "instructions": 267
+    },
+    "registered_managed": {
+      "method": 369163,
+      "rva": "0x5a109f0",
+      "end": "0x5a10e57"
+    },
+    "actual_non_burst_fallback": {
+      "invoke_call_site": "0x5a11958",
+      "rva": "0x5a05d50",
+      "end": "0x5a061b7"
+    },
+    "managed_range": {
+      "method": 369164,
+      "rva": "0x5a061b8",
+      "end": "0x5a0629b"
+    },
+    "replayed_spans": 27,
+    "pe_function_spans": 26,
+    "bounded_leaf_cfgs": 1,
+    "replayed_instructions": 1599,
+    "critical_sites": 52,
+    "constant_read_sites": 11,
+    "metadata_layouts": 4,
+    "clone_initialization_only_differences": [
+      {
+        "offset": "0x26",
+        "registered": [
+          "cmp",
+          "byte ptr [global@0xdebb19d], 0"
+        ],
+        "fallback": [
+          "cmp",
+          "byte ptr [global@0xdebb1c4], 0"
+        ]
+      },
+      {
+        "offset": "0x51",
+        "registered": [
+          "mov",
+          "byte ptr [global@0xdebb19d], 1"
+        ],
+        "fallback": [
+          "mov",
+          "byte ptr [global@0xdebb1c4], 1"
+        ]
+      }
+    ],
+    "source_replay": "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/source-certificate-02-replay.json",
+    "original_runtime_executed": false,
+    "compiled_burst_runtime_observed": false,
+    "automatic_algorithm_equivalence_proof": false
+  },
+  "verification": {
+    "ruff": true,
+    "ruff_format": true,
+    "pyright_errors": 0,
+    "compileall": true,
+    "specialty_passed": 71,
+    "specialty_junit": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "71",
+      "time": "0.177",
+      "timestamp": "2026-10-10T17:21:14.577793+08:00",
+      "hostname": "Yuehai"
+    },
+    "full_passed": 3524,
+    "full_subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "full_junit": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "3",
+      "tests": "3641",
+      "time": "37.528",
+      "timestamp": "2026-10-10T17:21:15.924157+08:00",
+      "hostname": "Yuehai"
+    },
+    "reference_modules": 49,
+    "coverage": {
+      "covered_lines": 4580,
+      "num_statements": 4580,
+      "percent_covered": 100,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100,
+      "percent_statements_covered_display": "100",
+      "num_branches": 1070,
+      "num_partial_branches": 0,
+      "covered_branches": 1070,
+      "missing_branches": 0,
+      "percent_branches_covered": 100,
+      "percent_branches_covered_display": "100"
+    },
+    "tether_coverage": {
+      "covered_lines": 132,
+      "num_statements": 132,
+      "percent_covered": 100,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100,
+      "percent_statements_covered_display": "100",
+      "num_branches": 36,
+      "num_partial_branches": 0,
+      "covered_branches": 36,
+      "missing_branches": 0,
+      "percent_branches_covered": 100,
+      "percent_branches_covered_display": "100"
+    },
+    "temporary_tooling_dependency_count": 41,
+    "known_vulnerabilities": 0,
+    "changed_file_secret_pattern_matches": 0,
+    "manual_source_and_code_review": true,
+    "independent_agent_review": false,
+    "independent_review_unavailable_reason": "Dispatched reviewers stopped for unavailable credits; partial extraction is not a semantic verdict."
+  },
+  "protected": {
+    "config_groups": 11,
+    "saved_points": 164,
+    "runtime_files": 7,
+    "index_entries": 9557,
+    "main_head": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+    "main_index_sha256": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+    "scene_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+    "runtime_assets_modified": false,
+    "main_index_written": false
+  },
+  "delivery_limits": [
+    "Finite representable explicit inputs; adapter error policy is not native exception or NaN behavior",
+    "Unknown cloth type conversion requires explicit previous compression; DataValidate unimplemented",
+    "Private managed serial range is not proof of native concurrent Job order or NativeArray publication",
+    "CRT/Burst bit parity and runtime route selection unverified",
+    "Remaining full constraints and actual proxy/Team/list allocation and lifecycle pending",
+    "C# candidate backend and Unity character/MMD/reset/pause/seek dynamic validation pending"
+  ],
+  "evidence_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/official_physics_tether.py": "90ace01a45e50d94c4c3e4325c6751af915ba3085f111ab2dbb89f3ca51399ff",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/Tools/tests/test_official_physics_tether.py": "a18053a0d64917d0f329ce7381c75519ef655fe50c2c7399f4e07b7c36bbe04b",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/docs/implementation/official-physics-tether-20261010/README.md": "91f5b933fc28b85039e87cb0aed1181a895abd421437f95a1aa8477b976f7593",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/FractalMiner/docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "08bb0ffbe47d9cc6ba916860ecc535793410c70b20387e64435abbb4fc62fed2",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/root-source-audit.py": "b5c470ad6d12b7ce53b3ec350c6add85e803d19b0cd7d0e8f9ca01b510bf1607",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/root-source-final-01.json": "f3831aeaeb520f7e77beabe20b80cafbe40d981541dbb07d9808ecd4bb1b6766",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/certify-source.py": "de1407e2afc935548d892e5e7f1e79a92c2018c3d4155ff8995bc7efe1c9ceb8",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/source-certificate-01.json": "aa898079d4c84df2d67b040b042d45b48b594191f77b148151f012ed8fe8f963",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/source-certificate-02-replay.json": "aa898079d4c84df2d67b040b042d45b48b594191f77b148151f012ed8fe8f963",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/manual-review.md": "3e71e75a0e52520cc3d2f3d1f6b8469c2aabba13d22f730aa722b53fea5ae5b0",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/run-checks.py": "f2ca4575415c3b67ad321d7c8b4ea66cc9a82aa1a8a5856ffee20798c4eb0dbe",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/checks-red.json": "bbfaabd0a7310f3d2ff82bd64edf37072ad989df1acd190ae83c5c9969f02216",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/checks-02.json": "70ff698467c3c119f65c5a0211965473ac6ba977063b4a5b6bb4a78426eb38be",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/specialty-02.xml": "998145f6a31788a214c259115a076d931077dba68ab958f0247cecdd3b3789d4",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/full-suite-02.xml": "77a91eb8e91254a83143c756509e853ae65f20bc262a794fa26dc2cfd01b07f8",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/coverage-02.json": "c81e541fd1c8fa501efa58d39a70da6b534090875dca8c1d6ae7e3efa9942c21",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/pip-audit-02.json": "cf73c064e8dce36538d62afd2c6ccb3aaad6d633b040ff34ce3e864a7627ed7a",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/record.ps1": "ba5a79d11849030e944a29e76b10b78e1f20670de9a1981ab8f1fc24715a7799",
+    "D:/EndfieldTechLib/notes/official-physics-tether-20261010-01/build_verification.py": "f304ff3885bea0bad8ec48cc9d7b69009b0eb18c7a303bca70c678352d1483c5",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/check_input_guards.py": "510adca545593d091c2f2d7cc8f58918cb01a30973f6da8320e003448a4909e1",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-07-tether-before.json": "66d7a40bdd4ca3a7880142588dcc383d29d20f4756a78986b914dbae124e8cb6",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-08-tether-pre-push.json": "737414e83df2e3a3fa002e7983f44ec6f05363e2029f76c56d046637824f0a08"
+  }
+}
