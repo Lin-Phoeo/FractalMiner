@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-11",
+  "scope": "Original serialized identity slot production for static Init BoneCloth, not full proxy or Unity backend",
+  "parent_record_commit": "5cdc1fc1e8bf487739f4fd48332539939c0ee0be",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "sources_sha256": {
+    "A:\\Hypergryph Launcher\\games\\Arknights Endfield\\GameAssembly.dll": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "A:\\Hypergryph Launcher\\games\\Arknights Endfield\\Endfield_Data\\il2cpp_data\\Metadata\\global-metadata.dat": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selection-20261002-01\\review-08\\instructions.json": "95d23bc02f18a2cf8330d7777fa7e4774ec05765b2ee3fbcc8289901944950cc",
+    "D:\\EndfieldTechLib\\notes\\official-physics-selection-20261002-01\\review-08\\review.json": "111d187b39f19efa7d8021e1aaf6b65d36bd95fceee22441625c7ecc69b1122b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-bindings-20261002-01\\official-physics-bindings-03.json": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "D:\\EndfieldTechLib\\notes\\official-physics-fingerprint-20261001-01\\official-cloth-config-04.json": "ce377a025cc16e68a0382e92d73b0b47c82641550f79f58846dcc68af4ad9b3d"
+  },
+  "native_evidence": {
+    "exact_spans": 14,
+    "instruction_anchors": 22,
+    "field_anchors": 8,
+    "collision_argument_signature_verified": true,
+    "BoneCloth_enum_and_IndexOf_methodspec_verified": true
+  },
+  "validation": {
+    "specialty_passed": 65,
+    "full_suite_passed": 3871,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage_totals": {
+      "covered_lines": 117,
+      "num_statements": 118,
+      "percent_covered": 98.85057471264368,
+      "percent_covered_display": "99",
+      "missing_lines": 1,
+      "excluded_lines": 0,
+      "percent_statements_covered": 99.15254237288136,
+      "percent_statements_covered_display": "99",
+      "num_branches": 56,
+      "num_partial_branches": 1,
+      "covered_branches": 55,
+      "missing_branches": 1,
+      "percent_branches_covered": 98.21428571428571,
+      "percent_branches_covered_display": "98"
+    },
+    "quality": "Ruff, Black, Pyright, compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "review": "Main-agent static review and independent roster algorithm; no new subagent review"
+  },
+  "original_input_counts": {
+    "transform_records": 556,
+    "groups": 11,
+    "skin_slots": 140,
+    "appended_render_slots": 11,
+    "snapshot_slots": 151,
+    "saved_selection_points": 164
+  },
+  "gates": {
+    "original_identity_slot_order_generated": true,
+    "snapshot_and_skin_parent_windows_generated": true,
+    "root_indices_original_order_generated": true,
+    "first_hit_duplicate_render_identity_preserved": true,
+    "Init_BoneCloth_collision_argument_null_static": true,
+    "independent_eleven_roster_replay": true,
+    "game_build_route_observed": false,
+    "runtime_instance_ids_generated": false,
+    "actual_world_getters_generated": false,
+    "selection_attributes_generated": false,
+    "full_proxy_inputs_generated": false,
+    "native_arrays_published": false,
+    "official_solver_integrated": false,
+    "runtime_modified": false,
+    "unity_rerun": false,
+    "original_runtime_executed": false,
+    "native_or_Burst_oracle": false,
+    "full_original_objects_or_disassembly_published": false
+  },
+  "evidence_sha256": {
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\certify_inputs.py": "01f124dbf96c1fa0102978e33b74bfc7d901e814c8389b721eee4740856c2db5",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\source-certificate-02.json": "99d59d2c01bc152276c2104edce5b91a935a906d5a6d8251e0476bb5152aba1b",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\eleven-identity-inputs-01.json": "3c33b2a74b82f50b424fdd77bf6248d2fe29a417761d10708b2e2260c3182f31",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\run_checks.py": "3b802f723e4e09cb99097679c9a4184733d77c68de6ffdb8f49fda33fbfb7363",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\checks-01.json": "2d31b7a009c1ed72946aabe2f1c6b67e9db333d1f2f8753db487e4353825a768",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\green-02.xml": "34ad8bf210b7481d0645f699509235f9db643334d74da209210806c620b7a889",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\coverage-02.json": "9c7b009da076935b8693c533ea0e55e6a37f63d7243615a663b6b28721cbbbcf",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\full-suite-01.xml": "a488c1a81518f58b6f93644b686cc3502b6976bb9a5ffa708c28d983d508f137",
+    "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01\\pip-audit-01.json": "e9d86178ed6e7c3545b768ceb0640a575c2f8f4ae1b124959532bb2fa65e3594",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-22-input-production-before.json": "ef1ead0e01e55c6f974f59900320fe62fd3a835bdb814c5e0bcc2f59229a324d",
+    "D:\\EndfieldTechLib\\notes\\official-physics-collider-production-20261010-01\\guard-23-input-production-pre-push.json": "d25c03bbe05526714c690eaffefb51d50a2e9cd3a8158ca76a8c9230df56e464"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_identity_inputs.py": "fc4135b582f95704a35f8d47504172b00d6a136fba4143040add3be95184d20b",
+    "Tools/export_official_physics_identity_inputs.py": "6f427c099e7460b105ada1bc172eb779177f4f2d0454134ff2dd6b3d7529edea",
+    "Tools/tests/test_official_physics_identity_inputs.py": "66a97a54130bb6ba9c7ce203af4b9dcbdf9cc900eb2bdf953c3d4eae2fa1ef4d",
+    "Tools/tests/test_export_official_physics_identity_inputs.py": "3e10709f30e06938ee0b3f281b6213eea1c8bb5205b26b424c6fc97a0d2ea6e6",
+    "docs/implementation/official-physics-input-production-20261011/README.md": "d7c3fc6afacccfbf8b888ef6007a871232a2390177c297fcab88d2399baf7d85",
+    "docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "84651b94defb4d0c1266163bc3d73a6980ff89642331c6ba1a836e29a020b3ac"
+  },
+  "local_evidence_directory": "D:\\EndfieldTechLib\\notes\\official-physics-input-production-20261011-01"
+}
