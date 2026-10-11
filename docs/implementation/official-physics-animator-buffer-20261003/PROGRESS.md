@@ -53,4 +53,6 @@
 
 2026-10-11随后补齐[新建BoneCloth属性与Transform标志](../official-physics-initial-buffers-20261011/README.md)：从原数组构造/Expand/ClearMemory和具名MemSet契约确认初始属性0，从原bulk AddRange及完整byte Fill/setter确认全部Transform槽Read=1；普通BoneCloth跳过BoneSpring属性填充。显式fresh空数组、未优化/未减点/skin原序前提下，逐槽OR保存winner并消费既有flags规则，末尾render槽保持只读。每態11组140属性/151标志，两态280属性/302标志及全部256种byte规则独立复核通过；27项专项、83语句/28分支100%覆盖、3996项全量回归与114项subtest通过。35个原片段、完整ImportBoneType及78字节setter重新认证；一个generic构造TypeInfo未解析、原allocator运行状态未观测，不宣称完整生命周期。下一步集中Optimize/normal-axis与完整proxy/约束输入，不把优化前数组冒充最终BuildProxyMesh或Unity动态实现。
 
+2026-10-11继续接通[BoneCloth构建分支与Line代理方向](../official-physics-proxy-preprocess-20261011/README.md)：原RuntimeBuild callback确认Reduction只对MeshCloth=0；Optimization只调用去重三角形，count<2直接返回。严格限定普通BoneCloth/零三角形Line/None/custom skinning关闭参考路线，将两态11组getter导入与fresh属性接到vertex bindpose、vertexToTransform和None调整调用契约，共280skin方向产物，属性/flags及槽序保持。独立560个方向矩阵关系、负位置和映射检查通过；33项专项、4029项全量回归+114subtests通过。原callback代码/3字节padding/7项跳表分区认证，共13片段、5身份、17锚点。零三角形/fresh/空覆盖仍是参考实验前提，不是游戏实时状态；None泛型Fill最终写入、完整proxy/Team及动态后端未闭合。下一步直接沿实际参考ID生成父子/baseline/root-depth并接work-list，不继续猜测额外normalAxis预旋转。
+
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。
