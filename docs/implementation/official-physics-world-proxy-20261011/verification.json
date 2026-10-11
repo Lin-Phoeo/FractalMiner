@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-11",
+  "scope": "Finite supplied-input world proxy skinning and sealed reconstructed-reference reset export; not Unity official dynamic physics",
+  "parent_record_commit": "fa41e7f3ecf68346b3a332ebb085ac1a56896060",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "sources_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/GameAssembly.dll": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/Endfield_Data/il2cpp_data/Metadata/global-metadata.dat": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "native_evidence": {
+    "world_producer": {
+      "method_index": 369736,
+      "rva": "0x5a3fab0",
+      "exact_bytes": 1693
+    },
+    "work_list": {
+      "method_index": 369695,
+      "rva": "0x5a3bec8"
+    },
+    "root_rechecked_helpers": 13,
+    "helper_bytes": 1934,
+    "root_original_family_byte_rechecks": [
+      {
+        "method": 369695,
+        "size": 439,
+        "sha256": "2025da825c1fe5bef0da4d327b0effe30df4203f82465b7d48186d41c89b5e74"
+      },
+      {
+        "method": 369736,
+        "size": 1693,
+        "sha256": "777b3aabbd2f05a73efa0e249c29aa8ebe1063569e1ec25d7ea7af38911a986d"
+      }
+    ],
+    "weight_Count_bounded_CFG": true,
+    "full_pipeline_CFG_reproved": false,
+    "original_runtime_executed": false
+  },
+  "implementation_contracts": {
+    "highest_positive_weight_prefix_not_popcount": true,
+    "zero_and_negative_prefix_reads_preserved": true,
+    "raw_weights_not_normalized": true,
+    "two_separate_matrix_applications": true,
+    "homogeneous_w_retained": true,
+    "Single_left_associated_products_and_sums": true,
+    "position_widened_only_after_Single_accumulation": true,
+    "separate_normal_tangent_normalization": true,
+    "certified_up_forward_frame_API_reused": true,
+    "distinct_four_Team_window_maps": true,
+    "kernel_does_not_refilter_flags_or_attributes": true,
+    "proxy_list_gate": "Team0 skip; require Enable2, exclude bit61/0x800/0x80000; no 0x10/Running20/Step80 gate",
+    "supplied_block_order_and_duplicates_retained": true,
+    "finite_degenerate_refusal": "Explicit adapter policy, not native fallback",
+    "output_reference_scope": "Each group has independent zero-based caller arena and Team1/flag15; not original global allocator",
+    "getter_join": "Same-state actual Int32 instance ID and qualified serialized identity bijection; parent ID check and original c0..c3",
+    "independently_rebuilt_state_bindposes": true,
+    "synthetic_fixed_bindpose_matrix_change_test": true,
+    "actual_character_changing_animation_verified": false
+  },
+  "reference_certificate": {
+    "ok": true,
+    "states": 2,
+    "groups_per_state": 11,
+    "vertices_per_state": 140,
+    "total_world_poses": 280,
+    "reset_fields_checked": 3920,
+    "skin_matrix_slots_per_state": 140,
+    "appended_render_matrix_slots_per_state": 11,
+    "independent_interpreter": "Row-oriented numpy.float32 and independent sign-bit quaternion construction; no production math imports",
+    "world_double_positions_and_single_quaternions_exact_bytes": true,
+    "reset14_field_bytes_and_write_order": true,
+    "native_numeric_oracle_used": false
+  },
+  "validation": {
+    "specialty_passed": 93,
+    "full_suite_passed": 4395,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage_totals": {
+      "covered_lines": 233,
+      "num_statements": 233,
+      "percent_covered": 100,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100,
+      "percent_statements_covered_display": "100",
+      "num_branches": 76,
+      "num_partial_branches": 0,
+      "covered_branches": 76,
+      "missing_branches": 0,
+      "percent_branches_covered": 100,
+      "percent_branches_covered_display": "100"
+    },
+    "quality": "Ruff, Black, Pyright, compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "checks_file": "checks-03.json",
+    "missing_module_RED_retained": true
+  },
+  "gates": {
+    "supplied_input_world_producer_reference": true,
+    "proxy_work_list_reference": true,
+    "sealed_world_reset_experiment_exported": true,
+    "full_proxy_inputs_generated": false,
+    "actual_Team_parameters_and_clock_integrated": false,
+    "original_global_allocator_observed": false,
+    "TransformRead_relative_branch_integrated": false,
+    "complete_live_work_lists_integrated": false,
+    "unique_writer_integrated": false,
+    "native_arrays_published": false,
+    "official_solver_integrated": false,
+    "original_Burst_or_Job_observed": false,
+    "changing_animation_verified": false,
+    "main_unity_launched": false,
+    "stage_modified": false,
+    "original_assets_or_full_disassembly_published": false
+  },
+  "next_unit": "Combine existing input/math with Team parameters and clock/Running/Step lifecycle, TransformRead relative branch and complete work lists/state/writer; then rollback-safe Unity C# candidate and real motion validation",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/red-01.xml": "83eb51d59ce211f5a4089e77e05ce2f561f882d69a1a8a94d10757e7dd9acc01",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/red-export-01.xml": "d0d132d1cc3e0dbfac6b2e5cde2f888a7444bfce630f61435ec28f73f690fe2f",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/green-01.xml": "f22f67ed4b0db5348f643cf17a8bf0c8388976957723587b1d0ef12476375fd2",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/green-02.xml": "f69945c2332331d795747fe8c96116f1fbac64ab55dbca55c9ff0dc0621f7626",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/green-03.xml": "f102a6543d1e0ce2a356785ca7d42f7b0920574552e322a2a55127354875d2b0",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/coverage-01.json": "2c44fcb54a61cd98016a3271c187d9ad8bd28bfc4f65c3c141bd07771f7ad7b5",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/coverage-02.json": "070bef57321b8b3fcfed16c4af5568e4df483341f9d2fbc9bf946764789acd7b",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/coverage-03.json": "08e3d070887d5608c0041aa2e48139c018591c3a3d5ca6e120db38cd53c44ef1",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/checks-03.json": "02032dce962ffd1dd79b31d682a147fd650da2193256e715223a8959ff65acda",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/full-suite-03.xml": "9caaf8b15029757d9c01160ff439d1fff0258f58ff4f40ea649b3d7500d0a42a",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/pip-audit-03.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/run_checks.py": "e61d5c22534d6cfcf941f86e5b295cf96a3db102f3dc13b770c90f260f105253",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/check_world_reference.py": "ef3960b3443697e8e090c52986da6fe074c8e1d425a42e3a3bb9c825a084dfde",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/reference-certificate-01.json": "8500d5d9594e8bcd71a8976613ccba6a9ea494fe1b40bba0fa3672415b1c9fd2",
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/eleven-world-reset-01.json": "7c1cd6539ada3a144a8019ecbe7477c1e751eaa99a1581efa537688bc2162eeb",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/REPORT-world-math-02.md": "38ccb1a8ec2944ba5ab87452110139180413ea9f18ef4c3f341efb27a02161e2",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/inspect_world_math.py": "a9cd17ccced4028a01159bfac9a33a55ef9ead399ce28313e21f509483fdcecd",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/world-math-source-02.json": "66c557dafc9d299503556a1b58dbd7cf8cec9dff54c13469cb34bdb2be06fd8c",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/world-math-source-03-root-recheck.json": "66c557dafc9d299503556a1b58dbd7cf8cec9dff54c13469cb34bdb2be06fd8c",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/world-source-03.json": "83b9c7c56905189dacee948012a320cc508326d7174a6b669530135d68426698",
+    "D:/EndfieldTechLib/notes/official-physics-getter-production-20261011-01/eleven-imports-01.json": "3b9e2546c12fbe7b2c21e4cad6acf9faba8c1df8b258dad73ef92c12dcde9af7",
+    "D:/EndfieldTechLib/notes/official-physics-getter-production-20261011-01/unity-getters-03.json": "0d99b53ebf1c7180e007705629eb9c27a66a853156de443b4f3a4ca4837be783",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-46-world-proxy-before.json": "1bf59d2d1521be3ffc453f848d31f31e00f20875e05b23110b1d53181e725835",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-47-world-proxy-prepush.json": "524e5b2626d20dc6e90a22dcbffba7488e0c9b568463a00e66d275cd5494fa20"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_world_proxy.py": "ea79e56a6828f5bdc26e5bc2c3c37ae0fd693b8842d15fb283ce17290a38a9d7",
+    "Tools/export_official_physics_world_proxy.py": "e05447943145eae069145c76439bc74e386b11ac576d8233f1aeed7307f5027b",
+    "Tools/tests/test_official_physics_world_proxy.py": "a50de1add39ec485a90cb59c0f107162d88527191a6f4ca1f38082dce700b267",
+    "Tools/tests/test_export_official_physics_world_proxy.py": "7c5694893ff8716bd22c593a02168349821baa5bf8a36ad6d0a5aa427c64fa37",
+    "docs/implementation/official-physics-world-proxy-20261011/README.md": "92477c0f3f75981860990fb5a144ecd86e9cee0eb04779a5d6e33accea9206e0",
+    "docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "bbaf1e44af2f688c62fcc3dc87420aa0f4c679089a3213eb8834e44f1610a27d"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01"
+}
