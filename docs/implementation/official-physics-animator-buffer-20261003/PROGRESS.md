@@ -10,7 +10,7 @@
 
 | 类别 | 必须完成的门禁 | 当前实际状态 |
 | --- | --- | --- |
-| 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；140个skin+11个render身份槽及两种父级/root索引已从原始引用生成。完整世界快照、proxy与Team发布未闭合 |
+| 真实输入与生命周期 | 1. 11组proxy/Team/list/骨骼/碰撞体等完整原输入发布 | 164个saved点克隆已核查；140个skin+11个render身份槽及两种父级/root索引已从原始引用生成。隔离Unity参考树两状态的真实getter、快照、骨权重/bindpose导入已验证；恢复角色动态getter、完整proxy与Team发布未闭合 |
 | 真实输入与生命周期 | 2. bulk init生成、分配/复用/释放、相对矩阵构造 | 单槽Set/Copy/Enable有参考；[Double TRS/full inverse数学](../official-physics-frame-anchor-20261009/README.md)已有有限值参考，但allocator、bulk构造及全部调用方接入未完成 |
 | 真实输入与生命周期 | 3. 动画map/record、回写Job与唯一writer调度 | 动画读取有限值已实现；map生成、输出Job与cross+Animator委托链待补 |
 | 动态求解 | 4. step积分、中心运动/惯性/风与各算子依赖 | 普通粒子Start→End、[子步中心](../official-physics-center-step-20261003/README.md)、[Team与风状态](../official-physics-team-tail-20261003/README.md)、[粒子风力](../official-physics-particle-wind-20261003/README.md)、[Spring](../official-physics-spring-20261003/README.md)、[帧移动归约](../official-physics-frame-motion-20261008/README.md)、[帧惯性](../official-physics-frame-inertia-20261009/README.md)、[瞬移/平滑](../official-physics-frame-prelude-20261009/README.md)、[锚点生产](../official-physics-frame-anchor-20261009/README.md)、[符号缩放映射/帧矩阵](../official-physics-scale-remap-20261009/README.md)、[fixed-point帧目标生产](../official-physics-frame-target-20261009/README.md)、[帧reset补全/权重/独立PostTeam历史推进](../official-physics-frame-history-20261009/README.md)、[frameLocalPosition/风区选择](../official-physics-wind-zones-20261009/README.md)、[粒子14缓冲reset/7历史变换](../official-physics-particle-reset-20261009/README.md)和[帧末显示预测/动画历史发布](../official-physics-display-20261009/README.md)已有离线参考。风区经swap-back替换后按原顺序接续子步时间与粒子风力；帧prelude保留旧历史，PostTeam在全部子步/回写后推进帧历史；显示链保持模拟、显示与动画proxy历史分离。真实WindData/proxy/Team输入发布、reset请求/暂停恢复及跨步依赖仍未闭合，不用舞台root或默认零值代替原输入 |
@@ -46,5 +46,7 @@
 后续集中补真实topology/work-list、list/proxy/Team与骨骼发布，第1–3项按独立11组候选链需求补齐，不继续扩张当前关闭的SelfCollision数学。接入时必须显式核查动态参数/外部同步前提；若启用未实现分支应阻止候选运行，不能静默no-op。候选链形成后再进入第7–8项做可见效果与动作测试。若忠实原实现某分支仍无证据，明确保留待核查，不将调参近似或stock替代方案标成官方等价。
 
 2026-10-11随后开始[真实身份输入生产](../official-physics-input-production-20261011/README.md)：将已核查collector与List.IndexOf第一次匹配规则接成带显式SHA256封印的导出器，从原始556个Transform生成11组140个skin+11个render槽、snapshot/skin两个父级窗口及root原序索引。实际对象身份按文件+signed Int64保留，不缩成runtime Int32，也不按骨名合并。独立list/set复算与原字节/字段/签名认证通过；另确认Init BoneCloth调用的collisionBones参数为空，不把ColliderManager列表擅自代入。65项专项和3871项完整回归通过。这只关闭有序身份与索引子项，仍须接真实getter快照、有效saved选择匹配、完整proxy/Team/work-list及Unity候选后端；没有游戏build路线、原Job/Burst或Unity动态验收证明。
+
+2026-10-11继续接通[真实Unity getter与骨骼导入](../official-physics-getter-production-20261011/README.md)：隔离Unity2022.3重建原始556个Transform，在静止及整体刚性移动两状态采样实际instance/parent ID、世界/局部getter和矩阵；各态11组140个skin/151个snapshot接入既有原数学参考，生成位置、方向、权重和bindpose。独立NumPy复算280个skin输出及整体移动的render-local稳定性通过；Unity实测封印/覆盖拒绝通过，45项专项与3916项完整回归通过。原字节/指令25span与两个主Job身份/边界重新认证。采样对象是序列化参考树，不是游戏或主舞台恢复角色；完整proxy/Team/native发布、后端调度与动态验收仍未闭合。下一步沿现有输入做有效saved选择空间匹配与proxy构造，不逐槽复制14个skin和38个长马尾保存点。
 
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。
