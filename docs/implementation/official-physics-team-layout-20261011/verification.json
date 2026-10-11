@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-11",
+  "scope": "Fresh empty candidate manager policy for nine source-backed core arenas across 11 groups; not observed official runtime Team IDs/chunks or native publication",
+  "parent_record_commit": "1d8e5584e4fd80c6f923154347e6c019ce038802",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "input_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-getter-production-20261011-01/eleven-imports-01.json": "3b9e2546c12fbe7b2c21e4cad6acf9faba8c1df8b258dad73ef92c12dcde9af7",
+    "D:/EndfieldTechLib/notes/official-physics-baseline-production-20261011-01/eleven-baselines-01.json": "9ca9f1355ae6046ba55cc2f59f51bfc739a274c30037b1d124113e6602a50199",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/eleven-distance-02.json": "939bc3d178a7cfa07f86cb757989e99f7b9149cf01e2920441d47e4c7abf2d3f"
+  },
+  "candidate_layout": {
+    "states_checked": 2,
+    "groups": 11,
+    "team_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "team_id_policy": "Sequential caller candidate identity in sealed group order",
+    "fresh_empty_independent_arena_cursors": true,
+    "capacities": {
+      "proxy_transform": 151,
+      "proxy_common": 140,
+      "proxy_mesh": 140,
+      "proxy_skin_bone": 140,
+      "baseline": 37,
+      "baseline_data": 126,
+      "particle": 140,
+      "distance_start": 140,
+      "distance_data": 176
+    },
+    "particle_work_items": 140,
+    "baseline_work_items": 37,
+    "particle_registration_arrays_per_team": 15,
+    "state_topology_invariant": true,
+    "original_runtime_team_ids_observed": false,
+    "original_runtime_chunks_observed": false
+  },
+  "independent_validation": {
+    "production_layout_modules_imported": false,
+    "identity_count_prefix_and_packed_work_lists_rederived": true,
+    "status": "PASS",
+    "output_sha256": "a783648e4a0881dcd1b53d8a4145c009bdba153e7556429edc3883f985ede3b4",
+    "report_sha256": "84967aa4d12b2a8d90030b3bdafa81d23cb82f120f3d67646b7733bebb0d401f"
+  },
+  "validation": {
+    "specialty_passed": 19,
+    "full_suite_passed": 4463,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage": {
+      "statements": 194,
+      "covered_lines": 164,
+      "statement_percent": 84.5360824742268,
+      "branches": 72,
+      "covered_branches": 51,
+      "combined_percent": 80.82706766917293,
+      "required_minimum": 80
+    },
+    "quality": "Ruff, Black, Pyright and compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "checks_file": "checks-04.json",
+    "missing_module_RED_retained": true
+  },
+  "gates": {
+    "fresh_candidate_core_layout_generated": true,
+    "two_state_topology_invariant": true,
+    "particle_registration_plans_connected": true,
+    "candidate_particle_and_baseline_work_lists_connected": true,
+    "unsupported_team_chunks_completed": false,
+    "local_world_reset_remapped_to_global_layout": false,
+    "complete_Team_parameters_and_constraints_registered": false,
+    "pause_seek_request_integrated": false,
+    "TransformRead_relative_branch_integrated": false,
+    "unique_writer_integrated": false,
+    "native_arrays_published": false,
+    "official_solver_integrated": false,
+    "Unity_backend_changed": false,
+    "stage_modified": false
+  },
+  "next_unit": "Remap sealed per-group world proxy/reset states into the unified candidate Team/chunk layout and verify continuous cross-group frames, then integrate TransformRead relative path and unique writer",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/eleven-team-layout-02.json": "a783648e4a0881dcd1b53d8a4145c009bdba153e7556429edc3883f985ede3b4",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/verification-independent-04.json": "84967aa4d12b2a8d90030b3bdafa81d23cb82f120f3d67646b7733bebb0d401f",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/checks-04.json": "4f6fedca0b26db26f371737fbb9eda417bcd0e6174df233b0b4947e04c63dcc1",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/coverage-04.json": "0bee62cf4ecf215e1864e482d948939f514675964c411d2116a9c96abad3cb85",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/full-suite-04.xml": "94359d2649309ac3368a362bf890da87fdae605ba4bac5bac43ce32fd2de3dc7",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/pip-audit-04.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/run_checks.py": "fe659eeae043363f693f68a3d243a69c8d237cedcdee6cad48154bc8d317d182",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/verify_team_layout.py": "49a321369743f2da2f91a0da44dc2f5ede2fee5cf7767ffe2ab731af5e479a6b"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_team_layout.py": "c79495a2e0e1732d477cb826307ddaf4676bc059c0c22383731d0c88cd71d9e2",
+    "Tools/export_official_physics_team_layout.py": "3717488a7a32285d28f8339a11e18f90e2c403a99b9ae30e43265093b512f401",
+    "Tools/tests/test_official_physics_team_layout.py": "1e1000ef9d758fcfbc87168d34b0c7add254cea6168b0538464efbe63a3df452"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01"
+}
