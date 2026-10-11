@@ -1,0 +1,188 @@
+{
+  "date": "2026-10-11",
+  "scope": "Finite given-allocation particle registration/Enable flag plans and caller-confirmed world-input first reset bridge; not live official Unity physics",
+  "parent_record_commit": "a897b33639c5e76361a10f9f621014993545a745",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "sources_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/GameAssembly.dll": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/Endfield_Data/il2cpp_data/Metadata/global-metadata.dat": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "native_evidence": {
+    "entries": [
+      {
+        "method": "TeamManager.AddTeam",
+        "method_index": 369509,
+        "rva": "0x38e1eb0"
+      },
+      {
+        "method": "SimulationManager.RegisterProxyMesh",
+        "method_index": 370396,
+        "rva": "0x343f930",
+        "exact_family_bytes": 700
+      },
+      {
+        "method": "TeamManager.SetEnable",
+        "method_index": 369511,
+        "rva": "0x343c350",
+        "exact_family_bytes": 394
+      },
+      {
+        "method": "VirtualMesh.get_VertexCount",
+        "method_index": 371555,
+        "rva": "0x3ddc4c0",
+        "exact_bytes": 27
+      },
+      {
+        "method": "ClothManager.CompleteMasterJob",
+        "method_index": 369360,
+        "rva": "0x3167490",
+        "full_body_recovered": false
+      }
+    ],
+    "root_certificate": {
+      "complete_spans": 78,
+      "complete_bytes": 16551,
+      "method_signatures": 4,
+      "particle_field_types": 15,
+      "anchors": 32
+    },
+    "independent_source_review": {
+      "complete_families": 9,
+      "anchors": 29
+    },
+    "world_producer_located": {
+      "method_index": 369736,
+      "rva": "0x5a3fab0",
+      "bytes": 1693,
+      "position_math": "Single accumulation then widen to Double",
+      "producer_implemented": false,
+      "accumulation_helpers_fully_restored": false
+    },
+    "full_CFG_reproved": false,
+    "original_runtime_executed": false
+  },
+  "implementation_contracts": {
+    "registration_original_Add_count": 15,
+    "full_VertexCount_no_attribute_filter": true,
+    "only_first_chunk_return_used_by_native": true,
+    "other_14_results_alignment": "Explicit safe adapter premise, not an original native comparison",
+    "low16_signed_Team_fill": true,
+    "original_Int32_Team_id_retained": true,
+    "no_default_zero_or_bind_pose_on_reuse": true,
+    "compact_plan_not_array_allocation": true,
+    "enable_bits": "set 2 and 4 on enable; clear both and OR 0x100000 on disable; same-value call not skipped",
+    "enable_side_effects_executed": false,
+    "first_reset_math_reused": "official_physics_particle_reset.prepare_particle_frame",
+    "independent_particle_proxy_starts": true,
+    "world_pose_confirmation": "Caller precondition, not proof of world producer",
+    "short_aliases_rejected_in_reset_bridge": true,
+    "skipped_windows_keep_state_without_proxy_reads": true,
+    "processing_history_only_rejected_by_first_reset_adapter": true,
+    "empty_window_not_reported_fully_reset": true,
+    "private_window_values_only_no_native_publication": true
+  },
+  "independent_review": {
+    "result": "PASS within supplied finite registration/world-input/first-reset scope",
+    "initial_alias_repro_rejected": false,
+    "final_alias_repro_rejected": true,
+    "alias_RED_retained": true,
+    "review_fix": "Keep original Int32 identity and require it and short fill both match consumer Team",
+    "independent_target_tests_passed": 133,
+    "live_backend_verified": false
+  },
+  "validation": {
+    "specialty_passed": 133,
+    "full_suite_passed": 4302,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage_totals": {
+      "covered_lines": 111,
+      "num_statements": 111,
+      "percent_covered": 100,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100,
+      "percent_statements_covered_display": "100",
+      "num_branches": 38,
+      "num_partial_branches": 0,
+      "covered_branches": 38,
+      "missing_branches": 0,
+      "percent_branches_covered": 100,
+      "percent_branches_covered_display": "100"
+    },
+    "quality": "Ruff, Black, Pyright, compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "checks_file": "checks-02.json",
+    "missing_module_RED_retained": true,
+    "intermediate_lint_failure_retained": true
+  },
+  "gates": {
+    "given_particle_allocation_reference": true,
+    "Enable_flag_reference": true,
+    "given_world_input_first_reset_bridge": true,
+    "full_Team_parameters_generated": false,
+    "real_game_Team_ids_and_chunks_observed": false,
+    "full_allocator_lifecycle_implemented": false,
+    "Enable_lifecycle_effects_executed": false,
+    "world_proxy_producer_integrated": false,
+    "eleven_world_proxy_outputs_exported": false,
+    "all_constraint_lists_generated": false,
+    "Running_Step_clock_lifecycle_integrated": false,
+    "native_arrays_published": false,
+    "unique_writer_integrated": false,
+    "official_solver_integrated": false,
+    "original_Job_or_Burst_observed": false,
+    "main_unity_launched": false,
+    "stage_modified": false,
+    "original_assets_or_full_disassembly_published": false
+  },
+  "next_unit": "Restore already located world proxy skinning math with original dynamic float4x4 matrices and independent Team windows; then complete clock/state/writer integration before rollback-safe C# backend and real motion validation",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/checks-01.json": "4f185bb4812ba959356170e5984aab84c8285a3a81e8c7deb003e9ba90532a4b",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/checks-02.json": "65148e5d2e7c791a157ca63d750c0633e2a6c3e19fe8f7e2d2a170b706c8b1b5",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/red-init-01.xml": "deddccc107416502b9e91e1fc35159aab6ef1335a4059075434460a07eb12de4",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/red-alias-01.xml": "cd611646bfafa5df1a37341c2739c7e94c843517755abe1be87b14fd14b7dd2f",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/green-02.xml": "06ef208ee70bd7d0560ecd78b76cb55e539ce7c3cee91fadc393c7cb9bcb42d8",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/full-suite-02.xml": "2a49dccdd80905c9eaec0ffe052fad718da8f7910466e2b47c67acfc091ddf72",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/coverage-02.json": "a1d4e0db03c434559d240df2b25b8f12eb241fbad8cc0d22cc41c7cf8ad92369",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/pip-audit-02.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/run_checks.py": "9de781183ca3e747b7f9e0fc069e4e7d53f325ac820b6ab8551942b283f2bb3c",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/check_entries.py": "82225f46d0b1a88fcd5ac3cd877023f35ff05b525ff98a189a06e78eb27d04d6",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/certificate-02.json": "80d2a988defa8004424cffa388ac5144d670d742e18fd8159fa7fab57a9695fe",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/certificate-03-root-recheck.json": "80d2a988defa8004424cffa388ac5144d670d742e18fd8159fa7fab57a9695fe",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/FINDINGS.md": "0737c49fc91546aabb14b8626de8fc4f1b60eb574b9fbaee0a960d13ec429721",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/entries-01.json": "754361b01053094328957da59d804268944f107760a84d0f1fabbb98eea42fc7",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/signatures-02.json": "63904159b4b373f9ca519848a858f7f96da82a81b43dff9df188bb97efb841e2",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/entry-audit/enable-03.json": "a9d03576174131cf020282d28fd709fba7fdb603cda632b8a74b2564695bea9e",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-checks/red-01.xml": "5dd4060bf4af36eeda789a93a779bf79ffcc00f60251960e766a5dec217e8bdd",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-checks/green-02.xml": "a0826a88803e45e39de71a83e0dbbba8a8a96c62a36a64ca8dc1ca0e6378be7f",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-checks/coverage-02.json": "7986b64419cb9ff449b1dbd843187c7f03885dd3d432197a03fc4f9c19cf3e0e",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/REVIEW.md": "68975a582cd8a27a3fadc948e3aba0be46a69a2e0188f646c0cd24479b482940",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/check_review.py": "8ca04d6cb2ade1b3f10a4f09a8630ba08b6a563d2b723fab574a0302f0ab561b",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/review-02.json": "9fe2df9833385c2a455f7250fd4152d6e27de6725f44337ea0ce1e569770225f",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/INIT-REVIEW.md": "9e4b0fae84375a294a7264c224853165b139b520eb8c948b7db101c7b35f053d",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/INIT-REVIEW-FINAL.md": "5be3afffc4a5c7d101f8593c6ae168afc0a768bf502be324caeb23c38a1859d5",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/check_init_alias.py": "2d4a06252cab0d53d0d92bc01f770c10c58757310e90f067961e586b3e44b57b",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/init-alias-repro-01.json": "26821eb3e417dda871f3c28d887a1b30fd5c8deeeee7ae9b0f1c168dc45f8254",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/registration-source-review/init-alias-repro-02.json": "8f03c43d65fc03deed8d90064d54a53e8f4ab327629feec3887191425f012e0e",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/FINDINGS.md": "57159e9fafc0d6a7907bcfcec851cb1d5666070e4a63b118156622af1348d24b",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/inspect_world_proxy.py": "7c624ea3c9940cd54667ca6832badb31d6c09d25bf18e79474ac69bbbc325683",
+    "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01/world-proxy-audit/world-source-03.json": "83b9c7c56905189dacee948012a320cc508326d7174a6b669530135d68426698",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-43-particle-registration-before.json": "c7d844e9075ff81a91136b971bc4ea9de8b7c75e36907a84a8b498b4c2631de3",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-44-particle-registration-prepush.json": "5457d49c348ec7302008221ef4a1145fedb65b3807b76d0c7a1fef13e968e3d5"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_particle_registration.py": "9732df9f3997a58783b304eefa47b18006cffef2741fe25f484bc1120b5ff384",
+    "Tools/official_physics_particle_init.py": "e375af1451f1f385c4de80a626d51000fa3b734874113649c368185f76f9838e",
+    "Tools/tests/test_official_physics_particle_registration.py": "08053deb2bae1cee2767071abe81f317951ce6d85fa562220921a396645edc18",
+    "Tools/tests/test_official_physics_particle_init.py": "3907ed745251287b39e05820c85971331d6a969b6819cba4c09852d70792c3b9",
+    "docs/implementation/official-physics-particle-registration-20261011/README.md": "b15c67dddb3ee134d0e3ecae1e094482e0b2b7659df2abfb40c24a826a4c66a1",
+    "docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "ee63d36b0813389bd9bf3859b4144c1e66909aa3e3743b821b59ac97fa7444e0"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-team-init-20261011-01"
+}
