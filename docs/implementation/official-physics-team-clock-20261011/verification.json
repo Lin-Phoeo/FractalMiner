@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-11",
+  "scope": "Finite source-backed Team frame clock/step-count fragment and explicit two-frame center/work-list composition; not full AlwaysTeamUpdate, native publication or Unity physics",
+  "parent_record_commit": "32b332c9c447fca159bb04fc4ec5863ae74769ee",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "sources_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/GameAssembly.dll": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/Endfield_Data/il2cpp_data/Metadata/global-metadata.dat": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e"
+  },
+  "native_evidence": {
+    "owner": "BeyondDynamicBone.TeamManager+AlwaysTeamUpdatePostJob",
+    "method": "Execute",
+    "method_index": 369639,
+    "rva": "0x5a2f048",
+    "exact_unwind_body_bytes": 2282,
+    "exact_unwind_body_sha256": "193884b57623d53197f56c228f9e8c031d7e646ed87ff928aa1da65ab4f53595",
+    "implemented_instruction_slice": ["0x5a2f63e", "0x5a2f7ee"],
+    "TeamData_offsets_checked": 16,
+    "PostJob_input_offsets_checked": 6,
+    "full_method_CFG_verified": false,
+    "original_runtime_executed": false
+  },
+  "implementation_contracts": {
+    "mode_delta_mapping": "0 normal, 1 fixed, 2 unscaled",
+    "unscaled_bypasses_global_not_team_scale": true,
+    "flag8_clears_five_clock_fields": true,
+    "flag4_alone_does_not_clear_clocks": true,
+    "step_conversion": "Single division followed by signed cvttss2si truncation toward zero",
+    "negative_step_count_not_invented_clamped": true,
+    "maximum_step_count_is_upper_cap_only": true,
+    "excess_step_time_discarded": true,
+    "animation_pose_request_rebases_now_and_sets_flag4": true,
+    "zero_scale_positive_backlog_rebase_epsilon": "Single 1e-4",
+    "frame_history_advances_only_for_positive_final_count": true,
+    "lod_fade_uses_delta_and_bit60": true,
+    "Running_bit20_tracks_positive_final_count": true,
+    "finite_validation_and_Int32_overflow_refusal": "Adapter policy, not native fault emulation"
+  },
+  "independent_source_certificate": {
+    "cases": 1000,
+    "compared_fields_per_case": 12,
+    "field_bit_matches": 12000,
+    "interpreter_uses_production_clock_or_rounding_helpers": false,
+    "unknown_opcode_or_call_fail_closed": true,
+    "clamp_call_explicitly_modeled": true,
+    "native_or_Burst_execution": false
+  },
+  "composition": {
+    "sequence": ["Team clock", "center substeps", "particle/baseline work lists", "explicit finite Team fragment merge", "second frame"],
+    "two_frames_checked": true,
+    "extra_index_equal_to_count_clears_Step_and_lists": true,
+    "implicit_native_publication_claimed": false,
+    "Unity_backend_changed": false
+  },
+  "validation": {
+    "specialty_passed": 49,
+    "full_suite_passed": 4444,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage_totals": {
+      "covered_lines": 90,
+      "num_statements": 90,
+      "percent_covered": 100,
+      "missing_lines": 0,
+      "num_branches": 24,
+      "covered_branches": 24,
+      "missing_branches": 0,
+      "percent_branches_covered": 100
+    },
+    "quality": "Ruff, Black, Pyright, compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "checks_file": "checks-03.json",
+    "missing_module_RED_retained": true
+  },
+  "gates": {
+    "finite_Team_clock_reference": true,
+    "two_frame_center_and_work_list_composition": true,
+    "complete_AlwaysTeamUpdate_Pre_Post": false,
+    "live_update_mode_and_clock_values_observed": false,
+    "pause_seek_request_producer_integrated": false,
+    "actual_Team_parameters_and_chunks_published": false,
+    "TransformRead_relative_branch_integrated": false,
+    "unique_writer_integrated": false,
+    "native_arrays_published": false,
+    "official_solver_integrated": false,
+    "original_Burst_or_Job_observed": false,
+    "changing_animation_verified": false,
+    "main_unity_launched": false,
+    "stage_modified": false,
+    "original_assets_or_full_disassembly_published": false
+  },
+  "next_unit": "Recover and integrate bounded Team parameter/Running/Reset request plus actual 11-group Team/chunk publication, then TransformRead relative path and unique writer before rollback-safe Unity candidate",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/red-01.xml": "7554ea34b1642aeaf5917a4af7e3435677a6897ba6a83efa2c0032d7a328ace3",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/green-03.xml": "72e4c2617812e8caf0930a576265f761f7b5d5572983b1ce271e7acac5f1029c",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/coverage-03.json": "ae20b443b5544822edcc3bc8647fad55eb2d058353cd17c23a998eb3410174d4",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/checks-03.json": "24e212d2ce69d828a22a908c4dac887389c96c27a9404060bd6d9cebc0b63099",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/full-suite-03.xml": "02ca9a2c3a443fe8da8f87166df6b410e6e1d634e54fb33341d914a0071c9646",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/pip-audit-03.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/run_checks.py": "1a8e58a29b7e183529fe3a82bcf6f2baf6a44b4b65ddbe183ae5ab3d907e08b0",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/check_source_clock.py": "0421db1bfae71ae88f2c3480c0a61442ebf2859c821844bf0210adfa8c83f009",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/source-certificate-03.json": "5ef116511f13ade743afe7e1f3e000e34d18ac134d0df2816e7fe1ebe4e668be",
+    "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01/source-01/center.json": "7e75a8eb70ab85b969b7b88b3d2cf0415a0a148e61c223e905be1ac806fa20c9"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_team_clock.py": "a2aaec004cc71ea22ec1b0a86fc6a752486c1911b37373aa70bd84923fe20db0",
+    "Tools/tests/test_official_physics_team_clock.py": "e8dd09b45aa465840c4273e9193079325da9a3bdad139a6fb9c81bb89116d254",
+    "docs/implementation/official-physics-team-clock-20261011/README.md": "3129f6e4ba2339f6069d49362bc1646c24407464175347a14a1abd8894e986be",
+    "docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "e912aa0a2f04532d6f3d47b1cac046f6fcfb9a75b9b659ab2d42175a15e1b5fe"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-team-clock-20261011-01"
+}
