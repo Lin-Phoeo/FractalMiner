@@ -1,0 +1,198 @@
+{
+  "date": "2026-10-11",
+  "scope": "Sealed isolated-reference ordinary BoneCloth Line connectivity and local Distance cache; finite given-Team step-list reference, not live official physics",
+  "parent_record_commit": "118041551897e374ee2d772d24ae0833fb00e459",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "sources_sha256": {
+    "A:/Hypergryph Launcher/games/Arknights Endfield/GameAssembly.dll": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "A:/Hypergryph Launcher/games/Arknights Endfield/Endfield_Data/il2cpp_data/Metadata/global-metadata.dat": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "D:/EndfieldTechLib/notes/official-physics-getter-production-20261011-01/eleven-imports-01.json": "3b9e2546c12fbe7b2c21e4cad6acf9faba8c1df8b258dad73ef92c12dcde9af7",
+    "D:/EndfieldTechLib/notes/official-physics-proxy-preprocess-20261011-01/eleven-frames-01.json": "9d4e62062d3352264002c4ccdc20fe292a78515c6ed9fd18f1b1d0e0e623e1ec",
+    "D:/EndfieldTechLib/notes/official-physics-baseline-production-20261011-01/eleven-baselines-01.json": "9ca9f1355ae6046ba55cc2f59f51bfc739a274c30037b1d124113e6602a50199"
+  },
+  "native_evidence": {
+    "line_job": {
+      "method_index": 371599,
+      "rva": "0x4310a70"
+    },
+    "distance_create_data": {
+      "method_index": 368867,
+      "rva": "0x37e7bb0",
+      "raw_bytes": 6592,
+      "code_bytes": 6536,
+      "table_bytes": 56
+    },
+    "closed_converter": {
+      "method_index": 370956,
+      "method_spec_index": 44958,
+      "generic_table_index": 40494,
+      "function_index": 40442,
+      "rva": "0x40da1d0",
+      "exact_CHAININFO_bytes": [
+        36,
+        147,
+        10
+      ]
+    },
+    "caller_run": {
+      "method_index": 355169,
+      "method_spec_index": 514571,
+      "rva": "0x34923d0",
+      "indirect_live_target_observed": false
+    },
+    "distance_helper_spans": 51,
+    "distance_helper_bytes": 8655,
+    "worklist": {
+      "ordinary_method_index": 370620,
+      "ordinary_rva": "0x5a6f838",
+      "actual_nonBurst_method_index": 370422,
+      "actual_nonBurst_rva": "0x5a58a28",
+      "required_flags": "0xa2",
+      "excluded_flags": "0x2000000000080810"
+    },
+    "capacity_contracts": {
+      "line_map": "4*n",
+      "converted_packed_row_map": "source dataLength",
+      "distance_temporary_maps_each": "2*n",
+      "worklist_output": "caller supplies each checked capacity; not an observed native allocator capacity"
+    },
+    "full_CFG_reproved": false,
+    "original_runtime_executed": false
+  },
+  "reference_validation": {
+    "states": 2,
+    "groups_per_state": 11,
+    "vertices_per_state": 140,
+    "lines_per_state": 109,
+    "graph_entries_per_state": 218,
+    "pre_length_entries_per_state": 178,
+    "output_entries_per_state": 176,
+    "totals": {
+      "vertices": 280,
+      "lines": 218,
+      "graph_entries": 436,
+      "pre_length_entries": 356,
+      "output_entries": 352,
+      "attribute_rejected_entries": 80,
+      "short_filtered_entries": 4,
+      "positive_output_entries": 352,
+      "negative_output_entries": 0
+    },
+    "scope": "Actual getters of isolated reconstructed serialized hierarchy; not observed game or recovered main stage character",
+    "fresh_serial_no_resize": true,
+    "empty_overrides_reference_only": true,
+    "zero_triangle_Line_reference_only": true
+  },
+  "independent_validation": {
+    "production_modules_imported": false,
+    "full_structure_types_order_and_float_bits_exact": true,
+    "output_path": "D:\\EndfieldTechLib\\notes\\official-physics-distance-production-20261011-01\\eleven-distance-02.json",
+    "output_sha256": "939bc3d178a7cfa07f86cb757989e99f7b9149cf01e2920441d47e4c7abf2d3f",
+    "candidate_canonical_sha256": "08a3461db7f91269fbb32c6d8283a9542fd6d2ff89018617a9a2e3962b07fcad",
+    "expected_canonical_sha256": "08a3461db7f91269fbb32c6d8283a9542fd6d2ff89018617a9a2e3962b07fcad",
+    "mismatches": [],
+    "checker_sha256": "72a75082100249b6902d1d9bec2b2aefe9dd758dd88c6e07b5191349161ca877",
+    "review": "Independent static Distance and work-list audits, code review, separately rederived actual output and main-agent order verifier replay",
+    "review_findings_fixed": [
+      "P2 explicit two output capacities checked before materialization",
+      "P3 pre_length_entry_count replaces ambiguous accepted_entry_count"
+    ],
+    "native_or_unity_executed": false
+  },
+  "validation": {
+    "specialty_passed": 96,
+    "full_suite_passed": 4169,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage_totals": {
+      "covered_lines": 205,
+      "num_statements": 205,
+      "percent_covered": 100,
+      "percent_covered_display": "100",
+      "missing_lines": 0,
+      "excluded_lines": 0,
+      "percent_statements_covered": 100,
+      "percent_statements_covered_display": "100",
+      "num_branches": 78,
+      "num_partial_branches": 0,
+      "covered_branches": 78,
+      "missing_branches": 0,
+      "percent_branches_covered": 100,
+      "percent_branches_covered_display": "100"
+    },
+    "quality": "Ruff, Black, Pyright, compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "missing_module_RED_retained": true,
+    "review_fix_RED_retained": true,
+    "intermediate_failures_retained": true,
+    "final_checks": "checks-07.json"
+  },
+  "gates": {
+    "distance_reference_generated": true,
+    "given_Team_worklist_reference_implemented": true,
+    "created_empty_triangle_map_semantics_preserved": true,
+    "runtime_overrides_observed": false,
+    "recovered_character_getters": false,
+    "full_proxy_inputs_generated": false,
+    "real_Team_chunks_generated": false,
+    "real_constraint_work_lists_generated": false,
+    "all_enabled_sibling_lists_implemented": false,
+    "native_arrays_published": false,
+    "original_allocator_executed": false,
+    "original_job_dispatch_or_Burst_observed": false,
+    "official_solver_integrated": false,
+    "main_unity_launched": false,
+    "stage_modified": false,
+    "original_assets_or_full_disassembly_published": false
+  },
+  "next_unit": "Static Team create/register plus particle initialization and explicit scoped global chunk layout; then complete enabled list/native publication/writer requirements before rollback-safe Unity integration",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/red-01.xml": "7930e737d23bec30189cac70f9ab2dcd743609155adcc17018dfe22e500dbd51",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/red-export-01.xml": "4300a1b038eba4f6ae3e06251d0d86ace077b6c0fa84d674aca08512c13993a9",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/red-export-02.xml": "5b3e4a0ab0722a8d970f3af2e6833ea7d087a592e425f16a4a29d8be7b22ba07",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/red-review-fixes-01.xml": "d95db30bc186c018f371dbcca75ea737e39b9f7a6ad1bb2de31f17cc9211a5ee",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/checks-07.json": "7d6de6451887a87ea40e7ab57cec48a4aa954acfe3df923db3b504b92f2893f7",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/green-07.xml": "d3e0e9c9f989a608c95be39bf369a9f6a995706a43e2bf0c2e762424e65df4ae",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/full-suite-07.xml": "71fd89d4096bb82ac32058a9b2f33274c1c5d29c853c8f5981475edf8744b811",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/coverage-07.json": "8fb31208609fa9920355e04481a8b7ef64c1b901cbae2c30c2c371132ce56189",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/pip-audit-07.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/run_checks.py": "dd39e83ed8a6a5df5c34447312ec055f20c547033218046c41a8a78f8eb39c80",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/connectivity-source-01.json": "457ed61f020cd4a22f188ad214bdd304799053999dab9e2ce5444c1e4d04d1ab",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/inspect_connectivity.py": "b03d23ddda1ed390cad1ad3dd8ade482979866bb18dc9039811599b85f572da9",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/helpers-01.json": "0cc97de3c47e2a0d2b2dfa2950ca9348240652a0da2396762e6ab030a08287c0",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/helpers-02.json": "731aa5934c2c933dff0ada46037f14e5d03bb03ec9a6dc63fbafb52d0d1a3c84",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/certificate-02-order.json": "4679803e52413cb67307fca3d54e4ea5b3aad9e616796e27d812ecb269deccfa",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/certify_order.py": "6850acdbe6407afa08d120fe3f73862097aa05ab646f774e4030bd98c2042598",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/certificate-03-final.json": "39589480f408cf93086529fbafb28d768f6b37d6559423de4f00d2056e290063",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/finalize_certificate.py": "411971729049c8b3f1999c5bb06cea6590ac0bd40f743daff6d3c8faa3bd04f4",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/FINDINGS.md": "d9c7f903027fba35893a48e32ee4ad82c366e4dfa535e187a0ce332f0e71666a",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/source-01.json": "22afd2f7090fc303cb687c24bcbf516de898c9c1ad6ed6ef8495d53383125393",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/helper-16.json": "2964f07f41da593c44374c8163d40cbe4ea0d9164f4832d77d94b99e2458d784",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/distance-source/generic-05.json": "1bc209f4a72f7301ed37d3d0433bedc0315d17429f5fa4b9f492ba7ccdc3fb18",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/worklist-source/certificate-02.json": "7ed26cf84c99a2758f917d03f45b8ce031ccd55f19dfbd75e5b8afdbb0114968",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/worklist-source/certify_worklist.py": "b1259700fccb66b70e1a01b9a24aa6942eff3bb411adc4d68b97bc344c6f16e6",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/worklist-source/discovery-05.json": "3cf1ee0c184699124003f48e01a72756511bcb99f75ddbdb85a9af34ba15ef22",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/worklist-source/FINDINGS.md": "261608a2183933a8eddbad054f1d7b6bfeccd1dc8aec3e2fdaf79739ab6de778",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/independent-review-02/REVIEW.md": "d06ed956da3646f62d360bcfea2a4efe2f74974b83b3bda9e30d50f1983fa032",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/actual-validation/validate_actual_distance.py": "72a75082100249b6902d1d9bec2b2aefe9dd758dd88c6e07b5191349161ca877",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/actual-validation/final-validation-02.json": "474422e2edf3d2f5c4b235e7b32818488681ab5172a51381a92c2109be1d243b",
+    "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01/eleven-distance-02.json": "939bc3d178a7cfa07f86cb757989e99f7b9149cf01e2920441d47e4c7abf2d3f",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-40-distance-production-before.json": "e0244b145a7cfff2e533bea34f8e67313b6eb0ba0d96acd3566f1cc22cb49642",
+    "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-41-distance-production-prepush.json": "a1d0caed73b4764df6f118d54eb86368344a071bd6bf2082b3394efdadf70962"
+  },
+  "implementation_sha256": {
+    "Tools/official_physics_distance_inputs.py": "1878c30e5b32428d091f13516a84ca26702635469c276395bb6a68d7918084fc",
+    "Tools/export_official_physics_distance_inputs.py": "a6bb75199bc38564544f96fa63f6f5c9920618d2e4c0da4483639fa6be0cccf5",
+    "Tools/official_physics_work_lists.py": "787ef7c00639c2788bb9ea9bb52982298e473677d0499791d00368feaf1f155a",
+    "Tools/tests/test_official_physics_distance_inputs.py": "36163c6e10a5d1da270592f316eba685cd788ab77cc81ccfedfdbc11baf57f7c",
+    "Tools/tests/test_export_official_physics_distance_inputs.py": "8a95501804b47f8fcaad62d1adf0b311e86fccbe5a487f75e8a896e05c186686",
+    "Tools/tests/test_official_physics_work_lists.py": "7766ac57a4b2cff8ce9d00a6d374674d662d722162cdba1b851ad24b6ec1ecf1",
+    "docs/implementation/official-physics-distance-production-20261011/README.md": "5a0441ce1a7c15731b3fee32d299073294a6864355ff0c8d2a98f4a933e7bfae",
+    "docs/implementation/official-physics-animator-buffer-20261003/PROGRESS.md": "ca5b7a6dffafbe7a41f1bb9e80bac48322b1f326ac98e1d8c7a66ce37d87fdbf"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-distance-production-20261011-01"
+}
