@@ -1,0 +1,83 @@
+{
+  "date": "2026-10-11",
+  "scope": "Index-only remap of sealed per-group Team1 world proxy/reset payloads into the unified 11-Team candidate layout; not continuous animation or native publication",
+  "parent_record_commit": "01ab24f0d56bad682e3386b7f95b1390064bbdfc",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "input_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-world-proxy-20261011-01/eleven-world-reset-01.json": "7c1cd6539ada3a144a8019ecbe7477c1e751eaa99a1581efa537688bc2162eeb",
+    "D:/EndfieldTechLib/notes/official-physics-team-layout-20261011-01/eleven-team-layout-02.json": "a783648e4a0881dcd1b53d8a4145c009bdba153e7556429edc3883f985ede3b4"
+  },
+  "global_state": {
+    "states": 2,
+    "teams": 11,
+    "proxy_slots_per_state": 140,
+    "particle_slots_per_state": 140,
+    "payloads_checked_across_states": 280,
+    "team_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    "global_proxy_range": [0, 139],
+    "global_particle_range": [0, 139],
+    "reset_fields_per_particle": 14,
+    "floating_point_math_recomputed": false,
+    "all_saved_payloads_exact_after_index_remap": true,
+    "changing_animation_verified": false
+  },
+  "independent_validation": {
+    "production_remap_module_imported": false,
+    "local_payloads_and_global_indices_rederived": true,
+    "status": "PASS",
+    "output_sha256": "f479050dbb6e9c63a5b5fe25510eea69a9e9256f039a75f590c1d41b7ee924aa",
+    "report_sha256": "92d2c6b148d9269073d96736b2c04453b34f533b318c7bb24ef0b30faca7fb79"
+  },
+  "validation": {
+    "specialty_passed": 22,
+    "full_suite_passed": 4485,
+    "subtests_passed": 114,
+    "historical_skips": 3,
+    "historical_warnings": 2,
+    "coverage": {
+      "statements": 167,
+      "covered_lines": 144,
+      "statement_percent": 86.22754491017965,
+      "branches": 80,
+      "covered_branches": 64,
+      "combined_percent": 84.21052631578948,
+      "required_minimum": 80
+    },
+    "quality": "Ruff, Black, Pyright and compileall PASS",
+    "audited_tool_dependencies": 48,
+    "known_dependency_vulnerabilities": 0,
+    "checks_file": "checks-03.json",
+    "missing_module_RED_retained": true
+  },
+  "gates": {
+    "candidate_global_world_reset_generated": true,
+    "all_11_groups_remapped": true,
+    "particle_and_proxy_team_aliasing_removed": true,
+    "reset14_write_order_preserved": true,
+    "continuous_animation_verified": false,
+    "TransformRead_relative_branch_integrated": false,
+    "unique_writer_integrated": false,
+    "native_arrays_published": false,
+    "official_solver_integrated": false,
+    "Unity_backend_changed": false,
+    "stage_modified": false
+  },
+  "next_unit": "Recover and connect the TransformRead relative branch plus animation transform-state publication and unique writer against the unified candidate global state",
+  "evidence_sha256": {
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/eleven-global-world-reset-02.json": "f479050dbb6e9c63a5b5fe25510eea69a9e9256f039a75f590c1d41b7ee924aa",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/verification-independent-03.json": "92d2c6b148d9269073d96736b2c04453b34f533b318c7bb24ef0b30faca7fb79",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/checks-03.json": "5fcc53609199635beb4bf97b48c63db00fd2e923c23382205e257089dc9e9147",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/coverage-03.json": "5def77c957df33311b3998adeb0c7fe2ae40270a038649da418ab986abfdba3c",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/full-suite-03.xml": "cab175a5c8e136064b22fbe7f7537465aaed648993138581992d45cf3c0576be",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/pip-audit-03.json": "1e620be0d818ac1440723757c46f3727dc6f5577c00008e9732fc2f84d7e1528",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/run_checks.py": "649bd5112a36cf877e6edf5d6de10d7b60642e0a463daf377e8f27e3dca03dcd",
+    "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01/verify_global_state.py": "bb4087510a77f235a08e3dcc42f59954f04af550bca796957daa85bf5e1ae82d"
+  },
+  "implementation_sha256": {
+    "Tools/export_official_physics_global_state.py": "6c6d97583c25d3c39c621eee99927dd84d094b2c42bc42bb60b953dde55db536",
+    "Tools/tests/test_export_official_physics_global_state.py": "5f93ea527e9bb2c4d4d58ff893ab7d3dbc8a93ea86cd22734bd348adc7221e3b"
+  },
+  "local_evidence_directory": "D:/EndfieldTechLib/notes/official-physics-global-state-20261011-01"
+}
