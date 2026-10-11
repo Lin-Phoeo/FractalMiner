@@ -55,4 +55,6 @@
 
 2026-10-11继续接通[BoneCloth构建分支与Line代理方向](../official-physics-proxy-preprocess-20261011/README.md)：原RuntimeBuild callback确认Reduction只对MeshCloth=0；Optimization只调用去重三角形，count<2直接返回。严格限定普通BoneCloth/零三角形Line/None/custom skinning关闭参考路线，将两态11组getter导入与fresh属性接到vertex bindpose、vertexToTransform和None调整调用契约，共280skin方向产物，属性/flags及槽序保持。独立560个方向矩阵关系、负位置和映射检查通过；33项专项、4029项全量回归+114subtests通过。原callback代码/3字节padding/7项跳表分区认证，共13片段、5身份、17锚点。零三角形/fresh/空覆盖仍是参考实验前提，不是游戏实时状态；None泛型Fill最终写入、完整proxy/Team及动态后端未闭合。下一步直接沿实际参考ID生成父子/baseline/root-depth并接work-list，不继续猜测额外normalAxis预旋转。
 
+2026-10-11继续接通[真实参考ID到baseline/局部姿态/根深度](../official-physics-baseline-production-20261011/README.md)：两态各11组140个skin槽生成父表、有序子表、37条baseline/126数据槽及全部顶点root/length/depth，末尾render Transform不入物理域。独立原字节审查补证fresh子表容量3*n与串行至多n次Add不扩容、局部输出ClearMemory1、局部姿态Job无attributes输入；未访问14槽旋转保留零四元数，深度读取原proxy positions而非新local pose。第三路独立重算74条baseline/252数据槽、582个长度/深度Single槽逐位通过，212个有父局部姿态矩阵代数通过。44项专项、4073项全量回归+114subtests、92语句/28分支100%覆盖；主代理重新认证35片段/6身份并复核旧baseline代码/跳表边界。fresh/空覆盖/零三角形实验前提和None泛型Fill/allocator/Job调度缺口仍保留，不宣称完整proxy/Team或Unity后端。本单元完成后直接补Line约束cache/work-list及Team/particle输入发布，不重复重做已闭合的baseline数学。
+
 这轮没有新可见效果；当前效果保持。用户能看到的新物理必须以候选后端实际切换并运行过的结果为准，而不是测试数字。
