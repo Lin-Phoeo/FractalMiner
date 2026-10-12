@@ -29,17 +29,17 @@
 | `0x5a1b671` | ColliderManager.PostSimulationUpdate |
 | `0x5a1b68f` | TeamManager.PostTeamUpdate |
 
-写 manager 的 `0x5a1d0ae → 0x5a1806c` 已确定为 `CrossFrameJobUtils.Schedule2<DynamicBoneTransformManager.WriteAnimatorBufferDataJob>`，开放方法 369399，MethodSpec 506112。读取 manager 的 `0x5a1cb94 → 0x3b5e68` 未由当前 generic index 解析，仍需核查，不能自行补成同一种调度。
+写 manager 的 `0x5a1d0ae → 0x5a1806c` 已确定为 `CrossFrameJobUtils.Schedule2<DynamicBoneTransformManager.WriteAnimatorBufferDataJob>`，开放方法 369399，MethodSpec 506112。读取 manager 的 `0x5a1cb94 → 0x3b5e68` 原先未解析；2026-10-12已沿wrapper的MethodInfo初始化格和目标 `0x6985208` 确认为 `ScheduleCrossFrameReadOnly<ReadAnimatorBufferDataJob>`，method360316 / MethodSpec515143，详见[读/委托/写调度](../official-physics-animator-schedule-20261012/README.md)。不是同一种Schedule2。
 
 帧后 `OnAfterUpdate` 369365 / `0x3e2caa0` 的已封存完整 family 在 `0x4f261b8` 完成 master，之后 `0x4f261d8` 才更新 Team Animator bindings。`updateMode=10` 证明 AnimatorLinkage 模式；路由还受 `UseCrossFrameJob` 和 `UseAnimatorTransform` 两项开关门控，不能从保存的模式数值断言游戏当时选中的路由。
 
 ## 下一单元的工作边界
 
-2026-10-12状态刷新：Execute的无mapping有限顺序已在 [delegate单元](../official-physics-animator-delegate-20261012/README.md) 实现；绑定→共享record→读→写→读合成接线已在 [record-read单元](../official-physics-animator-record-read-20261012/README.md) 验证。下列未完成项不据此标为已闭合：真实native record/TRS、positive mapping、Schedule worker/依赖和GCHandle生命周期。三个精确helper span已封存于record-read的私有source-verification，读取wrapper generic身份仍未解析。
+2026-10-12状态刷新：Execute的无mapping有限顺序已在 [delegate单元](../official-physics-animator-delegate-20261012/README.md) 实现；绑定→共享record→读→写→读合成接线已在 [record-read单元](../official-physics-animator-record-read-20261012/README.md) 验证。随后读wrapper身份与三个具体helper的worker/主线程门控已恢复为[显式回调适配](../official-physics-animator-schedule-20261012/README.md)。下列未完成项不据此标为已闭合：真实native record/TRS、positive mapping、native后端/依赖就绪、GCHandle生命周期及Unity动态。
 
-1. 恢复 Execute 的正常路径与 mapping 分支、子步循环、参数来源和返回句柄依赖；分别核查各 Schedule2 的 worker 同步路径。已存在非 Animator host 参考不能直接代入本委托主体。
+1. 在已恢复的mapping-empty Execute有限顺序和三条具体helper门控基础上，核查native后端/调用方的依赖就绪、Job struct拷贝与实际完成机制；positive mapping仍未恢复。其余Schedule2泛型实例不能直接套用本writer的worker规则。
 2. 核查六个句柄的 GetTarget 类型、创建及释放位置。当前只有入口/字段/静态调用身份，尚未证明生命周期；不推断 job 返回即自动释放。
-3. 验证绑定重建后的 handler 顺序被读写两端共同消费；显式补 record→读取 capture 的接口与原 native 单位尺度 TRS 构造，保留 read 的逆 relative 与 write 的正向 relative 区别。
+3. 绑定重排后的handler在共享record读写合成fixture中已验证；继续接真实CreateClothBindings/record输入与原native单位尺度TRS来源，保留read逆relative与write正向relative。不能将合成矩阵视作native TRS oracle。
 4. 按需恢复 AddTeamAnimatorData（369502 / `0x38e2800`）、ClearTeamAnimatorData（369501 / `0x5a20b08`）、RemoveTeam（369510 / `0x5a22470`）的完整 family 与副作用。AddAnimatorTransform（369503 / `0x34408a0`）和 MarkAnimatorTransformDirty（369504 / `0x5a22398`）只在 Transform 非 Unity-null 时添加 dirty，不能无条件改写。
 5. 完成输入/依赖后再接可回退 C# 候选，并在实际角色动作、暂停/恢复/跳帧中验证。当前已有舞台后端和可见效果保持，正式官方候选后端仍未接入 Unity。
 
