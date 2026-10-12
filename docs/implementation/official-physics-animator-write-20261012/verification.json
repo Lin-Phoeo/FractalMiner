@@ -1,0 +1,115 @@
+{
+  "date": "2026-10-12",
+  "scope": "Finite WriteAnimatorBufferDataJob control flow and immutable Animator record values; not native maps, lifecycle, scheduling, Unity Animator jobs or visible physics",
+  "parent_record_commit": "fc5c9cd5f5af76debf27a971923518d4d0fc1df0",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "write_job": {
+      "method": 369460,
+      "rva": "0x5a2655c",
+      "bytes": 2358,
+      "sha256": "7238f1b9c393b21ea0fbac9a0cce2e234c2036640611ff4a79c696d96055c621",
+      "unwind_bounded": true
+    },
+    "position_invalid_double3": {
+      "rva": "0x5a18448",
+      "bytes": 77,
+      "sha256": "7598ef2039f40a28324fd68bb759e259eb8806a14fc195ce2748680bb2cad39f"
+    },
+    "position_invalid_float3": {
+      "rva": "0x5a18498",
+      "bytes": 75,
+      "sha256": "b6e2025735403448cf4cc3143f9350369700a383587fe50a24581a0a02bbf746"
+    },
+    "rotation_interpolation": {
+      "rva": "0x5a19748",
+      "bytes": 416,
+      "sha256": "40d15415289c7965fa44a81ef3ef6475db9d49a8369051f64716d1640caa5e8e"
+    },
+    "position_interpolation": {
+      "rva": "0x2f845b0",
+      "bytes": 104,
+      "sha256": "5e2f4100afb8523eaaf73a6941dce79529a36b85484ce24f37fbb33dc337c97e",
+      "sealed_leaf_span": true
+    },
+    "relative_forward_matrix": {
+      "method": 371178,
+      "rva": "0x5a18560",
+      "bytes": 272,
+      "sha256": "8f2896bba54fad84730566b859049c0e4b58b93bebf5ee206e49f3b784897c4e"
+    },
+    "quaternion_multiply": {
+      "rva": "0x305d080",
+      "bytes": 568,
+      "sha256": "1f07dfff3ec713513345a1ae58fb20cb688f1e6c8cee09d8f5c460354e123a0d"
+    },
+    "point_transform": {
+      "rva": "0x34e0ba0",
+      "bytes": 245,
+      "sha256": "4c8f39e2d1167deae59206c769b79acdea8d8f98f6d364fc8c29054f3b4bdbc4"
+    },
+    "double3_to_single3": {
+      "method": 371131,
+      "rva": "0x4a47950",
+      "bytes": 44,
+      "sha256": "27e1fc45a49c1a6387335b8415dffc885071e1c21fc9380cf07c18f1fa08e4fe",
+      "sealed_leaf_span": true
+    }
+  },
+  "gates": {
+    "write_animator_buffer_finite_semantics_ported": true,
+    "culling_returns_whole_job": true,
+    "weight_multiply_precedes_map_lookups": true,
+    "three_missing_map_paths_continue": true,
+    "disabled_bit61_nonpositive_return_whole_job": true,
+    "world_bit_precedes_local_bit": true,
+    "status_1_2_3_order_preserved": true,
+    "world_position_validated_even_without_position_gate": true,
+    "relative_forward_matrix_order_preserved": true,
+    "actual_animator_rw_record_native_maps_generated": false,
+    "update_team_animator_data_lifecycle_ported": false,
+    "cross_animator_scheduler_closed": false,
+    "actual_nativearray_or_animator_job_executed": false,
+    "official_eleven_runtime_records_supplied": false,
+    "game_or_unity_runtime_executed": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-animator-write-20261012-01",
+    "audit_source_py_sha256": "5ebf73a2b2c9e20a229e100319e4d1abc1cfcf3b6f0e4d3e86fc74fc896c7405",
+    "source_audit_02_json_sha256": "50a8fd0bb6f2ab4a0dd4dd4d3e041662fc2cac6c4d683e769fd1e52d1298fc13",
+    "verify_source_py_sha256": "349aeed2ddbd90332c662d93c80ef0b2d6689e0b54b73ffdBda8ab3e71c4e4ae",
+    "source_verification_01_json_sha256": "f46638b45c794513144d1c309da1da059b43156d1af873e9587774012e4577ac",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-58-animator-write-precommit.json",
+    "precommit_guard_sha256": "2be04207b460d2d28fcfd8f17e7919d0e5002f13605b194d904edfe9caa9d461",
+    "instruction_sites_verified": 31,
+    "helper_hashes_verified": 8,
+    "runtime_executed": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_animator_write.py": "fecc771a9703150db61082839e0ee44023648200dc8bc8ed6da2dfa3895d0a0c",
+    "Tools/tests/test_official_physics_animator_write.py": "da911269fc004794dd66be532341c44ed9da9f302adf00ca92976efd809aa41e"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "new_tests": 22,
+    "animator_write_module_statements": 173,
+    "animator_write_module_branches": 62,
+    "branch_inclusive_coverage_percent": 91,
+    "python_suite_passed": 4491,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "black": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
