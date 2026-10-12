@@ -43,7 +43,7 @@
 4. [Add/Clear Team Animator正常路径](../official-physics-animator-membership-20261012/README.md)已恢复有限参考：null Add仍dirty且不删旧映射，Clear仅删当前manager两张Team map；不是record/GCHandle释放。[Transform解除显式字段与Add/Mark dirty效果](../official-physics-transform-release-20261012/README.md)随后已补有限值/操作描述；只在Transform非Unity-null时dirty，十四arena操作尚未执行native allocator。完整RemoveTeam（369510 / `0x5a22470`）的同步父组/chunk/多容器副作用及emptyChunks/useCount复用仍待恢复。
 5. 完成输入/依赖后再接可回退 C# 候选，并在实际角色动作、暂停/恢复/跳帧中验证。当前已有舞台后端和可见效果保持，正式官方候选后端仍未接入 Unity。
 
-后续allocator状态刷新：[emptyChunks/useCount账本](../official-physics-native-arena-20261012/README.md)已补有限合并/切分/尾部回缩，并接十四Transform逻辑移除。删除已按原方法身份纠正为RemoveAtSwapBack，初版稳定删除语义参照作废，当前以V2为准。不能再标成完全未分析，也不能标成native分配器已完成；外层AddRange增长、capacity/Expand、Fill、实际NativeArray/Job生命周期仍待补。
+后续allocator状态刷新：[emptyChunks/useCount账本](../official-physics-native-arena-20261012/README.md)已补有限合并/切分/尾部回缩，并接十四Transform逻辑移除；删除按原身份为RemoveAtSwapBack，初版稳定删除参照已作废。[外层AddRange/typed Fill/Expand](../official-physics-native-growth-20261012/README.md)随后已恢复有限capacity、detached cells、尾部free与allocate-copy-remove顺序。两者仍不是native分配器：`ExpandAndFill`、其他AddRange重载、十四live数组注册/复用、component arena、完整Team teardown及实际NativeArray/Job生命周期仍待补。
 
 ## 本机证据与完整性
 

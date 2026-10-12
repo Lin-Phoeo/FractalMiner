@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-12",
+  "scope": "Finite ExNativeArray AddRange capacity growth, typed Fill and Expand over detached logical snapshots; not NativeArray allocation, jobs or Unity integration",
+  "parent_record_commit": "611f75d34b1d2df1ad1a0fdeb74b69452a26e882",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "resolver_sha256": "8efdbdfbe4644de5486abbf379b08041202d72c83b5b0bce944347f99e85d364",
+    "exact_families_verified": 11,
+    "family_bytes_verified": 6593,
+    "method_identities_verified": 14,
+    "instruction_anchors": 48,
+    "representative_add_range_types": [
+      "BeyondDynamicBone.ExBitFlag8",
+      "System.Int16",
+      "System.Single",
+      "Unity.Mathematics.double3",
+      "Unity.Mathematics.float3",
+      "Unity.Mathematics.float4x4",
+      "Unity.Mathematics.quaternion"
+    ]
+  },
+  "gates": {
+    "zero_request_creates_zero_length_storage_only_when_missing": true,
+    "first_fit_reuse_precedes_growth": true,
+    "capacity_growth_uses_old_plus_max_request_old": true,
+    "old_capacity_is_copied_before_logical_disposal": true,
+    "unused_growth_tail_is_registered_as_free": true,
+    "use_count_tracks_returned_chunk_end": true,
+    "typed_add_fills_only_returned_chunk": true,
+    "fill_short_circuits_missing_or_nonpositive_window": true,
+    "expand_allocates_then_copies_then_removes_old": true,
+    "reused_uncopied_cells_are_not_implicitly_cleared": true,
+    "typed_zero_interpretation_is_explicit_adapter_input": true,
+    "source_anchored_state_machine_generated_without_production_import": true,
+    "instruction_emulator_claimed": false,
+    "native_array_allocator_executed": false,
+    "native_copy_or_dispose_executed": false,
+    "expand_and_fill_ported": false,
+    "other_add_range_overloads_ported": false,
+    "fourteen_live_arrays_registered": false,
+    "full_component_or_team_teardown_ported": false,
+    "unity_candidate_backend_integrated": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-native-growth-20261012-01",
+    "artifact_sha256": {
+      "audit_source.py": "482c9c7238a5914e2f866d91ad129388270798c1100921c533278e7c9681e30d",
+      "source-audit-01.json": "40ee04f4d1c5af2607b1a08efa5581598a97243266e9ccc288333315db1bf3d7",
+      "verify_source.py": "e80c9b7d9f8de0aedcfbe57bd0b97c925d0381994647dfe7075596e937402b7a",
+      "source-verification-01.json": "7a3f93ad165134c57eccc1b5c411e0ccde18ada2d59cee770fe80011c900c5ae",
+      "source-oracle-01.json": "1852b5243f22e563502c1562c3cf6b18c9d4d506ff3acf2a589d01c02e0089bf",
+      "check_oracle.py": "2909400653117f351212ea2a6c0eac3d50a17f15775068ecd422b1b7f928658b",
+      "reference-comparison-01.json": "caf7e48b41cbaff65363b94fd195975e8e3c58e574507a2718e7dbb917ef13f5"
+    },
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-77-native-growth-precommit.json",
+    "precommit_guard_sha256": "25a1cdac6712fec64d70aae2fcbf16a30734376fc68545d71c2ac2d81042720d",
+    "runtime_executed": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_native_growth.py": "200b4b50b5f2337d90d45cb76cd038611ae0ffb6b80e42808683ab7836e0ff5f",
+    "Tools/tests/test_official_physics_native_growth.py": "2cf40c524d3a6b97e88febc47872590e8f8c94bef7b4bf6d55fd97ea92cab2dc"
+  },
+  "validation": {
+    "missing_module_collection_red_observed": true,
+    "new_growth_tests": 25,
+    "combined_growth_and_arena_tests": 64,
+    "module_statements": 94,
+    "module_branches": 30,
+    "branch_inclusive_coverage_percent": 100,
+    "source_anchored_state_machine_cases_matched": 1000,
+    "python_suite_passed": 4754,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "black": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "compileall": "PASS",
+    "pip_audit": "No known vulnerabilities found",
+    "independent_agent_review_performed": false,
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "protected_stage_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
