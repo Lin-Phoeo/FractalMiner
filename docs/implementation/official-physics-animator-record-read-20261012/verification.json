@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-12",
+  "scope": "Finite shared AnimatorRecord selected read adapter; synthetic lifecycle/read/write/read dataflow, not native TRS, buffers, jobs, lifetime or Unity physics",
+  "parent_record_commit": "4ae3ae1b07a0ee47b69ecdb180d7eff166fdbd75",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "reader": {"method": 369459, "rva": "0x5a1dc98", "bytes": 2509, "sha256": "13fc5cba6396d081e58d767d61c5cdf3455aa04274041ca0f9a89cfcadfcba35"},
+    "trs_wrapper": {"rva": "0x5a18560", "bytes": 272, "sha256": "8f2896bba54fad84730566b859049c0e4b58b93bebf5ee206e49f3b784897c4e"},
+    "rw_handle_definition": 54623,
+    "rw_handle_fields_verified": 15,
+    "reader_instruction_sites": 14,
+    "native_method_identities": 2,
+    "next_schedule_helper_spans": 3,
+    "next_schedule_helper_bytes": 1037
+  },
+  "gates": {
+    "shared_selected_record_read_adapter_connected": true,
+    "legacy_capture_read_api_preserved": true,
+    "three_map_short_circuit_and_getter_fallback_preserved": true,
+    "writer_statuses_not_read": true,
+    "unselected_record_and_handler_not_read": true,
+    "native_trs_resolver_required_without_identity_default": true,
+    "synthetic_binding_read_write_read_dataflow_verified": true,
+    "native_trs_rotation_math_implemented": false,
+    "native_rw_record_creation_verified": false,
+    "native_schedule_and_worker_execution_verified": false,
+    "gchandle_release_or_fault_lifetime_verified": false,
+    "eleven_live_runtime_record_inputs_supplied": false,
+    "official_candidate_unity_backend_integrated": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-animator-record-read-20261012-01",
+    "verify_source_py_sha256": "9c583ad64f3c122ebb4e0e884b2e59514fe396d41d1ef1ba420fc00596db2f3b",
+    "source_verification_01_json_sha256": "f3eee72c47e445051f0b51e934ac5423a50edd91acbfba3d455d10f413df25b5",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-66-animator-record-read-precommit.json",
+    "precommit_guard_sha256": "edd01b7ee843d6a5ed487a9e2d71ff89a2fb39496282f1dd9ac5347b49d8b4d0",
+    "runtime_executed": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_animator_buffer.py": "348fddc9c5e2eda24d0958f5c165bdcf3c8f1564f316c8a9de3513d6db6fddcd",
+    "Tools/tests/test_official_physics_animator_record_read.py": "1844c9e9981da95a90dfceb9025b66471fd177a00ca9401d123bfc10043fb05c"
+  },
+  "validation": {
+    "missing_interface_collection_red_observed": true,
+    "new_record_read_tests": 26,
+    "read_specialty_passed": 85,
+    "module_statements": 94,
+    "module_branches": 28,
+    "branch_inclusive_coverage_percent": 100,
+    "python_suite_passed": 4567,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "black": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "compileall": "PASS",
+    "pip_audit": "No known vulnerabilities found",
+    "independent_agent_review_performed": false,
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "protected_stage_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

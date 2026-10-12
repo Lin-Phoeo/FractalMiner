@@ -35,6 +35,8 @@
 
 ## 下一单元的工作边界
 
+2026-10-12状态刷新：Execute的无mapping有限顺序已在 [delegate单元](../official-physics-animator-delegate-20261012/README.md) 实现；绑定→共享record→读→写→读合成接线已在 [record-read单元](../official-physics-animator-record-read-20261012/README.md) 验证。下列未完成项不据此标为已闭合：真实native record/TRS、positive mapping、Schedule worker/依赖和GCHandle生命周期。三个精确helper span已封存于record-read的私有source-verification，读取wrapper generic身份仍未解析。
+
 1. 恢复 Execute 的正常路径与 mapping 分支、子步循环、参数来源和返回句柄依赖；分别核查各 Schedule2 的 worker 同步路径。已存在非 Animator host 参考不能直接代入本委托主体。
 2. 核查六个句柄的 GetTarget 类型、创建及释放位置。当前只有入口/字段/静态调用身份，尚未证明生命周期；不推断 job 返回即自动释放。
 3. 验证绑定重建后的 handler 顺序被读写两端共同消费；显式补 record→读取 capture 的接口与原 native 单位尺度 TRS 构造，保留 read 的逆 relative 与 write 的正向 relative 区别。
