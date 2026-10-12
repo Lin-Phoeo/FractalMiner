@@ -40,7 +40,7 @@
 1. 在已恢复的mapping-empty Execute有限顺序和三条具体helper门控基础上，核查native后端/调用方的依赖就绪、Job struct拷贝与实际完成机制；positive mapping仍未恢复。其余Schedule2泛型实例不能直接套用本writer的worker规则。
 2. 核查六个句柄的 GetTarget 类型、创建及释放位置。当前只有入口/字段/静态调用身份，尚未证明生命周期；不推断 job 返回即自动释放。
 3. 绑定重排后的handler在共享record读写合成fixture中已验证；继续接真实CreateClothBindings/record输入与原native单位尺度TRS来源，保留read逆relative与write正向relative。不能将合成矩阵视作native TRS oracle。
-4. [Add/Clear Team Animator正常路径](../official-physics-animator-membership-20261012/README.md)已恢复有限参考：null Add仍dirty且不删旧映射，Clear仅删当前manager两张Team map；不是record/GCHandle释放。完整RemoveTeam（369510 / `0x5a22470`）的同步父组/chunk/多容器副作用仍待恢复。AddAnimatorTransform（369503 / `0x34408a0`）和 MarkAnimatorTransformDirty（369504 / `0x5a22398`）只在 Transform 非 Unity-null 时添加 dirty，不能无条件改写。
+4. [Add/Clear Team Animator正常路径](../official-physics-animator-membership-20261012/README.md)已恢复有限参考：null Add仍dirty且不删旧映射，Clear仅删当前manager两张Team map；不是record/GCHandle释放。[Transform解除显式字段与Add/Mark dirty效果](../official-physics-transform-release-20261012/README.md)随后已补有限值/操作描述；只在Transform非Unity-null时dirty，十四arena操作尚未执行native allocator。完整RemoveTeam（369510 / `0x5a22470`）的同步父组/chunk/多容器副作用及emptyChunks/useCount复用仍待恢复。
 5. 完成输入/依赖后再接可回退 C# 候选，并在实际角色动作、暂停/恢复/跳帧中验证。当前已有舞台后端和可见效果保持，正式官方候选后端仍未接入 Unity。
 
 ## 本机证据与完整性
