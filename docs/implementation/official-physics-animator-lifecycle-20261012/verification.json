@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-12",
+  "scope": "Finite UpdateTeamAnimatorData normal-completion lifecycle and binding/index operation plan; consumes caller-resolved Unity binding records and identity/order adapters",
+  "parent_record_commit": "84828f0666ee78db0bdc141894105f9c68f1eab2",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "update_team_animator_data": {
+      "method": 369500,
+      "rva": "0x5a2283c",
+      "bytes": 3241,
+      "sha256": "8c7b7626614a41732f5408bf90118cae1a11796dca66319242ea4605c81125ee",
+      "unwind_bounded": true
+    },
+    "reference_list_append_body": {
+      "rva": "0x2d10e70",
+      "bytes": 240,
+      "sha256": "ed6d86af48c14d874096806e6301112776351e855d555692648f3e9a8e58cb9d",
+      "generic_alias_unresolved": true,
+      "receiver_and_append_dataflow_verified": true
+    },
+    "parameter_types": {
+      "teamIdArray": "BeyondDynamicBone.ExNativeArray`1[System.Int16]",
+      "transformArray": "UnityEngine.Jobs.TransformAccessArray"
+    },
+    "persistent_generic_fields_verified": 6,
+    "transient_generic_allocation_types_verified": 4,
+    "reference_generic_sharing_recorded": true
+  },
+  "gates": {
+    "update_team_animator_data_finite_normal_path_ported": true,
+    "empty_dirty_preserves_temp": true,
+    "all_teams_sharing_mapped_animator_are_selected": true,
+    "duplicate_transform_replaces_previous_slot_group": true,
+    "null_animator_lookup_retries_until_nonnull": true,
+    "disable_create_replace_enable_order_preserved": true,
+    "returned_uint16_binding_order_maps_retained_slots": true,
+    "binding_count_uint16_boundary_checked": true,
+    "stale_transform_handler_map_keys_preserved": true,
+    "dirty_temp_clear_after_nonempty_normal_completion": true,
+    "create_cloth_bindings_implemented": false,
+    "actual_animator_rw_record_native_maps_generated": false,
+    "native_allocation_release_lifetime_or_partial_faults_reproduced": false,
+    "cross_animator_scheduler_closed": false,
+    "official_eleven_runtime_records_supplied": false,
+    "game_or_unity_runtime_executed": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-animator-lifecycle-20261012-01",
+    "audit_source_py_sha256": "69df3d9340f5dc6a3077befe863f8130626d76ad852cbc79e0429a4631b7d1aa",
+    "source_audit_06_json_sha256": "904db523f964dae8156081aa2ff6b5a2d4584d06f7ad53c624919f76b6829d82",
+    "verify_source_py_sha256": "1b541cedb4fb2ee36fc521cead328eba8b883f3435ef05218c2b0d9c25b35365",
+    "source_verification_02_json_sha256": "8b6e35622354485ee8cfd199413b48a940a5cd3bb6ab3622f038e4b5c2545d37",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-60-animator-lifecycle-precommit.json",
+    "precommit_guard_sha256": "98f037837d426ff497444577c4a36f55bf875373ac10108fd793552affdbe087",
+    "call_sites_verified": 38,
+    "main_instruction_sites_verified": 30,
+    "runtime_executed": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_animator_lifecycle.py": "2e74be0496a2c05b4bb197a3f44897ff5bfac228950addda97da609c2533b436",
+    "Tools/tests/test_official_physics_animator_lifecycle.py": "48ee093793d6900ae73da2bd35c554ef825805434de24a2358095b89d0432f74"
+  },
+  "validation": {
+    "tdd_missing_module_red_observed": true,
+    "duplicate_source_behavior_red_observed": true,
+    "duplicate_source_behavior_red_failures": 5,
+    "new_tests": 26,
+    "module_statements": 131,
+    "module_branches": 52,
+    "branch_inclusive_coverage_percent": 90.71,
+    "independent_read_only_review": "Two findings corrected: duplicate group replacement and UInt16 count upper bound",
+    "python_suite_passed": 4517,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "black": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "compileall": "PASS",
+    "pip_audit": "No known vulnerabilities found",
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "existing_changed_stage_preserved_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}
