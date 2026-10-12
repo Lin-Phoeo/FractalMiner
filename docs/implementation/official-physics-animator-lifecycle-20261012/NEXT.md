@@ -2,6 +2,8 @@
 
 更新时间：2026-10-12。代码记录提交 `4e3e4af9dc5aee1ad633997a46f33727e74e2e5b` 已推送并经远端复核；主 HEAD `fc9d4869803f439ffff83311986190e8a8b5ade3` 与主 index 的 9557 项保留。下一步接续本页，不重做已恢复的写缓冲或绑定重建。
 
+后续进展：[宿主与无mapping委托顺序](../official-physics-animator-delegate-20261012/README.md)已补有限计划，下面的入口与证据仍有效；“恢复Execute”的正常顺序子项已推进，实际调度/句柄生命周期与读写数据接线仍未闭合。当前以新单元及PROGRESS的门禁为准。
+
 ## 已确认的连接
 
 `ClothUpdate` 369369 / `0x32ad500` 的 cross+Animator 分支在 `0x32ad88c` 调读取 manager，再构造六个 GCHandle；`0x32ad954 → 0x5a18270` 已由当前泛型注册表确定为 `CrossFrameJobUtils.Schedule<DoAllInOneJob>`。开放方法 369400，MethodSpec 506099，pointer slot 478569。

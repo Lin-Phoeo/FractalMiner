@@ -9,8 +9,10 @@ Completion sites are conditional on the handle's first qword AT THAT SITE.
 Cross-frame completion uses ScheduleBatchedCrossFrameJobsAndComplete, not the
 ordinary ScheduleBatchedJobsAndComplete. Their internals/handle mutation are
 not ported. Hooks and IsPlaying/collection gates are host-side ordering only.
-No real arrays, setters, jobs, events or solver are executed. Animator deferred
-ClothUpdate and nonempty mesh mapping are explicitly unported, never dropped.
+No real arrays, setters, jobs, events or solver are executed. Animator host and
+mapping-empty DoAllInOneJob order are finite plans in separate observed phases.
+Native delegate scheduling, GCHandle lifetimes and nonempty mapping remain
+unported. A plan is not a completed solve or a published runtime buffer.
 Validation/count caps are adapter policy, not the game's exceptions/defaults.
 """
 
@@ -52,6 +54,15 @@ class ScheduleEvent:
 class SchedulePlan:
     events: tuple[ScheduleEvent, ...]
     master_handle: str
+
+
+@dataclass(frozen=True)
+class AnimatorDelegatePlan:
+    events: tuple[ScheduleEvent, ...]
+    # Diagnostic label for the final call's result. Execute returns void and
+    # does not publish this result to ClothManager.masterJob.
+    last_call_handle: str
+    returns_job_handle: Literal[False] = False
 
 
 class _Plan:
@@ -167,14 +178,15 @@ def plan_cloth_update(
     pre_callback: bool = False,
     post_callback: bool = False,
 ) -> SchedulePlan:
-    """Source order for stable non-Animator cross route or ordinary route.
+    """Source host order for ordinary and stable cross-frame routes.
 
     enabled_team_count and max_update_count are observed AFTER AlwaysTeamUpdate,
     mapping_count at the later mapping gate. They are NOT calculated from dt or
     presumed equal to process Count. Negative Int32 step counts skip the source
     loop (jle); finite positive cap 65536 is adapter-only. Aborted gates do not
-    read unused counts. Cross+Animator with active teams uses a deferred job,
-    not this solver chain. Missing source callees are not implemented by names.
+    read unused counts. Cross+Animator returns after scheduling DoAllInOneJob;
+    its mapping gate and re-read of maxUpdateCount belong to the later Execute
+    plan, not the host's snapshot. Missing callees stay opaque events.
     """
     _boolean(is_playing)
     _boolean(pre_callback)
@@ -191,15 +203,31 @@ def plan_cloth_update(
     _integer(enabled_team_count)
     if not enabled_team_count:
         return plan.finish()  # No post callback, wind or work buffers on this path.
-    if mode.cross_frame and mode.animator_transform:
-        raise NotImplementedError("Cross-frame Animator deferred job is not ported")
     _integer(max_update_count, -(2**31))
-    _integer(mapping_count)
-    if mapping_count:
-        raise NotImplementedError("Nonempty mesh mapping route is not ported")
+    if not (mode.cross_frame and mode.animator_transform):
+        _integer(mapping_count)
+        if mapping_count:
+            raise NotImplementedError("Nonempty mesh mapping route is not ported")
     plan.host("AlwaysWindUpdate")
     plan.host("WorkBufferUpdate")
     plan.clear()
+    if mode.cross_frame and mode.animator_transform:
+        plan.host("VirtualMesh.UpdateBuffer")
+        plan.chain("ReadAnimatorBufferData")
+        for name in (
+            "bmHandle",
+            "tmHandle",
+            "vmHandle",
+            "smHandle",
+            "wmHandle",
+            "meshClothSetHandle",
+        ):
+            plan.host(f"GCHandle.Alloc.{name}")
+        plan.chain("DoAllInOneJob")
+        plan.host("CameraCullingPreProcess")
+        if post_callback:
+            plan.host("OnPostSimulation")
+        return plan.finish()
     last_write = "default"
     if mode.cross_frame:
         read = plan.schedule("ReadTransform", "default")
@@ -232,3 +260,51 @@ def plan_cloth_update(
     if post_callback:
         plan.host("OnPostSimulation")
     return plan.finish()
+
+
+def plan_animator_delegate(
+    *, max_update_count: int, mapping_count: int
+) -> AnimatorDelegatePlan:
+    """369394/0x5a1b0a8: successful mapping-empty Execute ordering only.
+
+    The caller supplies maxUpdateCount from its read AFTER pre-simulation and
+    mappingCount from its later getter. Both observations are required; missing
+    mapping state cannot silently become zero. The five GetTarget events precede local
+    zero-handle scheduling. wmHandle is resolved but its returned object is
+    unused here; the sixth handle is queried only on the unsupported positive
+    mapping path. Step count is signed; nonpositive mapping takes the same skip
+    branch as zero. Validation limits/atomic rejection are adapter policy.
+
+    Typed live targets, native scheduling, complete/free and actual callbacks
+    are not performed by this plan. Each symbol means a callee's returned
+    dependency, which may be native default in the worker synchronous route.
+    The last PostTeamUpdate return is discarded by Execute; it is not the outer
+    deferred job handle or a new ClothManager.masterJob.
+    """
+    _integer(max_update_count, -(2**31))
+    _integer(mapping_count, -(2**31), 2**31 - 1)
+    if mapping_count > 0:
+        raise NotImplementedError("Nonempty Animator mesh mapping route is not ported")
+    plan = _Plan()
+    plan.master = "default"  # Execute initializes a local JobHandle, not host master.
+    for name in ("bmHandle", "tmHandle", "vmHandle", "smHandle", "wmHandle"):
+        plan.host(f"GCHandle.GetTarget.{name}")
+    for call in (
+        "ValidPosition",
+        "PreProxyMeshUpdate",
+        "CalcCenterAndInertiaAndWind",
+        "PreSimulationUpdate",
+        "Collider.PreSimulationUpdate",
+    ):
+        plan.chain(call)
+    for index in range(max_update_count):
+        plan.chain("SimulationStepUpdate", count=max_update_count, index=index)
+    for call in (
+        "CalcDisplayPosition",
+        "PostProxyMeshUpdate",
+        "WriteAnimatorBufferData",
+        "Collider.PostSimulationUpdate",
+        "PostTeamUpdate",
+    ):
+        plan.chain(call)
+    return AnimatorDelegatePlan(tuple(plan.events), plan.master)

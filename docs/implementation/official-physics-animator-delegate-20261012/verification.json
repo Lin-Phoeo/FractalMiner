@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-12",
+  "scope": "Finite stable successful Animator host and mapping-empty DoAllInOneJob ordering and symbolic dependencies; not native jobs, GCHandle lifecycle, live solver or Unity physics",
+  "parent_record_commit": "40e853e854ea5563b9d25eeb1023af79ebe40fb1",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sources": {
+    "binary_sha256": "c24495e51b406f03b03890c4788ee618ae022c991405be5d5b8b787cb775ae89",
+    "metadata_sha256": "0076743397acadf03d3b0064343a963c7c88863b8160526d397e4b3efb96f02e",
+    "delegate": {"method": 369394, "rva": "0x5a1b0a8", "bytes": 1662, "sha256": "86825b2332cac153c0128916853e1acd2e72d5d7ebac4d9cc8bfdf6444be3b0b", "return_type": "System.Void"},
+    "host": {"method": 369369, "rva": "0x32ad500", "bytes": 4388, "sha256": "4bcc1e7897e0d3437dd14e6247d83b4b5c1d06b3fa617fd0a6bc86f88bafea63"},
+    "unwind_families_verified": true,
+    "delegate_instruction_sites": 41,
+    "host_instruction_sites": 16,
+    "additional_method_identities": 4
+  },
+  "gates": {
+    "animator_host_finite_order_recovered": true,
+    "mapping_empty_execute_finite_order_recovered": true,
+    "host_and_execute_count_read_sites_separated": true,
+    "mapping_observation_required_without_default_zero": true,
+    "six_alloc_five_target_reads_preserved_for_empty_mapping": true,
+    "signed_nonpositive_step_and_mapping_branches_preserved": true,
+    "returned_dependencies_threaded": true,
+    "void_execute_result_not_published_as_host_master": true,
+    "nonempty_mesh_mapping_explicitly_rejected": true,
+    "native_schedule_and_worker_execution_verified": false,
+    "gchandle_release_or_fault_lifetime_verified": false,
+    "animator_rw_native_record_creation_and_read_bridge_closed": false,
+    "eleven_live_runtime_record_inputs_supplied": false,
+    "official_candidate_unity_backend_integrated": false,
+    "new_visible_physics_effect_validated": false
+  },
+  "local_reports": {
+    "directory": "D:/EndfieldTechLib/notes/official-physics-animator-delegate-20261012-01",
+    "verify_source_py_sha256": "0854748713a7e3e268e444f394a98ca01ff1f860f165abf51abbf66a8e32f562",
+    "source_verification_02_json_sha256": "61f8cf10f7fa43fcbe010048ca8ae0066ffb40cd5aa288d63aa6842658198cdd",
+    "prior_generic_identity_audit_sha256": "38d231313c38e2e49d2d2c7065c52f4866b2a8974ee8009361f3b48e2739fb67",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-64-animator-delegate-precommit.json",
+    "precommit_guard_sha256": "a041b3bea6bb74a7a57f87c02735686f990a5eb86298f6159273bb5c8c8aa95b",
+    "runtime_executed": false
+  },
+  "raw_artifact_sha256": {
+    "Tools/official_physics_scheduling.py": "daf389a47cd82ff363c4454277964b1cf0b326bd980bcaf274083bd5ebd96974",
+    "Tools/tests/test_official_physics_scheduling.py": "3eccb15fa95b2d8ac800474c080d861b732782daae178e9f5d01c90476e3ff48",
+    "Tools/tests/test_official_physics_animator_delegate.py": "0abce13b2c753f5343bbb80106da8e3cb23ebf0a2566c2168585c0578a1eca70"
+  },
+  "validation": {
+    "missing_interface_collection_red_observed": true,
+    "missing_mapping_observation_default_zero_red_observed": true,
+    "new_delegate_tests": 23,
+    "additional_host_gate_tests": 1,
+    "scheduling_specialty_passed": 91,
+    "scheduling_module_statements": 157,
+    "scheduling_module_branches": 52,
+    "branch_inclusive_coverage_percent": 100,
+    "python_suite_passed": 4541,
+    "subtests_passed": 114,
+    "historical_skipped": 3,
+    "historical_pillow_warnings": 2,
+    "ruff": "PASS",
+    "black": "PASS",
+    "pyright": "0 errors, 0 warnings",
+    "compileall": "PASS",
+    "pip_audit": "No known vulnerabilities found",
+    "independent_agent_review_performed": false,
+    "protected_runtime_files_matched": 7,
+    "saved_selection_groups": 11,
+    "saved_selection_points": 164,
+    "user_main_index_entries_preserved": 9557,
+    "protected_stage_raw_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a"
+  }
+}

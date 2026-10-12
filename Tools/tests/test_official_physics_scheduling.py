@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -24,7 +25,7 @@ def calls(plan):
 ORDINARY = FrameMode(False, False)
 
 
-def cloth(mode=ORDINARY, **kwargs):
+def cloth(mode: Any = ORDINARY, **kwargs):
     values = {"is_playing": True, "enabled_team_count": 1, "max_update_count": 2}
     return plan_cloth_update(mode, **(values | kwargs))
 
@@ -162,9 +163,41 @@ def test_animator_flag_alone_does_not_select_cross_frame_animator_route():
     assert cloth(FrameMode(False, True)) == cloth(FrameMode(False, False))
 
 
-def test_live_cross_animator_route_explicitly_unported_not_ordinary_fallback():
-    with pytest.raises(NotImplementedError, match="Animator"):
-        cloth(FrameMode(True, True))
+def test_cross_animator_host_schedules_deferred_job_and_returns_without_solver():
+    plan = cloth(FrameMode(True, True), pre_callback=True, post_callback=True)
+    assert calls(plan) == [
+        "OnPreSimulation",
+        "FrameUpdate",
+        "CompleteCrossFrame",
+        "ClearMasterJob",
+        "AlwaysTeamUpdate",
+        "AlwaysWindUpdate",
+        "WorkBufferUpdate",
+        "ClearMasterJob",
+        "VirtualMesh.UpdateBuffer",
+        "ReadAnimatorBufferData",
+        "GCHandle.Alloc.bmHandle",
+        "GCHandle.Alloc.tmHandle",
+        "GCHandle.Alloc.vmHandle",
+        "GCHandle.Alloc.smHandle",
+        "GCHandle.Alloc.wmHandle",
+        "GCHandle.Alloc.meshClothSetHandle",
+        "DoAllInOneJob",
+        "CameraCullingPreProcess",
+        "OnPostSimulation",
+    ]
+    jobs = [event for event in plan.events if event.kind == "schedule"]
+    assert [event.call for event in jobs] == ["ReadAnimatorBufferData", "DoAllInOneJob"]
+    assert jobs[0].depends_on == "default"
+    assert jobs[1].depends_on == jobs[0].handle
+    assert plan.master_handle == jobs[1].handle
+    assert (
+        jobs[1].step_count is None
+    )  # Execute reads Team count later, not captured here.
+
+
+def test_cross_animator_host_does_not_read_mapping_count_before_delegate_runs():
+    assert cloth(FrameMode(True, True), mapping_count=None).master_handle != "default"
 
 
 def test_mesh_mapping_route_explicitly_unported_not_silently_dropped():
@@ -212,7 +245,9 @@ def test_early_culling_precedes_restore_and_no_publish_occurs():
 )
 def test_early_return_does_not_restore_or_consume_unused_enabled_count(mode, count):
     assert (
-        plan_early_update(mode, process_count=count, enabled_team_count=None).events
+        plan_early_update(
+            mode, process_count=count, enabled_team_count=cast(Any, None)
+        ).events
         == ()
     )
 
@@ -233,7 +268,7 @@ def test_after_update_animator_culling_then_complete_then_update_data(count):
     "mode", [FrameMode(False, False), FrameMode(False, True), FrameMode(True, False)]
 )
 def test_after_update_other_modes_do_not_read_count(mode):
-    assert plan_after_update(mode, active_team_count=None).events == ()
+    assert plan_after_update(mode, active_team_count=cast(Any, None)).events == ()
 
 
 @pytest.mark.parametrize(
@@ -298,7 +333,7 @@ def test_late_location_rejects_non_int32(value):
 
 def test_late_hook_flag_requires_boolean():
     with pytest.raises(ValueError, match="boolean"):
-        should_update_cloth(0, before_late=0)
+        should_update_cloth(0, before_late=cast(Any, 0))
 
 
 def test_two_serial_synthetic_frames_consume_previous_snapshot_not_new_result():
