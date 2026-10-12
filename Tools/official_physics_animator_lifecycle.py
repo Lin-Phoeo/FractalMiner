@@ -1,4 +1,4 @@
-"""Finite TeamManager.UpdateTeamAnimatorData lifecycle, not Unity bindings.
+"""Finite TeamManager Animator membership/rebuild, not Unity bindings.
 
 369500/0x5a2283c consumes ExNativeArray<Int16> team IDs and a
 TransformAccessArray.  A non-empty dirty-team HashSet is mapped to a unique
@@ -24,6 +24,14 @@ construct Unity AnimationTransformRWBufferHandle, call Animator, reproduce
 native container allocation/lifetime, execute jobs, or complete scheduling.
 Immutable copies avoid side effects and do not model source partial writes on
 exceptions.  Range/shape rejection is adapter policy, not native equivalence.
+
+Add369502/0x38e2800 consumes caller-resolved GetComponentInParent<Animator>
+and Unity-null outcome. Valid Animator updates the GLOBAL TeamManager instance
+map and THIS manager's object map; null leaves existing entries alone. Both
+outcomes add THIS manager's dirty Team. These maps are not assumed aliased.
+Clear369501/0x5a20b08 removes the selected Team from THIS manager's two maps,
+not records, handlers, dirty sets or Animator bindings. Neither function is a
+GCHandle release/complete or the full RemoveTeam lifecycle.
 """
 
 from __future__ import annotations
@@ -41,6 +49,83 @@ from official_physics_registration import _int32
 class AnimatorObject:
     object_identity: int
     instance_id: int
+
+
+@dataclass(frozen=True)
+class AnimatorMembershipAddResult:
+    global_team_to_animator_instance: dict[int, int] | None
+    local_team_to_animator: dict[int, AnimatorObject | None]
+    dirty_teams: frozenset[int]
+    operations: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class AnimatorMembershipClearResult:
+    team_to_animator_instance: dict[int, int]
+    team_to_animator: dict[int, AnimatorObject | None]
+    operations: tuple[str, ...]
+
+
+def add_team_animator_data(
+    *,
+    team_id: int,
+    resolved_animator: AnimatorObject | None,
+    global_team_to_animator_instance: Mapping[int, int] | None,
+    local_team_to_animator: Mapping[int, AnimatorObject | None],
+    dirty_teams: AbstractSet[int],
+) -> AnimatorMembershipAddResult:
+    """Finite successful AddTeamAnimatorData with explicit global/local targets.
+
+    None is the caller-resolved Unity-null result, including destroyed objects;
+    Python identity alone cannot establish it. No GetComponent, singleton read,
+    GetInstanceID, native map/set mutation or binding creation occurs here.
+    Returning detached snapshots copies provided state, not native read timing.
+    """
+    team_id = _int32(team_id)
+    instances = (
+        None
+        if global_team_to_animator_instance is None
+        else dict(global_team_to_animator_instance)
+    )
+    objects = dict(local_team_to_animator)
+    dirty = frozenset(_int32(value) for value in dirty_teams) | {team_id}
+    operations: tuple[str, ...] = ()
+    if resolved_animator is not None:
+        if instances is None:
+            raise ValueError(
+                "Adapter requires selected global TeamManager instance map"
+            )
+        animator = AnimatorObject(
+            _int32(resolved_animator.object_identity),
+            _int32(resolved_animator.instance_id),
+        )
+        instances[team_id] = animator.instance_id
+        objects[team_id] = animator
+        operations = ("set-global-instance", "set-local-animator")
+    return AnimatorMembershipAddResult(
+        instances, objects, dirty, operations + ("add-dirty",)
+    )
+
+
+def clear_team_animator_data(
+    *,
+    team_id: int,
+    team_to_animator_instance: Mapping[int, int],
+    team_to_animator: Mapping[int, AnimatorObject | None],
+) -> AnimatorMembershipClearResult:
+    """Remove two THIS-manager keys only, including absent keys and Team0.
+
+    RemoveTeam has its own isValid/Team0/other-resource gates, not this method.
+    Source dirty/record/handler state is left entirely outside this operation.
+    Removing one map key unsuccessfully does not skip the second removal.
+    """
+    team_id = _int32(team_id)
+    instances, objects = dict(team_to_animator_instance), dict(team_to_animator)
+    instances.pop(team_id, None)
+    objects.pop(team_id, None)
+    return AnimatorMembershipClearResult(
+        instances, objects, ("remove-instance", "remove-animator")
+    )
 
 
 @dataclass(frozen=True)
