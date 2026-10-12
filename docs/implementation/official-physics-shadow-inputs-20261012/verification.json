@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-12",
+  "scope": "Read-only Unity NativeArray publication of sealed official-physics candidate transform and Team inputs under a real Typhoeus MMD pose; no solver and no character output writes",
+  "parent_record_commit": "d2592b95a9449b99c7b09eb4ebfbdd7cc87a3e62",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sealed_inputs": {
+    "bindings_sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "identity_sha256": "3c33b2a74b82f50b424fdd77bf6248d2fe29a417761d10708b2e2260c3182f31",
+    "layout_sha256": "a783648e4a0881dcd1b53d8a4145c009bdba153e7556429edc3883f985ede3b4"
+  },
+  "unity_gate": {
+    "unity_version": "2022.3.30f1",
+    "checks_passed": 21,
+    "groups": 11,
+    "resolved_skin_slots": 140,
+    "positive_weighted_slots": 92,
+    "transform_capacity": 151,
+    "particle_team_capacity": 140,
+    "shadow_render_proxies": 11,
+    "shadow_helper_proxies": 9,
+    "structural_aliases": 1,
+    "frame0_transform_writes": 151,
+    "frame0_particle_team_writes": 140,
+    "frame2_transform_writes": 151,
+    "frame2_particle_team_writes": 140,
+    "moved_transform_slots": 140,
+    "max_matrix_error": 0.0,
+    "max_rotation_write_degrees": 0.0,
+    "shadow_only": true,
+    "solver_executed": false,
+    "solver_outputs_written": false,
+    "temporary_proxies_removed_on_dispose": true
+  },
+  "negative_gates": {
+    "bad_sha_rejected_before_publication": true,
+    "existing_output_rejected_before_overwrite": true
+  },
+  "regression": {
+    "alternate_secondary_motion_unity_checks": 692,
+    "alternate_secondary_motion_rendered_frames": 61,
+    "python_suite_passed": 4754,
+    "python_suite_skipped": 3,
+    "python_subtests_passed": 114,
+    "historical_pillow_warnings": 2
+  },
+  "private_reports": {
+    "green_directory": "D:/EndfieldTechLib/notes/official-physics-shadow-20261012-01-green-09",
+    "green_report_sha256": "44238922217ed898b6cc32dd9ead2abff22da65b1d4b698c149600ecea899936",
+    "green_preview_sha256": "221e1e2413a2f8cac8b60fc9624e8dbe90900fde1b8543f5d67afa62fd5c7112",
+    "green_unity_log_sha256": "6b54eeb98a8c6ea98939d014d37f38cc4e76711a3723609add98d9cb23aa5a4a",
+    "bad_seal_report_sha256": "d200ea9e5613f4a28fcfd1911ccb2851345e68510d7129b5992b0d73b7599ba4",
+    "bad_seal_log_sha256": "960b58defd086cb6900a26c270e925618782af2f8f39fbc8240c9b5316aaa73f",
+    "fresh_output_rejection_log_sha256": "50067805d0b5e39b81817154c1e5c68f8f4dc9f2d81ef9ab343eee79812fc23e",
+    "alternate_regression_report_sha256": "ac601c082c85c9a524ad3a58d0603b499d915b74a998dcfe7535ae69d49756c6",
+    "alternate_regression_unity_log_sha256": "7619bb0e49afddccb73b7942203302884b94ffae34d72e24ba905139a767a98a",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-79-official-shadow-precommit.json",
+    "precommit_guard_sha256": "206713b487b5ca93f98d41f7da20fda7e895bafaa635a2330bee304795e942db"
+  },
+  "raw_artifact_sha256": {
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowInputs.cs": "9f560abaca557844295c5a76c7cb7cc59fb009e0877baf3f89fa5d060a69e93d",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowInputs.cs.meta": "4c415f2cda47902744d1e722eb1bf68e64647b14c2e00a49af848e22a734cab4",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowValidation.cs": "a66ff8d582b051af0386f7fbd08f001489b41763f700a373d5f25d9ad031ef2e",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowValidation.cs.meta": "f9117db70b35cb8c280d81af50a6a030c1f1ad5774d6b8883cf36a784495d0c6"
+  },
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "official_solver_integrated": false,
+  "visible_official_physics_claimed": false
+}
