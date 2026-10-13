@@ -1,0 +1,74 @@
+{
+  "date": "2026-10-12",
+  "scope": "Live Unity one-hot world-proxy skinning plus reset14 NativeArray publication for the official-physics shadow candidate under canonical and real MMD frame0/frame2 poses; no solver and no character output writes",
+  "parent_record_commit": "6138bcbebbebc7366b9f78b9181504cc9c690a77",
+  "main_head_preserved": "fc9d4869803f439ffff83311986190e8a8b5ade3",
+  "main_index_raw_sha256_preserved": "edaf3be70825512a5395d3e9ec57f4d9c677020b772461f21d85f10730b1dcd1",
+  "sealed_inputs": {
+    "bindings_sha256": "8dad33d1dcbeee882233bb8803b7141b3d2c3817aeed23a619f5c0eeb8fbe3c8",
+    "identity_sha256": "3c33b2a74b82f50b424fdd77bf6248d2fe29a417761d10708b2e2260c3182f31",
+    "layout_sha256": "a783648e4a0881dcd1b53d8a4145c009bdba153e7556429edc3883f985ede3b4",
+    "imports_sha256": "3b9e2546c12fbe7b2c21e4cad6acf9faba8c1df8b258dad73ef92c12dcde9af7",
+    "global_state_sha256": "f479050dbb6e9c63a5b5fe25510eea69a9e9256f039a75f590c1d41b7ee924aa"
+  },
+  "unity_gate": {
+    "unity_version": "2022.3.30f1",
+    "checks_passed": 25,
+    "proxy_capacity": 140,
+    "particle_capacity": 140,
+    "canonical_world_writes": 140,
+    "canonical_reset_field_writes": 1960,
+    "mmd_frame0_world_writes": 140,
+    "mmd_frame0_reset_field_writes": 1960,
+    "mmd_frame2_world_writes": 140,
+    "mmd_frame2_reset_field_writes": 1960,
+    "mmd_frame0_to_frame2_moved_world_slots": 140,
+    "max_sealed_rest_position_provenance_error": 3.588674815091508e-7,
+    "max_sealed_rest_rotation_provenance_error_degrees": 0.0,
+    "max_live_position_error": 4.1099772829511496e-7,
+    "max_live_rotation_error_degrees": 0.0,
+    "max_reset_error": 0.0,
+    "max_character_rotation_write_degrees": 0.0,
+    "shadow_only": true,
+    "solver_executed": false,
+    "solver_outputs_written": false
+  },
+  "negative_gates": {
+    "bad_imports_sha_rejected_before_publication": true,
+    "existing_output_rejected_before_overwrite": true
+  },
+  "regression": {
+    "parent_shadow_input_unity_checks": 21,
+    "alternate_secondary_motion_unity_checks": 692,
+    "alternate_secondary_motion_rendered_frames": 61,
+    "python_suite_passed": 4754,
+    "python_suite_skipped": 3,
+    "python_subtests_passed": 114,
+    "historical_pillow_warnings": 2
+  },
+  "private_reports": {
+    "green_directory": "D:/EndfieldTechLib/notes/official-physics-shadow-world-20261012-01-green-08-visible",
+    "green_report_sha256": "d758004bd4c8e8da902e6f224574608bbb8d2683c4631af15f7af2338b5ed012",
+    "green_preview_sha256": "90aba1b45a0738cf8aa35d5ad35637d7cf39dd34baa1714a1ade6d693be44ba0",
+    "green_unity_log_sha256": "6840b8711983c2dc639780fcada54e70c9cb6251ddf6c933354f3bed74bac65b",
+    "bad_imports_sha_report_sha256": "251d0b924f7ea6d2ae7ebadc6f0da0ff103e9b66371a54172e5c856fe06859b6",
+    "bad_imports_sha_log_sha256": "3bd11ae55d7d3fd287e04609631a5fa3aac546256854cd59c2fe3d9d60765112",
+    "fresh_output_rejection_log_sha256": "ad2bb1204456fe3696752c1d201ddd7e0a28b98392b0c2ab0d50b985906d3adf",
+    "parent_shadow_report_sha256": "44238922217ed898b6cc32dd9ead2abff22da65b1d4b698c149600ecea899936",
+    "alternate_regression_report_sha256": "ac601c082c85c9a524ad3a58d0603b499d915b74a998dcfe7535ae69d49756c6",
+    "alternate_regression_unity_log_sha256": "1a9326d952e6449f6e4322e46dd7db11e22e84a21aa3cff267eb7eb05e36d642",
+    "python_full_suite_log_sha256": "cbbfdec1dc3deea94b78756740783a47706406620150d834308150829a18c539",
+    "precommit_guard": "D:/EndfieldTechLib/notes/official-physics-collider-production-20261010-01/guard-81-official-shadow-world-precommit.json",
+    "precommit_guard_sha256": "206713b487b5ca93f98d41f7da20fda7e895bafaa635a2330bee304795e942db"
+  },
+  "raw_artifact_sha256": {
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowInputs.cs": "6c945fc1090186e362dc39ca8e824918ddc78272ae32a9894eb1417f62eb0097",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowWorldInputs.cs": "b870bf6c691256a4851f71ab0236911052aa7aa38a58a4685e52801cdfb94668",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowWorldInputs.cs.meta": "d638fe24a522e502f9510a704da8cb9836a25d36ef97ea98f0291ebe33fa4114",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowWorldValidation.cs": "4d9422761f8dfe8c99e8230ce10774d26821b8a5d88867b6439e2427d5d0437f",
+    "Assets/EndfieldShaderPack/Editor/EndfieldOfficialPhysicsShadowWorldValidation.cs.meta": "c0be6904f41df0c88a0658fa6546f89090bceadf80a206f2e2bd634a257cd55a"
+  },
+  "protected_stage_sha256": "5b4fd74ccbb85348e5855f1741fe32cb2754a13afca8327471c1e8573216d13a",
+  "official_solver_integrated": false,
+  "visible_official_physics_claimed": false
+}

@@ -136,6 +136,9 @@ namespace EndfieldShaderPack
         readonly Transform[] transformSlots;
         readonly ParticleWindow[] particleWindows;
         readonly GameObject[] ownedShadowObjects;
+        readonly string[] groupNames;
+        readonly int[] groupTransformStarts;
+        readonly int[] groupSkinCounts;
         NativeArray<float4x4> transformMatrices;
         NativeArray<int> transformInstanceIds;
         NativeArray<int> transformParentInstanceIds;
@@ -152,11 +155,17 @@ namespace EndfieldShaderPack
             int shadowRenderProxyCount,
             int shadowHelperProxyCount,
             int structuralAliasCount,
+            string[] groupNames,
+            int[] groupTransformStarts,
+            int[] groupSkinCounts,
             GameObject[] ownedShadowObjects)
         {
             this.transformSlots = transformSlots;
             this.particleWindows = particleWindows;
             this.ownedShadowObjects = ownedShadowObjects;
+            this.groupNames = groupNames;
+            this.groupTransformStarts = groupTransformStarts;
+            this.groupSkinCounts = groupSkinCounts;
             GroupCount = groupCount;
             ResolvedSkinSlotCount = resolvedSkinSlotCount;
             PositiveWeightedSlotCount = positiveWeightedSlotCount;
@@ -188,6 +197,34 @@ namespace EndfieldShaderPack
         public bool SolverExecuted => false;
         public bool SolverOutputsWritten => false;
         public Transform[] ResolvedTransforms => (Transform[])transformSlots.Clone();
+
+        internal string GroupName(int index)
+        {
+            ThrowIfDisposed();
+            Require(index >= 0 && index < groupNames.Length, "Group index is out of range");
+            return groupNames[index];
+        }
+
+        internal int GroupTransformStart(int index)
+        {
+            ThrowIfDisposed();
+            Require(index >= 0 && index < groupTransformStarts.Length, "Group index is out of range");
+            return groupTransformStarts[index];
+        }
+
+        internal int GroupSkinCount(int index)
+        {
+            ThrowIfDisposed();
+            Require(index >= 0 && index < groupSkinCounts.Length, "Group index is out of range");
+            return groupSkinCounts[index];
+        }
+
+        internal Transform TransformSlot(int index)
+        {
+            ThrowIfDisposed();
+            Require(index >= 0 && index < transformSlots.Length, "Transform slot is out of range");
+            return transformSlots[index];
+        }
 
         static void Require(bool condition, string message)
         {
@@ -464,6 +501,9 @@ namespace EndfieldShaderPack
 
             var transformSlots = new Transform[transformCapacity];
             var particleWindows = new ParticleWindow[layout.teams.Length];
+            var groupNames = new string[layout.teams.Length];
+            var groupTransformStarts = new int[layout.teams.Length];
+            var groupSkinCounts = new int[layout.teams.Length];
             var ownedShadowObjects = new List<GameObject>();
             int shadowRenderProxyCount = 0;
             int shadowHelperProxyCount = 0;
@@ -474,6 +514,9 @@ namespace EndfieldShaderPack
                 {
                     IdentityGroup group = identities.groups[groupIndex];
                     LayoutTeam team = layout.teams[groupIndex];
+                    groupNames[groupIndex] = group.name;
+                    groupTransformStarts[groupIndex] = team.proxy_transform.start;
+                    groupSkinCounts[groupIndex] = group.skin_bone_count;
                     var groupTransforms = new Transform[group.ordered_transform_identities.Length];
                     int groupPositiveWeightedCount = 0;
                     for (int local = 0; local < groupTransforms.Length; local++)
@@ -533,7 +576,8 @@ namespace EndfieldShaderPack
                 return new EndfieldOfficialPhysicsShadowInputs(
                     transformSlots, particleWindows, particleCapacity, layout.teams.Length, resolvedSkinCount,
                     positiveWeightedCount, shadowRenderProxyCount, shadowHelperProxyCount,
-                    structuralAliasCount, ownedShadowObjects.ToArray());
+                    structuralAliasCount, groupNames, groupTransformStarts, groupSkinCounts,
+                    ownedShadowObjects.ToArray());
             }
             catch
             {
